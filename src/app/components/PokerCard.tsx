@@ -1,4 +1,5 @@
 import { motion } from "motion/react";
+import { useSettingsStore, CARD_SKINS } from "../stores/settingsStore";
 
 export type Suit = "spades" | "hearts" | "diamonds" | "clubs";
 export type Rank = "A" | "K" | "Q" | "J" | "10" | "9" | "8" | "7" | "6" | "5" | "4" | "3" | "2";
@@ -16,13 +17,17 @@ const suitSymbols: Record<Suit, string> = {
   spades: "♠", hearts: "♥", diamonds: "♦", clubs: "♣",
 };
 
-/* Classic real card colors — black & red only */
-const suitColors: Record<Suit, { primary: string; shadow: string }> = {
-  spades:   { primary: "#111111", shadow: "rgba(0,0,0,0.4)" },          // black
-  hearts:   { primary: "#CC0000", shadow: "rgba(204,0,0,0.35)" },       // classic red
-  diamonds: { primary: "#CC0000", shadow: "rgba(204,0,0,0.35)" },       // classic red
-  clubs:    { primary: "#111111", shadow: "rgba(0,0,0,0.4)" },          // black
-};
+/* Dynamic card colors from settings */
+function getSuitColors(): Record<Suit, { primary: string; shadow: string }> {
+  const skinId = useSettingsStore.getState().cardSkin;
+  const skin = CARD_SKINS[skinId as keyof typeof CARD_SKINS] ?? CARD_SKINS[1];
+  return {
+    spades:   { primary: skin.spades, shadow: `${skin.spades}66` },
+    hearts:   { primary: skin.hearts, shadow: `${skin.hearts}66` },
+    diamonds: { primary: skin.diamonds, shadow: `${skin.diamonds}66` },
+    clubs:    { primary: skin.clubs, shadow: `${skin.clubs}66` },
+  };
+}
 
 const sizeMap = {
   xs: { w: 28, h: 40, rank: 9, suitS: 7.5, center: 14, r: 3, p: 2, stroke: 0.5, shadow: 4 },
@@ -34,6 +39,7 @@ const sizeMap = {
 
 export function PokerCard({ suit, rank, faceDown = false, size = "md", highlight = false, className }: PokerCardProps) {
   const s = sizeMap[size];
+  const suitColors = getSuitColors();
   const sc = suitColors[suit];
   const sym = suitSymbols[suit];
   const uid = `card-${suit}-${rank}-${size}-${Math.random().toString(36).slice(2, 6)}`;

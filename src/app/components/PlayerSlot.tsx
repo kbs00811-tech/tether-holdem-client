@@ -22,19 +22,8 @@ interface PlayerSlotProps {
   onSitDown?: () => void;
 }
 
-/* Avatar images */
-const avatarImages = [
-  "/src/assets/avatars/01_bull.png",
-  "/src/assets/avatars/02_fox.png",
-  "/src/assets/avatars/03_penguin.png",
-  "/src/assets/avatars/04_ninja.png",
-  "/src/assets/avatars/05_shark.png",
-  "/src/assets/avatars/06_hacker.png",
-  "/src/assets/avatars/07_phoenix.png",
-  "/src/assets/avatars/08_wolf.png",
-  "/src/assets/avatars/09_astronaut.png",
-  "/src/assets/avatars/10_eagle.png",
-];
+import { AVATAR_IMAGES } from "../stores/settingsStore";
+const avatarImages = AVATAR_IMAGES;
 const avatarColors = [
   "#F7931A", "#627EEA", "#26A17B", "#FF6B35", "#7C3AED",
   "#059669", "#DC2626", "#D4A50A", "#64748B", "#DB2777",

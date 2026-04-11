@@ -6,6 +6,7 @@ import { motion } from "motion/react";
 import { useGameStore } from "../stores/gameStore";
 import { useSocket } from "../hooks/useSocket";
 import { SettingsModal } from "./SettingsModal";
+import { useSettingsStore, AVATAR_IMAGES } from "../stores/settingsStore";
 
 export function Header() {
   const location = useLocation();
@@ -14,8 +15,7 @@ export function Header() {
   const balance = 12450.5;
   const [showPromo, setShowPromo] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
-  const [currentAvatar, setCurrentAvatar] = useState(3);
-  const [currentCardSkin, setCurrentCardSkin] = useState(1);
+  const currentAvatar = useSettingsStore(s => s.avatar);
 
   const navItems = [
     { label: "Lobby", path: "/", exact: true },
@@ -140,7 +140,7 @@ export function Header() {
                 style={{
                   boxShadow: "0 0 0 2px rgba(255,107,53,0.15)",
                 }}>
-                <img src={`/src/assets/avatars/${String(currentAvatar + 1).padStart(2, '0')}_${['bull','fox','penguin','ninja','shark','hacker','phoenix','wolf','astronaut','eagle'][currentAvatar]}.png`}
+                <img src={AVATAR_IMAGES[currentAvatar] ?? AVATAR_IMAGES[0]}
                   alt="avatar" className="w-full h-full object-cover" />
               </button>
 
@@ -179,17 +179,7 @@ export function Header() {
         </div>
       </header>
 
-      <SettingsModal
-        open={showSettings}
-        onOpenChange={setShowSettings}
-        currentAvatar={currentAvatar}
-        onChangeAvatar={(id) => {
-          setCurrentAvatar(id);
-          send({ type: 'SET_PRE_ACTION', action: null } as any); // placeholder — 서버에 avatar 변경은 추후
-        }}
-        currentCardSkin={currentCardSkin}
-        onChangeCardSkin={setCurrentCardSkin}
-      />
+      <SettingsModal open={showSettings} onOpenChange={setShowSettings} />
     </>
   );
 }

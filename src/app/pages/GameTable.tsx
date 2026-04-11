@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useGameStore } from "../stores/gameStore";
 import { useSocket } from "../hooks/useSocket";
 import { playSound } from "../hooks/useSound";
+import { useSettingsStore, TABLE_FELTS } from "../stores/settingsStore";
 
 // Suit 변환: 서버(1-4) → 피그마("spades" etc.)
 const SUIT_MAP: Record<number, "spades"|"hearts"|"diamonds"|"clubs"> = {
@@ -552,10 +553,10 @@ export default function GameTable() {
               style={{ borderRadius: 145, border: "1.5px solid rgba(38,161,123,0.2)" }}
             />
 
-            {/* Felt */}
+            {/* Felt — dynamic color from settings */}
             <div className="absolute inset-x-[11%] inset-y-[6.2%] overflow-hidden" style={{
               borderRadius: 140,
-              background: `radial-gradient(ellipse at 50% 40%, #1A7A50 0%, #167045 15%, #126540 30%, #0E5838 45%, #0B4C30 60%, #084028 75%, #063622 90%, #052E1C 100%)`,
+              background: TABLE_FELTS[useSettingsStore.getState().tableFelt as keyof typeof TABLE_FELTS]?.gradient ?? TABLE_FELTS[1].gradient,
               boxShadow: "inset 0 0 60px rgba(0,0,0,0.3), inset 0 -20px 40px rgba(0,0,0,0.12)",
             }}>
               <div className="absolute inset-x-[12%] inset-y-[10%]" style={{ borderRadius: 100, border: "1px solid rgba(255,255,255,0.03)" }} />
