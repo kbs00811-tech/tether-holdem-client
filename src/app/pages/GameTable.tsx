@@ -390,6 +390,28 @@ export default function GameTable() {
               <Shield className="h-3.5 w-3.5 text-[#34D399]" />
             </div>
           )}
+          {/* Hand History */}
+          <button onClick={() => { send({ type: 'GET_HAND_HISTORY', limit: 10 }); toast.success('History loaded'); }}
+            className="px-2 py-1 rounded-md text-[10px] font-semibold transition-all"
+            style={{ background: "rgba(255,255,255,0.03)", color: "#4A5A70" }}>
+            History
+          </button>
+          {/* Sit Out toggle */}
+          {seated && (
+            <button onClick={() => { send({ type: 'SIT_OUT' }); toast.success('Sitting out'); }}
+              className="px-2 py-1 rounded-md text-[10px] font-semibold transition-all"
+              style={{ background: "rgba(255,255,255,0.03)", color: "#4A5A70" }}>
+              Sit Out
+            </button>
+          )}
+          {/* Show Cards (after win) */}
+          {showResult && (
+            <button onClick={() => { send({ type: 'SHOW_CARDS' }); toast.success('Cards shown'); }}
+              className="px-2 py-1 rounded-md text-[10px] font-semibold transition-all"
+              style={{ background: "rgba(52,211,153,0.08)", color: "#34D399" }}>
+              Show
+            </button>
+          )}
           <button onClick={() => setIsMuted(!isMuted)} className="w-9 h-9 rounded-lg flex items-center justify-center"
             style={{ background: "rgba(255,255,255,0.03)" }}>
             {isMuted ? <VolumeX className="h-4 w-4 text-[#4A5A70]" /> : <Volume2 className="h-4 w-4 text-[#4A5A70]" />}
@@ -834,6 +856,25 @@ export default function GameTable() {
                 </motion.button>
               </div>
             </>
+          ) : seated && phase !== "WAITING" && phase !== "RESULT" ? (
+            /* Pre-action buttons — select action before your turn */
+            <div className="py-3">
+              <div className="text-[9px] text-[#2A3650] text-center mb-2 uppercase tracking-wider">Pre-select action</div>
+              <div className="flex gap-2 justify-center">
+                {[
+                  { label: "Fold", action: 0, color: "#C62828", bg: "rgba(198,40,40,0.08)" },
+                  { label: "Check/Fold", action: 1, color: "#4A5A70", bg: "rgba(255,255,255,0.02)" },
+                  { label: "Call Any", action: 2, color: "#2E7D32", bg: "rgba(46,125,50,0.08)" },
+                ].map(pre => (
+                  <button key={pre.label}
+                    onClick={() => { send({ type: 'SET_PRE_ACTION', action: pre.action as any }); toast.success(`Pre-action: ${pre.label}`); }}
+                    className="px-4 py-2 rounded-lg text-[11px] font-semibold transition-all active:scale-95"
+                    style={{ background: pre.bg, color: pre.color, border: `1px solid ${pre.color}22` }}>
+                    {pre.label}
+                  </button>
+                ))}
+              </div>
+            </div>
           ) : (
             <div className="py-4 text-center">
               <span className="text-xs text-[#3D4F65]">

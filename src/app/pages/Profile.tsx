@@ -3,15 +3,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs"
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
 import { EmptyState } from "../components/EmptyState";
 import { useNavigate } from "react-router";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "motion/react";
 import { useGameStore } from "../stores/gameStore";
+import { useSocket } from "../hooks/useSocket";
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { connected } = useGameStore();
+  const { send, connected } = useSocket();
   const [hasPlayedGames] = useState(true);
   const [period, setPeriod] = useState<"week" | "month" | "all">("week");
+
+  // 서버에서 통계 요청
+  useEffect(() => {
+    if (connected) send({ type: 'GET_MY_STATS' });
+  }, [connected, send]);
 
   const stats = {
     totalHands: 12458, winRate: 54.2, totalProfit: 8450.75,

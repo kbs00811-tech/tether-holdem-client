@@ -4,8 +4,10 @@ import { Badge } from "../components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { motion } from "motion/react";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
+import { useGameStore } from "../stores/gameStore";
+import { useSocket } from "../hooks/useSocket";
 
 interface Tournament {
   id: string;
@@ -181,9 +183,34 @@ function TournamentDetailModal({ tournament }: { tournament: Tournament }) {
 
 // ── Main Page ──────────────────────────────────────────
 export default function TournamentLobby() {
+  const { send, connected } = useSocket();
+  const serverTournaments = useGameStore(s => s.tournaments);
   const [filter, setFilter] = useState<string>("all");
-  const featured = mockTournaments.find(t => t.featured);
-  const others = mockTournaments.filter(t => !t.featured);
+
+  // 서버에서 토너먼트 목록 요청
+  useEffect(() => {
+    if (connected) {
+      send({ type: 'GET_TOURNAMENTS' });
+      const t = setInterval(() => send({ type: 'GET_TOURNAMENTS' }), 10000);
+      return () => clearInterval(t);
+    }
+  }, [connected, send]);
+
+  // 서버 데이터 → 로컬 형식 (서버 데이터 있으면 사용, 없으면 mock)
+  const allTournaments: Tournament[] = serverTournaments.length > 0
+    ? serverTournaments.map((t: any, i: number) => ({
+        id: t.id, name: t.name,
+        startTime: new Date(t.startTime).toLocaleString(),
+        buyIn: t.buyIn / 100, guaranteed: t.guaranteedPrize / 100,
+        players: t.playerCount, maxPlayers: t.maxPlayers,
+        status: t.status as any,
+        structure: (["Regular", "Turbo", "PKO", "Hyper"] as const)[i % 4],
+        featured: i === 0,
+      }))
+    : mockTournaments;
+
+  const featured = allTournaments.find(t => t.featured);
+  const others = allTournaments.filter(t => !t.featured);
   const filtered = filter === "all" ? others : others.filter(t => t.structure === filter);
 
   return (

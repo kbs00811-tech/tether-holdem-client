@@ -30,6 +30,7 @@ interface GameStore {
   serverSeedHash: string | null;
   equities: { playerId: string; equity: number }[] | null;
   chatMessages: { playerId: string; nickname: string; message: string; time: number }[];
+  tournaments: any[];
 
   setConnected: (v: boolean) => void;
   handleServerMessage: (msg: ServerMessage) => void;
@@ -49,6 +50,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   serverSeedHash: null,
   equities: null,
   chatMessages: [],
+  tournaments: [],
 
   setConnected: (v) => set({ connected: v }),
 
@@ -134,6 +136,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
             message: msg.message, time: Date.now(),
           }],
         }));
+        break;
+      case 'TOURNAMENT_LIST':
+        set({ tournaments: msg.tournaments });
         break;
       case 'ERROR':
         console.error(`[Server] ${msg.code}: ${msg.message}`);
