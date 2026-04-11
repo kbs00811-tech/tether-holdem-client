@@ -25,23 +25,21 @@ interface PokerRoom {
 }
 
 const mockRooms: PokerRoom[] = [
-  { id: "1", name: "Micro Stakes", smallBlind: 10, bigBlind: 20, currentPlayers: 4, maxPlayers: 9, minBuyIn: 400, maxBuyIn: 2000, status: "playing", variant: "NL" },
-  { id: "2", name: "Low Stakes", smallBlind: 50, bigBlind: 100, currentPlayers: 7, maxPlayers: 9, minBuyIn: 2000, maxBuyIn: 10000, status: "playing", variant: "NL" },
-  { id: "3", name: "Medium Stakes", smallBlind: 100, bigBlind: 200, currentPlayers: 2, maxPlayers: 6, minBuyIn: 4000, maxBuyIn: 20000, status: "waiting", variant: "NL" },
-  { id: "4", name: "High Rollers", smallBlind: 500, bigBlind: 1000, currentPlayers: 5, maxPlayers: 6, minBuyIn: 20000, maxBuyIn: 100000, status: "playing", variant: "NL" },
-  { id: "5", name: "VIP Room", smallBlind: 1000, bigBlind: 2000, currentPlayers: 1, maxPlayers: 9, minBuyIn: 40000, maxBuyIn: 200000, status: "waiting", variant: "NL" },
-  { id: "6", name: "Heads-Up Pro", smallBlind: 250, bigBlind: 500, currentPlayers: 0, maxPlayers: 2, minBuyIn: 10000, maxBuyIn: 50000, status: "waiting", variant: "HU" },
+  { id: "1", name: "Beginner", smallBlind: 500, bigBlind: 1000, currentPlayers: 4, maxPlayers: 8, minBuyIn: 50000, maxBuyIn: 200000, status: "playing", variant: "NL" },
+  { id: "2", name: "Standard", smallBlind: 1000, bigBlind: 2000, currentPlayers: 7, maxPlayers: 8, minBuyIn: 100000, maxBuyIn: 400000, status: "playing", variant: "NL" },
+  { id: "3", name: "Semi-Pro", smallBlind: 5000, bigBlind: 10000, currentPlayers: 2, maxPlayers: 6, minBuyIn: 500000, maxBuyIn: 2000000, status: "waiting", variant: "NL" },
+  { id: "4", name: "High Roller", smallBlind: 25000, bigBlind: 50000, currentPlayers: 5, maxPlayers: 6, minBuyIn: 2500000, maxBuyIn: 10000000, status: "playing", variant: "NL" },
+  { id: "5", name: "VIP", smallBlind: 50000, bigBlind: 100000, currentPlayers: 1, maxPlayers: 8, minBuyIn: 5000000, maxBuyIn: 20000000, status: "waiting", variant: "NL" },
+  { id: "6", name: "Heads-Up", smallBlind: 5000, bigBlind: 10000, currentPlayers: 0, maxPlayers: 2, minBuyIn: 500000, maxBuyIn: 2000000, status: "waiting", variant: "HU" },
 ];
 
 const holdemCategories = [
-  { icon: Flame, label: "No Limit", color: "#FF6B35", tables: 48, active: true },
-  { icon: Zap, label: "Speed", color: "#A78BFA", tables: 12 },
-  { icon: Crown, label: "VIP", color: "#E5B800", tables: 6 },
-  { icon: Users, label: "Heads-Up", color: "#22D3EE", tables: 15 },
-  { icon: Star, label: "Sit & Go", color: "#F472B6", tables: 24 },
-  { icon: Trophy, label: "MTT", color: "#34D399", tables: 8 },
-  { icon: Clock, label: "Short Deck", color: "#FB923C", tables: 10 },
-  { icon: DollarSign, label: "PLO", color: "#60A5FA", tables: 18 },
+  { icon: Flame, label: "All", color: "#FF6B35", tables: 48, active: true },
+  { icon: DollarSign, label: "Beginner", color: "#34D399", tables: 12 },
+  { icon: Zap, label: "Standard", color: "#60A5FA", tables: 15 },
+  { icon: Crown, label: "High Roller", color: "#E5B800", tables: 6 },
+  { icon: Users, label: "Heads-Up", color: "#22D3EE", tables: 8 },
+  { icon: Trophy, label: "Tournament", color: "#A78BFA", tables: 10 },
 ];
 
 export default function Lobby() {
@@ -221,42 +219,26 @@ export default function Lobby() {
         </div>
       </section>
 
-      {/* ═══════ CATEGORIES ═══════ */}
+      {/* ═══════ FILTER TABS — Clean & Large ═══════ */}
       <section className="mx-3 sm:mx-5 mt-5">
-        <div className="flex items-center justify-between mb-3">
-          <h2 className="text-[13px] font-bold text-white">Game Category</h2>
-        </div>
-        <div className="grid grid-cols-4 sm:grid-cols-8 gap-1.5">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-none">
           {holdemCategories.map((cat) => {
             const isActive = activeCategory === cat.label;
             return (
-              <motion.button
-                key={cat.label}
-                whileTap={{ scale: 0.94 }}
-                onClick={() => setActiveCategory(cat.label)}
-                className="flex flex-col items-center gap-1.5 py-3 px-1 rounded-xl transition-all relative"
+              <button key={cat.label} onClick={() => setActiveCategory(cat.label)}
+                className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold whitespace-nowrap transition-all
+                  ${isActive
+                    ? 'text-white'
+                    : 'text-[#5A6A80] hover:text-white'
+                  }`}
                 style={{
-                  background: isActive ? `${cat.color}08` : "rgba(255,255,255,0.01)",
-                  border: `1px solid ${isActive ? `${cat.color}18` : "rgba(255,255,255,0.02)"}`,
+                  background: isActive ? `${cat.color}15` : "rgba(255,255,255,0.02)",
+                  border: isActive ? `1px solid ${cat.color}30` : "1px solid rgba(255,255,255,0.04)",
+                  color: isActive ? cat.color : undefined,
                 }}>
-                <div className="w-9 h-9 rounded-xl flex items-center justify-center"
-                  style={{
-                    background: isActive ? `${cat.color}12` : `${cat.color}06`,
-                    boxShadow: isActive ? `0 0 16px ${cat.color}10` : "none",
-                  }}>
-                  <cat.icon className="h-4 w-4" style={{ color: cat.color, opacity: isActive ? 1 : 0.6 }} />
-                </div>
-                <span className="text-[9px] font-medium"
-                  style={{ color: isActive ? cat.color : "#5A6A80" }}>
-                  {cat.label}
-                </span>
-                <span className="text-[7px] text-[#3D4F65] hidden sm:block">{cat.tables} tables</span>
-                {isActive && (
-                  <motion.div layoutId="cat-active"
-                    className="absolute bottom-0 left-1/2 w-4 h-0.5 rounded-full"
-                    style={{ background: cat.color, transform: "translateX(-50%)" }} />
-                )}
-              </motion.button>
+                <cat.icon className="h-4 w-4" />
+                {cat.label}
+              </button>
             );
           })}
         </div>
@@ -264,136 +246,109 @@ export default function Lobby() {
 
       {/* ═══════ ROOM LIST ═══════ */}
       <section className="mx-3 sm:mx-5 mt-6 mb-6">
-        <div className="flex items-center justify-between mb-3">
+        <div className="flex items-center justify-between mb-4">
           <div>
-            <h2 className="text-[13px] font-bold text-white">Hold'em Lobby</h2>
-            <p className="text-[10px] text-[#3D4F65] mt-0.5">{rooms.length} tables available</p>
+            <h2 className="text-base font-bold text-white">Hold'em Tables</h2>
+            <p className="text-xs text-[#4A5A70] mt-0.5">{rooms.length} tables available</p>
           </div>
           <motion.button whileTap={{ scale: 0.94 }}
             onClick={() => setShowCreateRoom(true)}
-            className="flex items-center gap-1 px-3 py-1.5 rounded-lg text-[10px] font-bold"
+            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-xs font-bold"
             style={{
               color: "#FF6B35",
-              background: "rgba(255,107,53,0.06)",
-              border: "1px solid rgba(255,107,53,0.1)",
+              background: "rgba(255,107,53,0.08)",
+              border: "1px solid rgba(255,107,53,0.15)",
             }}>
-            <Plus className="h-3 w-3" /> 방 만들기
+            <Plus className="h-3.5 w-3.5" /> Create Room
           </motion.button>
         </div>
 
-        {/* Filters */}
-        <div className="flex gap-2 mb-3">
-          <Select defaultValue="all">
-            <SelectTrigger className="w-[120px] h-8 text-[10px] rounded-lg"
-              style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)" }}>
-              <Filter className="mr-1 h-3 w-3 text-[#3D4F65]" /><SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">전체 블라인드</SelectItem>
-              <SelectItem value="micro">마이크로</SelectItem>
-              <SelectItem value="low">로우</SelectItem>
-              <SelectItem value="high">하이</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select defaultValue="all">
-            <SelectTrigger className="w-[90px] h-8 text-[10px] rounded-lg"
-              style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)" }}>
-              <Users className="mr-1 h-3 w-3 text-[#3D4F65]" /><SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">전체</SelectItem>
-              <SelectItem value="2">2인</SelectItem>
-              <SelectItem value="6">6인</SelectItem>
-              <SelectItem value="9">9인</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Room Cards — premium glass style */}
-        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Room Cards — large, readable, KRW */}
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {rooms.map((room) => {
             const isFull = room.currentPlayers >= room.maxPlayers;
             const fill = room.currentPlayers / room.maxPlayers;
             return (
               <motion.div key={room.id}
-                whileHover={{ y: -2, borderColor: "rgba(255,107,53,0.12)" }}
-                className="rounded-xl p-4 transition-all cursor-pointer"
+                whileHover={{ y: -3, scale: 1.01 }}
+                className="rounded-xl p-5 transition-all cursor-pointer group"
                 style={{
-                  background: "rgba(255,255,255,0.015)",
-                  border: "1px solid rgba(255,255,255,0.025)",
-                  backdropFilter: "blur(4px)",
+                  background: "#141820",
+                  border: "1px solid rgba(255,255,255,0.04)",
                 }}
                 onClick={() => !isFull && handleJoinTable(room.id)}>
 
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <div className="flex items-center gap-1.5 mb-0.5">
-                      <h3 className="text-[12px] font-bold text-white">{room.name}</h3>
-                      <span className="text-[8px] px-1.5 py-0.5 rounded font-bold"
-                        style={{
-                          background: room.status === "playing" ? "rgba(52,211,153,0.08)" : "rgba(255,255,255,0.02)",
-                          color: room.status === "playing" ? "#34D399" : "#3D4F65",
-                          border: `1px solid ${room.status === "playing" ? "rgba(52,211,153,0.1)" : "rgba(255,255,255,0.03)"}`,
-                        }}>
-                        {room.status === "playing" ? "LIVE" : "OPEN"}
-                      </span>
+                    <div className="flex items-center gap-2 mb-1">
+                      <h3 className="text-base font-bold text-white">{room.name}</h3>
+                      {room.status === "playing" && (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold text-emerald-400"
+                          style={{ background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.15)" }}>
+                          ● LIVE
+                        </span>
+                      )}
                     </div>
-                    <div className="flex items-center gap-1 text-[10px] text-[#5A6A80]">
-                      <span className="font-mono font-bold">{room.smallBlind}/{room.bigBlind}</span>
-                      <span className="text-[#2A3A50]">·</span>
-                      <span className="text-[#3D4F65]">{room.variant}</span>
+                    <div className="text-sm text-[#8899AB] font-mono">
+                      Blinds {formatMoney(room.smallBlind)}/{formatMoney(room.bigBlind)}
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="text-[8px] text-[#3D4F65] font-bold uppercase tracking-wider">Buy-in</div>
-                    <div className="text-[9px] font-mono text-[#5A6A80]">
-                      {room.minBuyIn >= 1000 ? `${room.minBuyIn/1000}K` : room.minBuyIn}–{room.maxBuyIn >= 1000 ? `${room.maxBuyIn/1000}K` : room.maxBuyIn}
+                    <div className="text-[10px] text-[#4A5A70] mb-0.5">Buy-in</div>
+                    <div className="text-xs font-mono font-bold text-[#FF6B35]">
+                      {formatMoney(room.minBuyIn)}
                     </div>
                   </div>
                 </div>
 
-                {/* Player bar */}
+                {/* Player count + seats */}
                 <div className="flex items-center justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    {/* Seat visualization */}
-                    <div className="flex gap-[2px]">
+                  <div className="flex items-center gap-2.5">
+                    <div className="flex gap-1">
                       {Array.from({ length: room.maxPlayers }).map((_, i) => (
                         <div key={i} style={{
-                          width: 5, height: 5, borderRadius: "50%",
+                          width: 8, height: 8, borderRadius: "50%",
                           background: i < room.currentPlayers
-                            ? (fill > 0.8 ? "#EF4444" : "#FF6B35")
-                            : "rgba(255,255,255,0.04)",
-                          boxShadow: i < room.currentPlayers ? `0 0 4px ${fill > 0.8 ? "rgba(239,68,68,0.2)" : "rgba(255,107,53,0.15)"}` : "none",
+                            ? (fill > 0.8 ? "#EF4444" : "#26A17B")
+                            : "rgba(255,255,255,0.06)",
+                          boxShadow: i < room.currentPlayers ? `0 0 4px ${fill > 0.8 ? "rgba(239,68,68,0.3)" : "rgba(38,161,123,0.2)"}` : "none",
                         }} />
                       ))}
                     </div>
-                    <span className="text-[10px] font-mono"
-                      style={{ color: fill > 0.8 ? "#EF4444" : "#5A6A80" }}>
+                    <span className="text-xs font-semibold"
+                      style={{ color: fill > 0.8 ? "#EF4444" : "#6B7A90" }}>
                       {room.currentPlayers}/{room.maxPlayers}
                     </span>
                   </div>
 
-                  {/* Progress bar */}
-                  <div className="w-16 h-1 rounded-full overflow-hidden"
-                    style={{ background: "rgba(255,255,255,0.03)" }}>
-                    <motion.div className="h-full rounded-full"
-                      initial={{ width: 0 }}
-                      animate={{ width: `${fill * 100}%` }}
-                      style={{
-                        background: fill > 0.8
-                          ? "linear-gradient(90deg, #EF4444, #DC2626)"
-                          : "linear-gradient(90deg, #FF6B35, #E85D2C)",
-                      }} />
-                  </div>
+                  {/* Join button */}
+                  <span className="text-xs font-bold px-3 py-1 rounded-lg transition-all
+                    opacity-0 group-hover:opacity-100"
+                    style={{ background: "rgba(255,107,53,0.1)", color: "#FF6B35", border: "1px solid rgba(255,107,53,0.2)" }}>
+                    {isFull ? "Full" : "Join"}
+                  </span>
                 </div>
 
-                {/* Join button */}
+                {/* Fill bar */}
+                <div className="w-full h-1 rounded-full overflow-hidden"
+                  style={{ background: "rgba(255,255,255,0.04)" }}>
+                  <motion.div className="h-full rounded-full"
+                    initial={{ width: 0 }}
+                    animate={{ width: `${fill * 100}%` }}
+                    style={{
+                      background: fill > 0.8
+                        ? "linear-gradient(90deg, #EF4444, #DC2626)"
+                        : "linear-gradient(90deg, #26A17B, #1A8B64)",
+                    }} />
+                </div>
+
+                {/* Join button (bottom of card) */}
                 <motion.button whileTap={{ scale: 0.96 }}
                   disabled={isFull}
-                  className="w-full py-2 rounded-lg text-[10px] font-bold transition-all"
+                  className="w-full py-2.5 rounded-lg text-xs font-bold transition-all mt-3"
                   style={{
-                    background: isFull ? "rgba(255,255,255,0.01)" : "rgba(255,107,53,0.06)",
-                    border: `1px solid ${isFull ? "rgba(255,255,255,0.02)" : "rgba(255,107,53,0.1)"}`,
+                    background: isFull ? "rgba(255,255,255,0.02)" : "linear-gradient(135deg, rgba(255,107,53,0.1), rgba(255,107,53,0.05))",
+                    border: `1px solid ${isFull ? "rgba(255,255,255,0.03)" : "rgba(255,107,53,0.15)"}`,
                     color: isFull ? "#2A3A50" : "#FF6B35",
                     cursor: isFull ? "not-allowed" : "pointer",
                     opacity: isFull ? 0.5 : 1,
