@@ -31,6 +31,9 @@ interface GameStore {
   equities: { playerId: string; equity: number }[] | null;
   chatMessages: { playerId: string; nickname: string; message: string; time: number }[];
   tournaments: any[];
+  shownCards: Record<string, any[]>;      // playerId → cards (쇼다운 공개)
+  rabbitCards: any[];                      // Rabbit Hunt 결과
+  handHistoryRecords: any[];               // Hand History 뷰어
 
   setConnected: (v: boolean) => void;
   handleServerMessage: (msg: ServerMessage) => void;
@@ -51,6 +54,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
   equities: null,
   chatMessages: [],
   tournaments: [],
+  shownCards: {},
+  rabbitCards: [],
+  handHistoryRecords: [],
 
   setConnected: (v) => set({ connected: v }),
 
@@ -58,6 +64,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     currentRoomId: null, gameState: null, myCards: [],
     isMyTurn: false, turnInfo: null, winners: null,
     showResult: false, equities: null,
+    shownCards: {}, rabbitCards: [],
   }),
 
   handleServerMessage: (msg) => {
@@ -139,6 +146,20 @@ export const useGameStore = create<GameStore>((set, get) => ({
         break;
       case 'TOURNAMENT_LIST':
         set({ tournaments: msg.tournaments });
+        break;
+      case 'CARDS_SHOWN':
+        // 쇼다운: 상대 카드 공개
+        set(s => ({
+          shownCards: { ...s.shownCards, [(msg as any).playerId]: (msg as any).cards },
+        }));
+        playSound('showdown');
+        break;
+      case 'RABBIT_HUNT_RESULT':
+        set({ rabbitCards: (msg as any).cards ?? [] });
+        break;
+      case 'HAND_HISTORY':
+        set({ handHistoryRecords: (msg as any).records ?? [] });
+        break;
         break;
       case 'ERROR':
         console.error(`[Server] ${msg.code}: ${msg.message}`);

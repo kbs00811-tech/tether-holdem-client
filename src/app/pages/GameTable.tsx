@@ -30,12 +30,16 @@ export default function GameTable() {
   const {
     gameState, myCards, isMyTurn, turnInfo, winners, showResult,
     currentRoomId, serverSeedHash, equities, connected,
+    shownCards, rabbitCards, handHistoryRecords,
   } = useGameStore();
 
   const [raiseAmount, setRaiseAmount] = useState(400);
   const [showChat, setShowChat] = useState(false);
   const [showBuyInModal, setShowBuyInModal] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
+  const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
+  const [showHandHistory, setShowHandHistory] = useState(false);
+  const [showEmoji, setShowEmoji] = useState(false);
   const [seated, setSeated] = useState(false);
 
   // 방 목록
@@ -242,7 +246,18 @@ export default function GameTable() {
   }, [send, clickedSeat, serverPlayers, maxSeats, currentRoomId]);
 
   const handleLeave = useCallback(() => {
+    if (seated) {
+      setShowLeaveConfirm(true); // 착석 중이면 확인 모달
+    } else {
+      send({ type: 'LEAVE_ROOM' });
+      navigate('/');
+    }
+  }, [send, navigate, seated]);
+
+  const confirmLeave = useCallback(() => {
+    send({ type: 'STAND_UP' });
     send({ type: 'LEAVE_ROOM' });
+    setShowLeaveConfirm(false);
     navigate('/');
   }, [send, navigate]);
 
@@ -386,10 +401,16 @@ export default function GameTable() {
             </div>
           )}
           {/* Hand History */}
-          <button onClick={() => { send({ type: 'GET_HAND_HISTORY', limit: 10 }); toast.success('History loaded'); }}
+          <button onClick={() => { send({ type: 'GET_HAND_HISTORY', limit: 10 }); setShowHandHistory(true); }}
             className="px-2 py-1 rounded-md text-[10px] font-semibold transition-all"
             style={{ background: "rgba(255,255,255,0.03)", color: "#4A5A70" }}>
             History
+          </button>
+          {/* Emoji */}
+          <button onClick={() => setShowEmoji(!showEmoji)}
+            className="px-2 py-1 rounded-md text-[10px] font-semibold transition-all"
+            style={{ background: "rgba(255,255,255,0.03)", color: "#4A5A70" }}>
+            😊
           </button>
           {/* Rabbit Hunt (핸드 종료 후 남은 카드 보기) */}
           {phase === "RESULT" && (
@@ -948,6 +969,101 @@ export default function GameTable() {
       <BuyInModal open={showBuyInModal} onOpenChange={setShowBuyInModal}
         minBuyIn={2000} maxBuyIn={10000} currentBalance={12450.50}
         tableName="NL Hold'em" blinds="50/100" onJoinTable={handleBuyIn} />
+
+      {/* ===== Leave Confirm Modal ===== */}
+      <AnimatePresence>
+        {showLeaveConfirm && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }}
+              className="rounded-2xl p-6 text-center max-w-[300px]"
+              style={{ background: "#141820", border: "1px solid rgba(255,255,255,0.06)" }}>
+              <div className="text-base font-bold text-white mb-2">Leave Table?</div>
+              <div className="text-xs text-[#6B7A90] mb-5">Your chips will be cashed out automatically.</div>
+              <div className="flex gap-3">
+                <button onClick={() => setShowLeaveConfirm(false)}
+                  className="flex-1 py-2.5 rounded-lg text-xs font-semibold text-[#6B7A90] bg-white/[0.03] border border-white/[0.06]">
+                  Stay
+                </button>
+                <button onClick={confirmLeave}
+                  className="flex-1 py-2.5 rounded-lg text-xs font-bold text-white"
+                  style={{ background: "linear-gradient(135deg, #EF4444, #DC2626)" }}>
+                  Leave
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ===== Hand History Modal ===== */}
+      <AnimatePresence>
+        {showHandHistory && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowHandHistory(false)}>
+            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }}
+              className="rounded-2xl p-5 max-w-[400px] max-h-[70vh] overflow-y-auto"
+              style={{ background: "#141820", border: "1px solid rgba(255,255,255,0.06)" }}
+              onClick={e => e.stopPropagation()}>
+              <div className="text-sm font-bold text-white mb-3">Hand History</div>
+              {handHistoryRecords.length === 0 ? (
+                <div className="text-xs text-[#4A5A70] text-center py-6">No hands played yet</div>
+              ) : (
+                <div className="space-y-2">
+                  {handHistoryRecords.slice(-10).reverse().map((rec: any, i: number) => (
+                    <div key={i} className="p-3 rounded-lg text-xs" style={{ background: "rgba(255,255,255,0.02)" }}>
+                      <div className="flex justify-between mb-1">
+                        <span className="text-[#6B7A90]">Hand #{rec.handNumber}</span>
+                        <span className="text-[#4A5A70]">{new Date(rec.timestamp).toLocaleTimeString()}</span>
+                      </div>
+                      <div className="text-white font-semibold">
+                        Pot: {formatMoney(rec.pot / 100)} | Rake: {formatMoney(rec.rake / 100)}
+                      </div>
+                      {rec.winners?.[0] && (
+                        <div className="text-emerald-400 text-[10px] mt-1">
+                          Winner: {rec.winners[0].nickname} — {rec.winners[0].handResult?.description}
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              )}
+              {/* Rabbit Hunt results */}
+              {rabbitCards.length > 0 && (
+                <div className="mt-3 p-3 rounded-lg" style={{ background: "rgba(255,215,0,0.05)", border: "1px solid rgba(255,215,0,0.1)" }}>
+                  <div className="text-[10px] text-[#FFD700] font-bold mb-1">🐇 Rabbit Hunt</div>
+                  <div className="text-[11px] text-[#8899AB]">
+                    Remaining cards would have been: {rabbitCards.map((c: any) => `${c.rank}${['♣','♥','♦','♠'][c.suit-1]}`).join(' ')}
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ===== Emoji Picker ===== */}
+      <AnimatePresence>
+        {showEmoji && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-2xl"
+            style={{ background: "rgba(20,24,32,0.95)", border: "1px solid rgba(255,255,255,0.06)", backdropFilter: "blur(12px)" }}>
+            <div className="flex gap-3">
+              {['👍','😂','😡','🤔','💪','🔥','💀','🎉','😎','🃏'].map(emoji => (
+                <button key={emoji} onClick={() => {
+                  send({ type: 'CHAT', message: emoji });
+                  setShowEmoji(false);
+                  playSound('click');
+                }}
+                  className="text-2xl hover:scale-125 transition-transform active:scale-90">
+                  {emoji}
+                </button>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

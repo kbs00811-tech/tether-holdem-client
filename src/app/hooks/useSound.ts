@@ -50,3 +50,22 @@ let muted = false;
 export function setMuted(v: boolean) { muted = v; }
 export function isMuted() { return muted; }
 export function playSound(name: keyof typeof sounds) { if (!muted) sounds[name](); }
+
+// BGM
+let bgmAudio: HTMLAudioElement | null = null;
+export function startBGM() {
+  try {
+    if (!bgmAudio) {
+      bgmAudio = new Audio('/sounds/bgm.mp3');
+      bgmAudio.loop = true;
+      bgmAudio.volume = 0.15;
+    }
+    bgmAudio.play().catch(() => {});
+  } catch {}
+}
+export function stopBGM() {
+  if (bgmAudio) { bgmAudio.pause(); bgmAudio.currentTime = 0; }
+}
+export function setBGMVolume(v: number) {
+  if (bgmAudio) bgmAudio.volume = v;
+}
