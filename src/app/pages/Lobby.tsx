@@ -25,12 +25,12 @@ interface PokerRoom {
 }
 
 const mockRooms: PokerRoom[] = [
-  { id: "1", name: "Beginner", smallBlind: 500, bigBlind: 1000, currentPlayers: 4, maxPlayers: 8, minBuyIn: 50000, maxBuyIn: 200000, status: "playing", variant: "NL" },
-  { id: "2", name: "Standard", smallBlind: 1000, bigBlind: 2000, currentPlayers: 7, maxPlayers: 8, minBuyIn: 100000, maxBuyIn: 400000, status: "playing", variant: "NL" },
-  { id: "3", name: "Semi-Pro", smallBlind: 5000, bigBlind: 10000, currentPlayers: 2, maxPlayers: 6, minBuyIn: 500000, maxBuyIn: 2000000, status: "waiting", variant: "NL" },
-  { id: "4", name: "High Roller", smallBlind: 25000, bigBlind: 50000, currentPlayers: 5, maxPlayers: 6, minBuyIn: 2500000, maxBuyIn: 10000000, status: "playing", variant: "NL" },
-  { id: "5", name: "VIP", smallBlind: 50000, bigBlind: 100000, currentPlayers: 1, maxPlayers: 8, minBuyIn: 5000000, maxBuyIn: 20000000, status: "waiting", variant: "NL" },
-  { id: "6", name: "Heads-Up", smallBlind: 5000, bigBlind: 10000, currentPlayers: 0, maxPlayers: 2, minBuyIn: 500000, maxBuyIn: 2000000, status: "waiting", variant: "HU" },
+  { id: "1", name: "Beginner 100/200", smallBlind: 100, bigBlind: 200, currentPlayers: 4, maxPlayers: 8, minBuyIn: 10000, maxBuyIn: 40000, status: "playing", variant: "NL" },
+  { id: "2", name: "Standard 500/1K", smallBlind: 500, bigBlind: 1000, currentPlayers: 7, maxPlayers: 8, minBuyIn: 50000, maxBuyIn: 200000, status: "playing", variant: "NL" },
+  { id: "3", name: "Standard 1K/2K", smallBlind: 1000, bigBlind: 2000, currentPlayers: 2, maxPlayers: 6, minBuyIn: 100000, maxBuyIn: 400000, status: "waiting", variant: "NL" },
+  { id: "4", name: "High 5K/10K", smallBlind: 5000, bigBlind: 10000, currentPlayers: 5, maxPlayers: 6, minBuyIn: 500000, maxBuyIn: 2000000, status: "playing", variant: "NL" },
+  { id: "5", name: "VIP 50K/100K", smallBlind: 50000, bigBlind: 100000, currentPlayers: 1, maxPlayers: 8, minBuyIn: 5000000, maxBuyIn: 20000000, status: "waiting", variant: "NL" },
+  { id: "6", name: "Heads-Up 1K/2K", smallBlind: 1000, bigBlind: 2000, currentPlayers: 0, maxPlayers: 2, minBuyIn: 100000, maxBuyIn: 400000, status: "waiting", variant: "HU" },
 ];
 
 const holdemCategories = [
