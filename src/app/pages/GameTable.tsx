@@ -564,45 +564,82 @@ export default function GameTable() {
                 </div>
               ))}
 
-              {/* ===== BET CHIPS — fly from seat to pot ===== */}
+              {/* ===== BET CHIPS — GGPoker style throw animation ===== */}
               {players.map((p, i) => {
                 if (!p || p.bet <= 0) return null;
                 const sx = seatPositionsData[i]![0];
                 const sy = seatPositionsData[i]![1];
-                const bx = 50 + (sx - 50) * 0.5;
-                const by = 50 + (sy - 50) * 0.5;
-                // Multiple chip stack based on bet amount
-                const chipCount = Math.min(4, Math.max(1, Math.ceil(p.bet / 50)));
-                const chipColors = ["#26A17B", "#E5B800", "#8B5CF6", "#FF6B35"];
+                const bx = 50 + (sx - 50) * 0.45;
+                const by = 50 + (sy - 50) * 0.45;
+                const chipCount = Math.min(5, Math.max(1, Math.ceil(p.bet / 30)));
+                const chipColors = ["#26A17B", "#E5B800", "#8B5CF6", "#FF6B35", "#EF4444"];
+                // Random scatter offsets (like real thrown chips)
+                const scatterSeeds = Array.from({ length: chipCount }, (_, ci) => ({
+                  dx: (Math.sin(ci * 2.4 + i) * 12),
+                  dy: (Math.cos(ci * 1.7 + i) * 8),
+                  rot: (ci * 45 + i * 30) % 360,
+                }));
                 return (
-                  <motion.div key={`bet-${i}-${p.bet}`} className="z-10" style={{
+                  <div key={`bet-${i}-${p.bet}`} className="z-10" style={{
                     position: "absolute", left: `${bx}%`, top: `${by}%`, transform: "translate(-50%,-50%)",
-                  }}
-                    initial={{ x: `${(sx - bx) * 2}%`, y: `${(sy - by) * 2}%`, scale: 0.3, opacity: 0 }}
-                    animate={{ x: 0, y: 0, scale: 1, opacity: 1 }}
-                    transition={{ type: "spring", stiffness: 200, damping: 18 }}>
-                    <div className="flex items-center gap-1">
-                      {/* Chip stack */}
-                      <div className="flex flex-col-reverse items-center">
-                        {Array.from({ length: chipCount }).map((_, ci) => (
-                          <motion.div key={ci}
-                            initial={{ y: -20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ delay: ci * 0.05 }}
-                            style={{
-                              width: 16, height: 16, borderRadius: "50%",
-                              background: `radial-gradient(circle at 35% 35%, ${chipColors[ci % chipColors.length]}DD, ${chipColors[ci % chipColors.length]}88)`,
-                              boxShadow: `0 1px 4px rgba(0,0,0,0.4), 0 0 6px ${chipColors[ci % chipColors.length]}30`,
-                              border: "1.5px solid rgba(255,255,255,0.25)",
-                              marginTop: ci > 0 ? -10 : 0,
-                            }} />
-                        ))}
-                      </div>
-                      <span className="text-[11px] font-mono font-bold" style={{ color: "#7EDBB8", textShadow: "0 1px 3px rgba(0,0,0,0.6)" }}>
+                  }}>
+                    {/* Individual chips flying from seat */}
+                    {scatterSeeds.map((seed, ci) => (
+                      <motion.div key={ci}
+                        className="absolute"
+                        initial={{
+                          x: (sx - bx) * 3,
+                          y: (sy - by) * 3,
+                          scale: 0,
+                          opacity: 0,
+                          rotate: 0,
+                        }}
+                        animate={{
+                          x: seed.dx,
+                          y: seed.dy - ci * 3,
+                          scale: 1,
+                          opacity: 1,
+                          rotate: seed.rot,
+                        }}
+                        transition={{
+                          type: "spring",
+                          stiffness: 180 + ci * 20,
+                          damping: 14,
+                          delay: ci * 0.06,
+                        }}
+                        style={{
+                          width: 18, height: 18, borderRadius: "50%",
+                          background: `radial-gradient(circle at 30% 30%, ${chipColors[ci % chipColors.length]}EE, ${chipColors[ci % chipColors.length]}77)`,
+                          boxShadow: `0 2px 5px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.3), 0 0 8px ${chipColors[ci % chipColors.length]}25`,
+                          border: "2px solid rgba(255,255,255,0.3)",
+                        }}
+                      >
+                        {/* Chip stripe pattern */}
+                        <div style={{
+                          position: "absolute", inset: 3, borderRadius: "50%",
+                          border: "1.5px dashed rgba(255,255,255,0.15)",
+                        }} />
+                      </motion.div>
+                    ))}
+                    {/* Bet amount label */}
+                    <motion.div
+                      initial={{ opacity: 0, scale: 0.5 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: chipCount * 0.06 + 0.1 }}
+                      className="absolute whitespace-nowrap"
+                      style={{ left: chipCount * 6 + 4, top: -2 }}
+                    >
+                      <span className="text-[11px] font-mono font-bold px-1.5 py-0.5 rounded"
+                        style={{
+                          color: "#7EDBB8",
+                          textShadow: "0 1px 3px rgba(0,0,0,0.8)",
+                          background: "rgba(0,0,0,0.4)",
+                          backdropFilter: "blur(4px)",
+                        }}>
                         {p.bet}
                       </span>
-                    </div>
-                  </motion.div>
+                    </motion.div>
+                  </div>
                 );
               })}
             </div>
