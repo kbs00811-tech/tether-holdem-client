@@ -199,11 +199,41 @@ export default function GameTable() {
   const blinds = `${(gameState?.sbSeat ?? 0) >= 0 ? "50/100" : "—"}`;
 
   // 베팅 액션
-  const handleFold = useCallback(() => { send({ type: 'BET', action: 0 }); }, [send]);
-  const handleCheck = useCallback(() => { send({ type: 'BET', action: 1 }); }, [send]);
-  const handleCall = useCallback(() => { send({ type: 'BET', action: 2 }); }, [send]);
-  const handleRaise = useCallback(() => { send({ type: 'BET', action: 3, amount: raiseAmount }); }, [send, raiseAmount]);
-  const handleAllIn = useCallback(() => { send({ type: 'BET', action: 4 }); }, [send]);
+  // 칩 날아가는 애니메이션 트리거
+  const [flyingChip, setFlyingChip] = useState<{ action: string; amount: number; key: number } | null>(null);
+
+  const triggerChipFly = useCallback((action: string, amount: number) => {
+    setFlyingChip({ action, amount, key: Date.now() });
+    setTimeout(() => setFlyingChip(null), 1200);
+  }, []);
+
+  const handleFold = useCallback(() => {
+    send({ type: 'BET', action: 0 });
+    playSound('fold');
+  }, [send]);
+
+  const handleCheck = useCallback(() => {
+    send({ type: 'BET', action: 1 });
+    playSound('check');
+  }, [send]);
+
+  const handleCall = useCallback(() => {
+    send({ type: 'BET', action: 2 });
+    playSound('chipBet');
+    triggerChipFly('call', callAmount);
+  }, [send, callAmount, triggerChipFly]);
+
+  const handleRaise = useCallback(() => {
+    send({ type: 'BET', action: 3, amount: raiseAmount });
+    playSound('chipsRaise');
+    triggerChipFly('raise', raiseAmount);
+  }, [send, raiseAmount, triggerChipFly]);
+
+  const handleAllIn = useCallback(() => {
+    send({ type: 'BET', action: 4 });
+    playSound('allIn');
+    triggerChipFly('allin', myStack);
+  }, [send, myStack, triggerChipFly]);
 
   // 클릭한 좌석 번호 저장
   const [clickedSeat, setClickedSeat] = useState<number>(4);
@@ -790,6 +820,53 @@ export default function GameTable() {
               </motion.div>
             )}
 
+            {/* ===== MY CHIP FLY ANIMATION (베팅 시 내 좌석→팟) ===== */}
+            <AnimatePresence>
+              {flyingChip && (
+                <>
+                  {Array.from({ length: flyingChip.action === 'allin' ? 8 : flyingChip.action === 'raise' ? 5 : 3 }).map((_, ci) => {
+                    const heroPos = seatPositionsData[heroSeat] ?? [50, 100];
+                    const colors = ['#26A17B', '#E5B800', '#8B5CF6', '#FF6B35', '#EF4444', '#34D399', '#FFD700', '#60A5FA'];
+                    return (
+                      <motion.div key={`fly-${flyingChip.key}-${ci}`}
+                        className="z-30 pointer-events-none"
+                        style={{ position: 'absolute' }}
+                        initial={{
+                          left: `${heroPos[0]}%`,
+                          top: `${heroPos[1]}%`,
+                          scale: 0.5,
+                          opacity: 1,
+                        }}
+                        animate={{
+                          left: '50%',
+                          top: '48%',
+                          scale: 0.8,
+                          opacity: 0,
+                          rotate: 360 + ci * 45,
+                        }}
+                        exit={{ opacity: 0 }}
+                        transition={{
+                          duration: 0.6 + ci * 0.05,
+                          delay: ci * 0.04,
+                          ease: [0.25, 0.8, 0.25, 1],
+                        }}
+                      >
+                        <div style={{
+                          width: 20, height: 20, borderRadius: '50%',
+                          background: `radial-gradient(circle at 30% 30%, ${colors[ci % colors.length]}EE, ${colors[ci % colors.length]}66)`,
+                          boxShadow: `0 2px 8px rgba(0,0,0,0.5), 0 0 12px ${colors[ci % colors.length]}40`,
+                          border: '2px solid rgba(255,255,255,0.35)',
+                          transform: 'translate(-50%, -50%)',
+                        }}>
+                          <div style={{ position: 'absolute', inset: 4, borderRadius: '50%', border: '1px dashed rgba(255,255,255,0.2)' }} />
+                        </div>
+                      </motion.div>
+                    );
+                  })}
+                </>
+              )}
+            </AnimatePresence>
+
             {/* ===== ALL-IN EQUITY DISPLAY ===== */}
             {equities && equities.length > 0 && (
               <div className="absolute top-[56%] left-1/2 -translate-x-1/2 z-10">
@@ -996,13 +1073,13 @@ export default function GameTable() {
 
               {/* Action buttons — large, touch-friendly */}
               <div className="flex gap-2">
-                <motion.button whileTap={{ scale: 0.93 }} onClick={() => { handleFold(); playSound('click'); }}
+                <motion.button whileTap={{ scale: 0.93 }} onClick={handleFold}
                   className="flex-1 py-3.5 sm:py-4 rounded-xl action-btn active:brightness-110"
                   style={{ background: "linear-gradient(180deg, #C62828 0%, #B71C1C 100%)", boxShadow: "0 4px 12px rgba(198,40,40,0.25)" }}>
                   <span className="text-white text-[13px] sm:text-[14px] font-bold uppercase tracking-wider">Fold</span>
                 </motion.button>
 
-                <motion.button whileTap={{ scale: 0.93 }} onClick={() => { (canCheck ? handleCheck : handleCall)(); playSound('click'); }}
+                <motion.button whileTap={{ scale: 0.93 }} onClick={canCheck ? handleCheck : handleCall}
                   className="flex-[1.4] py-3.5 sm:py-4 rounded-xl action-btn active:brightness-110"
                   style={{ background: "linear-gradient(180deg, #2E7D32 0%, #1B5E20 100%)", boxShadow: "0 4px 12px rgba(46,125,50,0.25)" }}>
                   <div className="flex flex-col items-center">
@@ -1012,7 +1089,7 @@ export default function GameTable() {
                 </motion.button>
 
                 <motion.button whileTap={{ scale: 0.93 }}
-                  onClick={() => { (raiseAmount >= maxRaise ? handleAllIn : handleRaise)(); playSound('click'); }}
+                  onClick={raiseAmount >= maxRaise ? handleAllIn : handleRaise}
                   className="flex-1 py-3.5 sm:py-4 rounded-xl action-btn active:brightness-110"
                   style={{
                     background: raiseAmount >= maxRaise

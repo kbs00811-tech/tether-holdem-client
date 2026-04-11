@@ -115,6 +115,25 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, isHero, posi
         transition: "all 0.3s ease",
       }}>
 
+        {/* Hero indicator — "YOU" badge */}
+        {isHero && !isDead && (
+          <motion.div
+            animate={{ boxShadow: [
+              "0 0 8px rgba(255,107,53,0.2)",
+              "0 0 16px rgba(255,107,53,0.35)",
+              "0 0 8px rgba(255,107,53,0.2)",
+            ]}}
+            transition={{ duration: 2, repeat: Infinity }}
+            className="absolute -top-3 left-1/2 -translate-x-1/2 z-30 px-2 py-0.5 rounded-full"
+            style={{
+              background: "linear-gradient(135deg, #FF6B35, #E85D2C)",
+              border: "1px solid rgba(255,255,255,0.2)",
+            }}
+          >
+            <span className="text-[8px] font-black text-white tracking-wider">YOU</span>
+          </motion.div>
+        )}
+
         {/* Avatar circle with timer */}
         <div className="relative z-10 shrink-0" style={{ width: 56, height: 56 }}>
           {/* Turn timer ring */}
