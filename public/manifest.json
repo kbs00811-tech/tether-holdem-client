@@ -1,0 +1,13 @@
+{
+  "name": "TETHER.BET Poker",
+  "short_name": "Tether Poker",
+  "description": "Texas Hold'em Poker - USDT",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0B0E14",
+  "theme_color": "#0B0E14",
+  "icons": [
+    { "src": "/sounds/click.mp3", "sizes": "192x192", "type": "image/png" }
+  ]
+}

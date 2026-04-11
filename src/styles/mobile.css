@@ -1,0 +1,68 @@
+/* ============================================================
+   TETHER.BET Holdem — Mobile Optimization
+   ============================================================ */
+
+/* Prevent pull-to-refresh and overscroll */
+html, body {
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Prevent text selection on game elements */
+.game-table * {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Safe area for notch/home indicator */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Touch-friendly buttons (minimum 44px touch target) */
+@media (max-width: 768px) {
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
+  }
+
+  /* Larger action buttons on mobile */
+  .action-btn {
+    min-height: 48px;
+    font-size: 14px !important;
+  }
+
+  /* Prevent zoom on input focus (iOS) */
+  input, select, textarea {
+    font-size: 16px !important;
+  }
+
+  /* Hide scrollbar on mobile */
+  ::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* Landscape mode — hide address bar hint */
+@media (max-height: 500px) and (orientation: landscape) {
+  .top-bar { padding-top: 4px; padding-bottom: 4px; }
+  .action-panel { padding-top: 4px; }
+}
+
+/* Smooth transitions for orientation change */
+@media screen {
+  .game-table {
+    transition: all 0.3s ease;
+  }
+}
+
+/* High DPI screens — sharper cards */
+@media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+  .card-container {
+    image-rendering: -webkit-optimize-contrast;
+  }
+}
