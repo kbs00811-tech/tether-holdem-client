@@ -11,7 +11,7 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
 import { useGameStore } from "../stores/gameStore";
 import { useSocket } from "../hooks/useSocket";
-import { playSound } from "../hooks/useSound";
+import { playSound, setMuted as setSoundMuted, isMuted as isSoundMuted, startBGM, stopBGM, setBGMVolume } from "../hooks/useSound";
 import { useSettingsStore, TABLE_FELTS } from "../stores/settingsStore";
 import { formatMoney, getSymbol } from "../utils/currency";
 
@@ -36,7 +36,9 @@ export default function GameTable() {
   const [raiseAmount, setRaiseAmount] = useState(400);
   const [showChat, setShowChat] = useState(false);
   const [showBuyInModal, setShowBuyInModal] = useState(false);
-  const [isMuted, setIsMuted] = useState(false);
+  const [isMuted, setIsMuted] = useState(isSoundMuted());
+  const [showVolume, setShowVolume] = useState(false);
+  const [volume, setVolume] = useState(50); // 0-100
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [showHandHistory, setShowHandHistory] = useState(false);
   const [showEmoji, setShowEmoji] = useState(false);
@@ -436,10 +438,51 @@ export default function GameTable() {
               Show
             </button>
           )}
-          <button onClick={() => setIsMuted(!isMuted)} className="w-9 h-9 rounded-lg flex items-center justify-center"
-            style={{ background: "rgba(255,255,255,0.03)" }}>
-            {isMuted ? <VolumeX className="h-4 w-4 text-[#4A5A70]" /> : <Volume2 className="h-4 w-4 text-[#4A5A70]" />}
-          </button>
+          <div className="relative">
+            <button onClick={() => {
+              const newMuted = !isMuted;
+              setIsMuted(newMuted);
+              setSoundMuted(newMuted);
+              if (newMuted) stopBGM(); else startBGM();
+              playSound('click');
+            }}
+              onContextMenu={(e) => { e.preventDefault(); setShowVolume(!showVolume); }}
+              className="w-9 h-9 rounded-lg flex items-center justify-center"
+              style={{ background: isMuted ? "rgba(239,68,68,0.08)" : "rgba(255,255,255,0.03)" }}>
+              {isMuted ? <VolumeX className="h-4 w-4 text-[#EF4444]" /> : <Volume2 className="h-4 w-4 text-[#4A5A70]" />}
+            </button>
+            {/* Volume slider popup */}
+            <AnimatePresence>
+              {showVolume && (
+                <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                  className="absolute top-12 right-0 z-50 p-3 rounded-xl w-48"
+                  style={{ background: "rgba(20,24,32,0.95)", border: "1px solid rgba(255,255,255,0.06)", backdropFilter: "blur(12px)" }}>
+                  <div className="text-[10px] text-[#6B7A90] mb-2 uppercase tracking-wider">Volume</div>
+                  <div className="flex items-center gap-2 mb-3">
+                    <VolumeX className="h-3 w-3 text-[#3D4F65]" />
+                    <input type="range" min={0} max={100} value={volume}
+                      onChange={e => {
+                        const v = Number(e.target.value);
+                        setVolume(v);
+                        setBGMVolume(v / 100 * 0.3);
+                        if (v === 0) { setIsMuted(true); setSoundMuted(true); }
+                        else { setIsMuted(false); setSoundMuted(false); }
+                      }}
+                      className="flex-1 h-1.5 rounded-full appearance-none bg-[#1A2235]
+                        [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4
+                        [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#FF6B35]
+                        [&::-webkit-slider-thumb]:appearance-none" />
+                    <Volume2 className="h-3 w-3 text-[#6B7A90]" />
+                  </div>
+                  <div className="text-center text-xs text-[#4A5A70] font-mono">{volume}%</div>
+                  <button onClick={() => setShowVolume(false)}
+                    className="w-full mt-2 py-1.5 rounded-lg text-[10px] text-[#6B7A90] bg-white/[0.03]">
+                    Close
+                  </button>
+                </motion.div>
+              )}
+            </AnimatePresence>
+          </div>
         </div>
       </div>
 
