@@ -7,6 +7,7 @@ import { useGameStore } from "../stores/gameStore";
 import { useSocket } from "../hooks/useSocket";
 import { SettingsModal } from "./SettingsModal";
 import { useSettingsStore, AVATAR_IMAGES } from "../stores/settingsStore";
+import { formatMoney } from "../utils/currency";
 
 export function Header() {
   const location = useLocation();
@@ -113,7 +114,7 @@ export function Header() {
                   border: "1px solid rgba(255,255,255,0.05)",
                 }}>
                 <Wallet className="h-4 w-4 text-[#FF6B35]" />
-                <span className="font-mono text-sm text-white font-bold">₮{balance.toLocaleString()}</span>
+                <span className="font-mono text-sm text-white font-bold">{getSymbol()}{balance.toLocaleString()}</span>
               </Link>
 
               {/* Deposit button */}
@@ -170,7 +171,7 @@ export function Header() {
                   <div className="mt-8 p-5 rounded-xl"
                     style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)" }}>
                     <div className="text-[10px] text-[#3D4F65] font-bold uppercase tracking-[0.15em] mb-1">Balance</div>
-                    <div className="text-2xl font-mono font-black text-white">₮{balance.toLocaleString()}</div>
+                    <div className="text-2xl font-mono font-black text-white">{getSymbol()}{balance.toLocaleString()}</div>
                   </div>
                 </SheetContent>
               </Sheet>

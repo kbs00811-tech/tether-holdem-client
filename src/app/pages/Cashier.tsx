@@ -1,3 +1,4 @@
+import { formatMoney } from "../utils/currency";
 import { Wallet, ExternalLink, ArrowUpFromLine, ArrowDownToLine, Shield, Zap, RefreshCw } from "lucide-react";
 import { motion } from "motion/react";
 
@@ -51,7 +52,7 @@ export default function Cashier() {
                 <item.icon className="h-3.5 w-3.5" style={{ color: item.color, opacity: 0.5 }} />
               </div>
               <div className="font-mono text-lg sm:text-xl font-bold" style={{ color: i === 0 ? item.color : "white" }}>
-                ₮{item.value.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                {getSymbol()}{item.value.toLocaleString("en-US", { minimumFractionDigits: 2 })}
               </div>
             </motion.div>
           ))}
@@ -120,7 +121,7 @@ export default function Cashier() {
                 </div>
                 <div className="font-mono text-sm font-semibold"
                   style={{ color: item.amount > 0 ? "#34D399" : "#FF6B35" }}>
-                  {item.amount > 0 ? "+" : ""}₮{Math.abs(item.amount).toLocaleString()}
+                  {item.amount > 0 ? "+" : ""}{getSymbol()}{Math.abs(item.amount).toLocaleString()}
                 </div>
               </motion.div>
             ))}

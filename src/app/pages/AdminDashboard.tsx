@@ -1,3 +1,4 @@
+import { formatMoney } from "../utils/currency";
 import { useState, useEffect } from "react";
 import { Bot, Settings, Users, TrendingUp, Shield, Zap, Activity, DollarSign, AlertTriangle, Eye } from "lucide-react";
 import { motion } from "motion/react";
@@ -91,7 +92,7 @@ export default function AdminDashboard() {
 
             <div className="p-3 rounded-lg mb-3" style={{ background: "rgba(255,255,255,0.02)" }}>
               <div className="text-[10px] text-[#4A5A70] mb-1">House Edge: <span className="text-white font-mono font-bold">{100 - rtpTarget}%</span></div>
-              <div className="text-[10px] text-[#4A5A70]">Every ₮100 wagered → ₮{100 - rtpTarget} platform revenue</div>
+              <div className="text-[10px] text-[#4A5A70]">Every 100 wagered → {getSymbol()}{100 - rtpTarget} platform revenue</div>
             </div>
 
             <button onClick={() => { send({ type: 'SET_RTP', rtp: rtpTarget } as any); toast.success(`RTP set to ${rtpTarget}%`); }}
@@ -189,9 +190,9 @@ export default function AdminDashboard() {
                         </span>
                       </td>
                       <td className="text-center font-mono text-[#8899AB]">
-                        ₮{(room.smallBlind/100).toFixed(2)}/{(room.bigBlind/100).toFixed(2)}
+                        {getSymbol()}{(room.smallBlind/100).toFixed(2)}/{(room.bigBlind/100).toFixed(2)}
                       </td>
-                      <td className="text-center font-mono text-[#6B7A90]">₮{(room.minBuyIn/100).toFixed(0)}</td>
+                      <td className="text-center font-mono text-[#6B7A90]">{getSymbol()}{(room.minBuyIn/100).toFixed(0)}</td>
                       <td className="text-center">
                         <span className={`text-[9px] px-1.5 py-0.5 rounded
                           ${room.phase === 'WAITING' ? 'text-[#4A5A70] bg-white/[0.02]' : 'text-emerald-400 bg-emerald-400/[0.08]'}`}>

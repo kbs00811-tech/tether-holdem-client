@@ -67,7 +67,7 @@ export function GameStateOverlay({ type, data, onClose }: GameStateOverlayProps)
                 <span className="text-sm">
                   사이드 팟{" "}
                   <span className="font-mono font-bold text-accent">
-                    ₮{data.sidePot.toLocaleString()}
+                    {getSymbol()}{data.sidePot.toLocaleString()}
                   </span>{" "}
                   생성
                 </span>

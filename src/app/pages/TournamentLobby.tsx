@@ -1,3 +1,4 @@
+import { formatMoney } from "../utils/currency";
 import { Link } from "react-router";
 import { Trophy, Users, Clock, DollarSign, Zap, Crown, Star, ChevronRight, Flame } from "lucide-react";
 import { Badge } from "../components/ui/badge";
@@ -97,8 +98,8 @@ function TournamentDetailModal({ tournament }: { tournament: Tournament }) {
         <TabsContent value="details" className="space-y-3 mt-0">
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: "Buy-in", value: `₮${tournament.buyIn.toLocaleString()}`, accent: false },
-              { label: "Guaranteed", value: `₮${tournament.guaranteed.toLocaleString()}`, accent: true },
+              { label: "Buy-in", value: `${getSymbol()}${tournament.buyIn.toLocaleString()}`, accent: false },
+              { label: "Guaranteed", value: `${getSymbol()}${tournament.guaranteed.toLocaleString()}`, accent: true },
               { label: "Start Time", value: tournament.startTime, accent: false },
               { label: "Players", value: `${tournament.players} / ${tournament.maxPlayers}`, accent: false },
               { label: "Starting Stack", value: "5,000 chips", accent: false },
@@ -144,7 +145,7 @@ function TournamentDetailModal({ tournament }: { tournament: Tournament }) {
               <div className="text-right">
                 <span className="text-[10px] text-[#4A5A70] mr-2">{p.pct}</span>
                 <span className={`font-mono text-sm font-bold ${i === 0 ? "text-[#FFD700]" : "text-[#FF6B35]"}`}>
-                  ₮{p.est.toLocaleString()}
+                  {getSymbol()}{p.est.toLocaleString()}
                 </span>
               </div>
             </div>
@@ -156,11 +157,11 @@ function TournamentDetailModal({ tournament }: { tournament: Tournament }) {
       <div className="flex gap-3 px-6 pb-5" style={{ background: "#0F1520" }}>
         {tournament.status === "registering" ? (
           <>
-            <button onClick={() => toast.success(`₮${tournament.buyIn} 등록 완료!`)}
+            <button onClick={() => toast.success(`${getSymbol()}${tournament.buyIn} 등록 완료!`)}
               className="flex-1 py-2.5 rounded-lg text-[13px] font-bold text-white relative overflow-hidden group"
               style={{ background: "linear-gradient(135deg, #FF6B35, #E85D2C)", boxShadow: "0 4px 15px rgba(255,107,53,0.25)" }}>
               <span className="relative z-10 flex items-center justify-center gap-1.5">
-                <Zap className="h-3.5 w-3.5" /> Register (₮{tournament.buyIn})
+                <Zap className="h-3.5 w-3.5" /> Register ({getSymbol()}{tournament.buyIn})
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
             </button>
@@ -265,8 +266,8 @@ export default function TournamentLobby() {
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
                     {[
-                      { label: "Buy-in", value: `₮${featured.buyIn.toLocaleString()}`, color: "text-white" },
-                      { label: "Guaranteed", value: `₮${featured.guaranteed.toLocaleString()}`, color: "text-[#FFD700]" },
+                      { label: "Buy-in", value: `${getSymbol()}${featured.buyIn.toLocaleString()}`, color: "text-white" },
+                      { label: "Guaranteed", value: `${getSymbol()}${featured.guaranteed.toLocaleString()}`, color: "text-[#FFD700]" },
                       { label: "Players", value: `${featured.players} / ${featured.maxPlayers}`, color: "text-white" },
                       { label: "Starts", value: "Sunday 15:00", color: "text-white" },
                     ].map((item, i) => (
@@ -360,7 +361,7 @@ export default function TournamentLobby() {
                       </div>
                       <div className="text-right">
                         <div className="text-[10px] text-[#4A5A70]">Guaranteed</div>
-                        <div className="font-mono text-sm font-bold text-[#FF6B35]">₮{t.guaranteed.toLocaleString()}</div>
+                        <div className="font-mono text-sm font-bold text-[#FF6B35]">{getSymbol()}{t.guaranteed.toLocaleString()}</div>
                       </div>
                     </div>
 
@@ -368,7 +369,7 @@ export default function TournamentLobby() {
                     <div className="grid grid-cols-3 gap-2 mb-3">
                       <div className="text-center px-2 py-1.5 rounded-md" style={{ background: "rgba(255,255,255,0.02)" }}>
                         <div className="text-[9px] text-[#4A5A70]">Buy-in</div>
-                        <div className="font-mono text-xs font-semibold text-white">₮{t.buyIn}</div>
+                        <div className="font-mono text-xs font-semibold text-white">{getSymbol()}{t.buyIn}</div>
                       </div>
                       <div className="text-center px-2 py-1.5 rounded-md" style={{ background: "rgba(255,255,255,0.02)" }}>
                         <div className="text-[9px] text-[#4A5A70]">Players</div>

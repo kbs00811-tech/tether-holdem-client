@@ -80,7 +80,7 @@ export default function AssetShowcase() {
         </Section>
 
         {/* ===== 3. CHIPS ===== */}
-        <Section title="3. Chips" desc="6 denominations — ₮1, ₮5, ₮25, ₮100, ₮500, ₮1,000">
+        <Section title="3. Chips" desc="6 denominations — denominations">
           <div className="flex flex-wrap gap-6">
             {chipValues.map((v) => (
               <div key={v} className="flex flex-col items-center gap-2">
@@ -90,7 +90,7 @@ export default function AssetShowcase() {
                   <PokerChip value={v} size="lg" />
                   <PokerChip value={v} size="xl" />
                 </div>
-                <span className="text-[10px] font-mono text-[#6B7A90]">₮{v.toLocaleString()}</span>
+                <span className="text-[10px] font-mono text-[#6B7A90]">{getSymbol()}{v.toLocaleString()}</span>
               </div>
             ))}
           </div>

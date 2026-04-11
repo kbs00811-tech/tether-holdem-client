@@ -1,3 +1,4 @@
+import { formatMoney } from "../utils/currency";
 import { Link, useNavigate } from "react-router";
 import { Users, Filter, Plus, Trophy, Activity, Crown, Flame, Zap, Star, Clock, DollarSign, Play } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
@@ -97,7 +98,7 @@ export default function Lobby() {
     if (selectedRoom) {
       // 바이인 후 테이블 페이지로 이동
       navigate(`/table/${selectedRoom.id}`);
-      toast.success(`₮${amount.toLocaleString()} 바이인 완료`);
+      toast.success(`${formatMoney(amount)} 바이인 완료`);
     }
   }, [selectedRoom, navigate]);
 

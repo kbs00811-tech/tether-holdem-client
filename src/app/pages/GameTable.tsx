@@ -13,6 +13,7 @@ import { useGameStore } from "../stores/gameStore";
 import { useSocket } from "../hooks/useSocket";
 import { playSound } from "../hooks/useSound";
 import { useSettingsStore, TABLE_FELTS } from "../stores/settingsStore";
+import { formatMoney, getSymbol } from "../utils/currency";
 
 // Suit 변환: 서버(1-4) → 피그마("spades" etc.)
 const SUIT_MAP: Record<number, "spades"|"hearts"|"diamonds"|"clubs"> = {
@@ -237,7 +238,7 @@ export default function GameTable() {
     send({ type: 'SIT_DOWN', seat: targetSeat, buyIn: Math.round(amount * 100) });
     setSeated(true);
     setShowBuyInModal(false);
-    toast.success(`Bought in for ₮${amount.toLocaleString()}`);
+    toast.success(`Bought in for ${getSymbol()}${amount.toLocaleString()}`);
   }, [send, clickedSeat, serverPlayers, maxSeats, currentRoomId]);
 
   const handleLeave = useCallback(() => {
@@ -380,7 +381,7 @@ export default function GameTable() {
               style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.04)" }}>
               <span className="text-[9px] text-[#4A5A70]">Stack</span>
               <span className="text-[11px] font-mono font-bold text-[#34D399]">
-                ₮{((serverPlayers.find(p => p.seat === heroSeat)?.stack ?? 0) / 100).toLocaleString()}
+                {getSymbol()}{((serverPlayers.find(p => p.seat === heroSeat)?.stack ?? 0) / 100).toLocaleString()}
               </span>
             </div>
           )}
@@ -667,7 +668,7 @@ export default function GameTable() {
                     className="text-[16px] font-mono font-black"
                     style={{ textShadow: "0 0 10px rgba(229,184,0,0.3)" }}
                   >
-                    ₮{(pot / 100).toLocaleString()}
+                    {getSymbol()}{(pot / 100).toLocaleString()}
                   </motion.span>
                 </motion.div>
               </motion.div>
@@ -785,7 +786,7 @@ export default function GameTable() {
                         className="font-mono text-2xl font-black text-[#34D399] mb-1"
                         style={{ textShadow: "0 0 12px rgba(52,211,153,0.3)" }}
                       >
-                        +₮{(winners[0].amount / 100).toLocaleString()}
+                        +{getSymbol()}{(winners[0].amount / 100).toLocaleString()}
                       </motion.div>
 
                       {winners[0].handResult?.description && (
@@ -848,7 +849,7 @@ export default function GameTable() {
                 </div>
                 <div className="shrink-0 px-3 py-1.5 rounded-lg min-w-[70px] text-center"
                   style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                  <span className="text-xs font-mono font-black text-white">₮{(raiseAmount/100).toLocaleString()}</span>
+                  <span className="text-xs font-mono font-black text-white">{getSymbol()}{(raiseAmount/100).toLocaleString()}</span>
                 </div>
               </div>
 
@@ -890,7 +891,7 @@ export default function GameTable() {
                   style={{ background: "linear-gradient(180deg, #2E7D32 0%, #1B5E20 100%)", boxShadow: "0 4px 12px rgba(46,125,50,0.25)" }}>
                   <div className="flex flex-col items-center">
                     <span className="text-white text-[13px] sm:text-[14px] font-bold uppercase tracking-wider">{canCheck ? "Check" : "Call"}</span>
-                    {!canCheck && <span className="text-white/60 text-[10px] font-mono">₮{(callAmount/100).toLocaleString()}</span>}
+                    {!canCheck && <span className="text-white/60 text-[10px] font-mono">{getSymbol()}{(callAmount/100).toLocaleString()}</span>}
                   </div>
                 </motion.button>
 
@@ -909,7 +910,7 @@ export default function GameTable() {
                     <span className="text-white text-[13px] sm:text-[14px] font-bold uppercase tracking-wider">
                       {raiseAmount >= maxRaise ? "All In" : "Raise"}
                     </span>
-                    <span className="text-white/60 text-[10px] font-mono">₮{(raiseAmount/100).toLocaleString()}</span>
+                    <span className="text-white/60 text-[10px] font-mono">{getSymbol()}{(raiseAmount/100).toLocaleString()}</span>
                   </div>
                 </motion.button>
               </div>

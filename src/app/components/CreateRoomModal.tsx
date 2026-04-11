@@ -1,3 +1,4 @@
+import { formatMoney } from "../utils/currency";
 import { useState } from "react";
 import { Lock, Users, Zap, Crown, ChevronDown } from "lucide-react";
 import { Dialog, DialogContent } from "./ui/dialog";
@@ -132,9 +133,9 @@ export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModal
               <span className="text-[9px] text-[#3A4A5A]">Auto: 20BB – 100BB</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="font-mono text-xs text-[#8899AB]">₮{minBuyIn.toLocaleString()}</span>
+              <span className="font-mono text-xs text-[#8899AB]">{getSymbol()}{minBuyIn.toLocaleString()}</span>
               <div className="flex-1 mx-3 h-px" style={{ background: "linear-gradient(90deg, rgba(255,107,53,0.2), rgba(255,215,0,0.2))" }} />
-              <span className="font-mono text-xs text-[#FF6B35] font-semibold">₮{maxBuyIn.toLocaleString()}</span>
+              <span className="font-mono text-xs text-[#FF6B35] font-semibold">{getSymbol()}{maxBuyIn.toLocaleString()}</span>
             </div>
           </div>
 

@@ -1,3 +1,4 @@
+import { formatMoney } from "../utils/currency";
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "./ui/dialog";
 import { Slider } from "./ui/slider";
@@ -62,7 +63,7 @@ export function BuyInModal({
             <Wallet className="h-3.5 w-3.5 text-[#FF6B35]" />
             <span className="text-[11px] text-[#6B7A90]">Balance</span>
             <span className="ml-auto font-mono text-[13px] font-semibold text-white">
-              ₮{currentBalance.toLocaleString("en-US", { minimumFractionDigits: 2 })}
+              {getSymbol()}{currentBalance.toLocaleString("en-US", { minimumFractionDigits: 2 })}
             </span>
           </div>
         </div>
@@ -79,7 +80,7 @@ export function BuyInModal({
               </button>
               <motion.div key={amount} initial={{ scale: 0.9 }} animate={{ scale: 1 }}
                 className="font-mono text-[32px] font-bold text-white px-4 min-w-[180px] text-center">
-                ₮{amount.toLocaleString()}
+                {getSymbol()}{amount.toLocaleString()}
               </motion.div>
               <button onClick={() => setAmount(Math.min(maxBuyIn, amount + 100))}
                 className="w-8 h-8 rounded-lg flex items-center justify-center bg-white/5 hover:bg-white/10 text-[#6B7A90] hover:text-white transition">
@@ -102,8 +103,8 @@ export function BuyInModal({
               className="[&_[data-slot=slider-track]]:bg-[#1A2235] [&_[data-slot=slider-range]]:bg-gradient-to-r [&_[data-slot=slider-range]]:from-[#FF6B35] [&_[data-slot=slider-range]]:to-[#26A17B] [&_[data-slot=slider-thumb]]:bg-white [&_[data-slot=slider-thumb]]:border-2 [&_[data-slot=slider-thumb]]:border-[#FF6B35] [&_[data-slot=slider-thumb]]:shadow-[0_0_8px_rgba(255,107,53,0.4)]"
             />
             <div className="flex justify-between text-[10px] text-[#4A5568] mt-1.5">
-              <span>₮{minBuyIn.toLocaleString()}</span>
-              <span>₮{Math.min(maxBuyIn, currentBalance).toLocaleString()}</span>
+              <span>{getSymbol()}{minBuyIn.toLocaleString()}</span>
+              <span>{getSymbol()}{Math.min(maxBuyIn, currentBalance).toLocaleString()}</span>
             </div>
           </div>
 

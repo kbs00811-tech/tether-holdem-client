@@ -1,3 +1,4 @@
+import { formatMoney } from "../utils/currency";
 import { TrendingUp, TrendingDown, Play, Award, Target, Calendar, Trophy, Flame, BarChart3, Clock } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";
@@ -72,8 +73,8 @@ export default function Profile() {
               {[
                 { label: "Total Hands", value: stats.totalHands.toLocaleString(), icon: Play, color: "#FF6B35" },
                 { label: "Win Rate", value: `${stats.winRate}%`, icon: Target, color: "#34D399" },
-                { label: "Net Profit", value: `${stats.netProfit >= 0 ? "+" : ""}₮${stats.netProfit.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, icon: stats.netProfit >= 0 ? TrendingUp : TrendingDown, color: stats.netProfit >= 0 ? "#34D399" : "#EF4444" },
-                { label: "Biggest Win", value: `₮${stats.biggestWin.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, icon: Award, color: "#FFD700" },
+                { label: "Net Profit", value: `${stats.netProfit >= 0 ? "+" : ""}${getSymbol()}${stats.netProfit.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, icon: stats.netProfit >= 0 ? TrendingUp : TrendingDown, color: stats.netProfit >= 0 ? "#34D399" : "#EF4444" },
+                { label: "Biggest Win", value: `${getSymbol()}${stats.biggestWin.toLocaleString("en-US", { minimumFractionDigits: 2 })}`, icon: Award, color: "#FFD700" },
               ].map((item, i) => (
                 <motion.div key={i} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: i * 0.08 }}
@@ -129,12 +130,12 @@ export default function Profile() {
                   </defs>
                   <XAxis dataKey="date" stroke="#2A3650" tick={{ fill: "#4A5A70", fontSize: 10 }} axisLine={false} tickLine={false} />
                   <YAxis stroke="#2A3650" tick={{ fill: "#4A5A70", fontSize: 10 }} axisLine={false} tickLine={false}
-                    tickFormatter={v => `₮${(v/1000).toFixed(0)}k`} />
+                    tickFormatter={v => `${getSymbol()}${(v/1000).toFixed(0)}k`} />
                   <Tooltip contentStyle={{
                     background: "#1A2235", border: "1px solid #2A3650", borderRadius: 8,
                     fontSize: 11, color: "#E2E8F0", boxShadow: "0 8px 20px rgba(0,0,0,0.4)",
                   }}
-                    formatter={(value: number) => [`₮${value.toLocaleString()}`, "Profit"]}
+                    formatter={(value: number) => [`${getSymbol()}${value.toLocaleString()}`, "Profit"]}
                     labelStyle={{ color: "#6B7A90" }} />
                   <Area type="monotone" dataKey="profit" stroke="#34D399" strokeWidth={2.5}
                     fill="url(#profitGrad)" dot={{ fill: "#34D399", r: 3, strokeWidth: 0 }}
@@ -172,7 +173,7 @@ export default function Profile() {
                     </div>
                     <div className="font-mono text-sm font-bold"
                       style={{ color: session.profit >= 0 ? "#34D399" : "#EF4444" }}>
-                      {session.profit >= 0 ? "+" : ""}₮{Math.abs(session.profit).toLocaleString("en-US", { minimumFractionDigits: 2 })}
+                      {session.profit >= 0 ? "+" : ""}{getSymbol()}{Math.abs(session.profit).toLocaleString("en-US", { minimumFractionDigits: 2 })}
                     </div>
                   </motion.div>
                 ))}
