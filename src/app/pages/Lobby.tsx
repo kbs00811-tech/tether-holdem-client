@@ -96,7 +96,7 @@ export default function Lobby() {
     if (selectedRoom) {
       // 바이인 후 테이블 페이지로 이동
       navigate(`/table/${selectedRoom.id}`);
-      toast.success(`${formatMoney(amount)} 바이인 완료`);
+      toast.success(`${formatMoney(amount)} Buy-in complete`);
     }
   }, [selectedRoom, navigate]);
 
@@ -107,7 +107,7 @@ export default function Lobby() {
       minBuyIn: config.minBuyIn, maxBuyIn: config.maxBuyIn, status: "waiting", variant: "NL",
     };
     setRooms([newRoom, ...rooms]);
-    toast.success(`"${config.name}" 생성 완료`);
+    toast.success(`"${config.name}" Room created`);
   };
 
   return (
@@ -160,7 +160,7 @@ export default function Lobby() {
             Texas Hold'em
           </h1>
           <p className="text-[#6B7A90] text-xs sm:text-sm mb-4 max-w-sm">
-            USDT 기반 프리미엄 포커 — 지금 바로 시작하세요
+            Premium USDT Poker — Start playing now
           </p>
 
           <div className="flex items-center gap-2">
@@ -173,7 +173,7 @@ export default function Lobby() {
                   boxShadow: "0 4px 20px rgba(255,107,53,0.25), inset 0 1px 0 rgba(255,255,255,0.15)",
                 }}>
                 <Play className="h-3.5 w-3.5" fill="white" />
-                퀵 플레이
+                Quick Play
               </motion.button>
             </Link>
             <Link to="/tournaments">
@@ -354,7 +354,7 @@ export default function Lobby() {
                     opacity: isFull ? 0.5 : 1,
                   }}
                   onClick={(e) => { e.stopPropagation(); !isFull && handleJoinTable(room.id); }}>
-                  {isFull ? "만석" : "입장하기"}
+                  {isFull ? "Full" : "Join"}
                 </motion.button>
               </motion.div>
             );
@@ -400,7 +400,7 @@ export default function Lobby() {
                   color: "#1A1A2E",
                   boxShadow: "0 4px 16px rgba(229,184,0,0.15), inset 0 1px 0 rgba(255,255,255,0.2)",
                 }}>
-                토너먼트 보기
+                Tournaments
               </motion.button>
             </Link>
           </div>

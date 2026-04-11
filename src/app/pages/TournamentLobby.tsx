@@ -157,7 +157,7 @@ function TournamentDetailModal({ tournament }: { tournament: Tournament }) {
       <div className="flex gap-3 px-6 pb-5" style={{ background: "#0F1520" }}>
         {tournament.status === "registering" ? (
           <>
-            <button onClick={() => toast.success(`${getSymbol()}${tournament.buyIn} 등록 완료!`)}
+            <button onClick={() => toast.success(`${getSymbol()}${tournament.buyIn} Registered!`)}
               className="flex-1 py-2.5 rounded-lg text-[13px] font-bold text-white relative overflow-hidden group"
               style={{ background: "linear-gradient(135deg, #FF6B35, #E85D2C)", boxShadow: "0 4px 15px rgba(255,107,53,0.25)" }}>
               <span className="relative z-10 flex items-center justify-center gap-1.5">
@@ -230,7 +230,7 @@ export default function TournamentLobby() {
           </div>
           <h1 className="text-2xl sm:text-3xl font-black text-white mb-1">Poker Tournaments</h1>
           <p className="text-[#6B7A90] text-xs sm:text-sm max-w-md">
-            보장 상금풀과 함께하는 프리미엄 토너먼트
+            Premium tournaments with guaranteed prize pools
           </p>
         </div>
       </section>

@@ -75,9 +75,9 @@ export function TournamentResultModal({
   };
 
   const getTitle = () => {
-    if (placement === 1) return "🎉 우승 축하합니다! 🎉";
-    if (isTopThree) return `${placement}위 입상!`;
-    return "토너먼트 종료";
+    if (placement === 1) return "🎉 Congratulations! 🎉";
+    if (isTopThree) return `${placement}th Place!`;
+    return "Tournament Finished";
   };
 
   return (
@@ -127,7 +127,7 @@ export function TournamentResultModal({
               #{placement}
             </div>
             <p className="text-sm text-muted-foreground mt-2">
-              {totalPlayers}명 중
+              {totalPlayers}of
             </p>
           </motion.div>
 
@@ -141,7 +141,7 @@ export function TournamentResultModal({
             >
               <div className="flex items-center gap-2 justify-center mb-2">
                 <DollarSign className="h-6 w-6 text-primary" />
-                <span className="text-sm text-muted-foreground">상금</span>
+                <span className="text-sm text-muted-foreground">Prize</span>
               </div>
               <div className="text-3xl font-bold font-mono text-primary">
                 {prize.toLocaleString()} USDT
@@ -157,7 +157,7 @@ export function TournamentResultModal({
               transition={{ delay: 0.4 }}
               className="text-muted-foreground mb-6"
             >
-              다음 기회에 도전하세요!
+              Better luck next time!
             </motion.p>
           )}
 

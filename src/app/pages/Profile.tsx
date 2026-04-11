@@ -63,9 +63,9 @@ export default function Profile() {
 
       <div className="mx-auto max-w-7xl px-3 sm:px-5 py-5">
         {!hasPlayedGames ? (
-          <EmptyState icon={Play} title="아직 플레이 기록이 없습니다"
-            description="첫 게임을 시작하고 통계를 쌓아보세요!"
-            actionLabel="홀덤 로비로 이동" onAction={() => navigate("/")} />
+          <EmptyState icon={Play} title="No games played yet"
+            description="Start your first game and build your stats!"
+            actionLabel="Go to Lobby" onAction={() => navigate("/")} />
         ) : (
           <>
             {/* ═══ Key Stats Grid ═══ */}

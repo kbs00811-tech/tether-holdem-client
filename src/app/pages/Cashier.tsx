@@ -10,10 +10,10 @@ export default function Cashier() {
   const available = balance - inPlay;
 
   const recentActivity = [
-    { type: "buy_in", table: "High Rollers", amount: -2000, time: "5분 전" },
-    { type: "cash_out", table: "Medium Stakes", amount: 3240, time: "1시간 전" },
-    { type: "buy_in", table: "6-Max 1/2", amount: -1000, time: "2시간 전" },
-    { type: "cash_out", table: "VIP Room", amount: 5800, time: "어제" },
+    { type: "buy_in", table: "High Rollers", amount: -2000, time: "5m ago" },
+    { type: "cash_out", table: "Medium Stakes", amount: 3240, time: "1h ago" },
+    { type: "buy_in", table: "6-Max 1/2", amount: -1000, time: "2h ago" },
+    { type: "cash_out", table: "VIP Room", amount: 5800, time: "Yesterday" },
   ];
 
   return (
@@ -62,9 +62,9 @@ export default function Cashier() {
         <div className="rounded-xl p-6 mb-6 text-center"
           style={{ background: "#141820", border: "1px solid rgba(255,255,255,0.04)" }}>
           <Wallet className="h-10 w-10 mx-auto mb-3 text-[#FF6B35] opacity-30" />
-          <h3 className="text-base font-bold text-white mb-1">입출금은 TETHER.BET 캐셔에서</h3>
+          <h3 className="text-base font-bold text-white mb-1">Deposits & Withdrawals via TETHER.BET</h3>
           <p className="text-[12px] text-[#4A5A70] mb-5 max-w-sm mx-auto">
-            USDT 입금/출금은 TETHER.BET 메인 캐셔에서 PeerX를 통해 안전하게 처리됩니다.
+            All deposits and withdrawals are securely processed through PeerX on the TETHER.BET main cashier.
           </p>
 
           <div className="flex gap-3 justify-center">
@@ -73,7 +73,7 @@ export default function Cashier() {
                 className="px-6 py-3 rounded-xl text-[13px] font-bold text-white inline-flex items-center gap-2 relative overflow-hidden group"
                 style={{ background: "linear-gradient(135deg, #FF6B35, #E85D2C)", boxShadow: "0 4px 15px rgba(255,107,53,0.25)" }}>
                 <ArrowDownToLine className="h-4 w-4" />
-                입금하기
+                Deposit
                 <ExternalLink className="h-3 w-3 opacity-50" />
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
               </motion.button>
@@ -83,7 +83,7 @@ export default function Cashier() {
                 className="px-6 py-3 rounded-xl text-[13px] font-bold text-[#8899AB] inline-flex items-center gap-2"
                 style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
                 <ArrowUpFromLine className="h-4 w-4" />
-                출금하기
+                Withdraw
                 <ExternalLink className="h-3 w-3 opacity-30" />
               </motion.button>
             </a>
@@ -133,8 +133,8 @@ export default function Cashier() {
           style={{ background: "rgba(96,165,250,0.04)", border: "1px solid rgba(96,165,250,0.08)" }}>
           <span className="text-[11px]">ℹ️</span>
           <span className="text-[11px] text-[#60A5FA]/70">
-            홀덤 테이블에서의 바이인/캐시아웃은 TETHER.BET 잔액에서 자동 처리됩니다.
-            입출금(USDT)은 TETHER.BET 메인 캐셔에서 PeerX를 통해 진행하세요.
+            Buy-ins and cash-outs at holdem tables are automatically processed from your TETHER.BET balance.
+            For deposits/withdrawals, please use the TETHER.BET main cashier via PeerX.
           </span>
         </div>
       </div>
