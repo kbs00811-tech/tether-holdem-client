@@ -23,6 +23,7 @@ interface PlayerSlotProps {
 }
 
 import { AVATAR_IMAGES } from "../stores/settingsStore";
+import { CardSqueeze } from "./CardSqueeze";
 const avatarImages = AVATAR_IMAGES;
 const avatarColors = [
   "#F7931A", "#627EEA", "#26A17B", "#FF6B35", "#7C3AED",
@@ -93,15 +94,16 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, isHero, posi
         )}
       </AnimatePresence>
 
-      {/* Hero hole cards */}
-      {isHero && player.cards && (
-        <motion.div className="flex gap-1 mb-1"
+      {/* Hero hole cards — with squeeze option */}
+      {isHero && player.cards && player.cards.length >= 2 && (
+        <motion.div className="mb-1"
           initial={{ y: 12, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ type: "spring", stiffness: 200, damping: 18 }}>
-          {player.cards.map((card, i) => (
-            <PokerCard key={i} suit={card.suit} rank={card.rank as any} size="lg" highlight />
-          ))}
+          <CardSqueeze
+            card1={{ suit: player.cards[0].suit as any, rank: player.cards[0].rank as any }}
+            card2={{ suit: player.cards[1].suit as any, rank: player.cards[1].rank as any }}
+          />
         </motion.div>
       )}
 
