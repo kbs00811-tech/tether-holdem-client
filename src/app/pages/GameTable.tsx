@@ -31,6 +31,7 @@ export default function GameTable() {
     gameState, myCards, isMyTurn, turnInfo, winners, showResult,
     currentRoomId, serverSeedHash, equities, connected,
     shownCards, rabbitCards, handHistoryRecords,
+    showMuckPrompt, insuranceOffer, isSittingOut,
   } = useGameStore();
 
   const [raiseAmount, setRaiseAmount] = useState(400);
@@ -424,10 +425,24 @@ export default function GameTable() {
           )}
           {/* Sit Out toggle */}
           {seated && (
-            <button onClick={() => { send({ type: 'SIT_OUT' }); toast.success('Sitting out'); }}
+            <button onClick={() => {
+              if (isSittingOut) {
+                send({ type: 'SIT_IN' });
+                useGameStore.setState({ isSittingOut: false });
+                toast.success('Back in action');
+              } else {
+                send({ type: 'SIT_OUT' });
+                useGameStore.setState({ isSittingOut: true });
+                toast.success('Sitting out next hand');
+              }
+            }}
               className="px-2 py-1 rounded-md text-[10px] font-semibold transition-all"
-              style={{ background: "rgba(255,255,255,0.03)", color: "#4A5A70" }}>
-              Sit Out
+              style={{
+                background: isSittingOut ? "rgba(239,68,68,0.08)" : "rgba(255,255,255,0.03)",
+                color: isSittingOut ? "#EF4444" : "#4A5A70",
+                border: isSittingOut ? "1px solid rgba(239,68,68,0.15)" : "none",
+              }}>
+              {isSittingOut ? "Sit In" : "Sit Out"}
             </button>
           )}
           {/* Show Cards (after win) */}
@@ -1104,6 +1119,85 @@ export default function GameTable() {
                 </button>
               ))}
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ===== Show/Muck Prompt (승리 후) ===== */}
+      <AnimatePresence>
+        {showMuckPrompt && (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-32 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl"
+            style={{ background: "rgba(20,24,32,0.95)", border: "1px solid rgba(52,211,153,0.15)", backdropFilter: "blur(12px)" }}>
+            <div className="text-[10px] text-[#6B7A90] text-center mb-2">Show your cards?</div>
+            <div className="flex gap-3">
+              <button onClick={() => { send({ type: 'SHOW_CARDS' }); useGameStore.setState({ showMuckPrompt: false }); playSound('click'); }}
+                className="px-4 py-2 rounded-lg text-xs font-bold text-[#34D399]"
+                style={{ background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.2)" }}>
+                Show
+              </button>
+              <button onClick={() => { send({ type: 'MUCK_CARDS' }); useGameStore.setState({ showMuckPrompt: false }); playSound('click'); }}
+                className="px-4 py-2 rounded-lg text-xs font-bold text-[#6B7A90]"
+                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                Muck
+              </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ===== Insurance Offer ===== */}
+      <AnimatePresence>
+        {insuranceOffer && (
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+            <div className="rounded-2xl p-5 max-w-[320px] text-center"
+              style={{ background: "#141820", border: "1px solid rgba(255,215,0,0.1)" }}>
+              <div className="text-sm font-bold text-[#FFD700] mb-1">Insurance Available</div>
+              <div className="text-[11px] text-[#6B7A90] mb-4">Protect your hand against bad beats</div>
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <div className="p-2 rounded-lg" style={{ background: "rgba(255,255,255,0.02)" }}>
+                  <div className="text-[9px] text-[#4A5A70]">Premium</div>
+                  <div className="font-mono text-sm text-[#FF6B35] font-bold">{formatMoney(insuranceOffer.premium / 100)}</div>
+                </div>
+                <div className="p-2 rounded-lg" style={{ background: "rgba(255,255,255,0.02)" }}>
+                  <div className="text-[9px] text-[#4A5A70]">Payout</div>
+                  <div className="font-mono text-sm text-[#34D399] font-bold">{formatMoney(insuranceOffer.payout / 100)}</div>
+                </div>
+              </div>
+              <div className="text-[10px] text-[#4A5A70] mb-4">
+                Equity: {insuranceOffer.equity.toFixed(1)}% | Outs: {insuranceOffer.outs}
+              </div>
+              <div className="flex gap-3">
+                <button onClick={() => { send({ type: 'BUY_INSURANCE', accept: true }); useGameStore.setState({ insuranceOffer: null }); }}
+                  className="flex-1 py-2.5 rounded-lg text-xs font-bold text-white"
+                  style={{ background: "linear-gradient(135deg, #FF6B35, #E85D2C)" }}>
+                  Buy Insurance
+                </button>
+                <button onClick={() => useGameStore.setState({ insuranceOffer: null })}
+                  className="flex-1 py-2.5 rounded-lg text-xs font-semibold text-[#6B7A90] bg-white/[0.03] border border-white/[0.06]">
+                  No Thanks
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ===== Rabbit Hunt Popup (결과 화면에서) ===== */}
+      <AnimatePresence>
+        {rabbitCards.length > 0 && phase === "RESULT" && (
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+            className="fixed bottom-32 right-6 z-50 px-4 py-3 rounded-xl max-w-[200px]"
+            style={{ background: "rgba(20,24,32,0.95)", border: "1px solid rgba(255,215,0,0.1)", backdropFilter: "blur(12px)" }}>
+            <div className="text-[10px] text-[#FFD700] font-bold mb-1">🐇 Rabbit Hunt</div>
+            <div className="text-[11px] text-[#8899AB]">
+              {rabbitCards.map((c: any, i: number) => (
+                <span key={i} className="font-mono">{' '}{['','♣','♥','♦','♠'][c.suit]}{c.rank}</span>
+              ))}
+            </div>
+            <button onClick={() => useGameStore.setState({ rabbitCards: [] })}
+              className="text-[9px] text-[#4A5A70] mt-1 hover:text-white">Dismiss</button>
           </motion.div>
         )}
       </AnimatePresence>

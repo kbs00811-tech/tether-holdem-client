@@ -39,8 +39,12 @@ const sizeMap = {
 
 export function PokerCard({ suit, rank, faceDown = false, size = "md", highlight = false, className }: PokerCardProps) {
   const s = sizeMap[size];
-  const suitColors = getSuitColors();
-  const sc = suitColors[suit];
+  const cardSkin = useSettingsStore(st => st.cardSkin);
+  const skin = CARD_SKINS[cardSkin as keyof typeof CARD_SKINS] ?? CARD_SKINS[1];
+  const sc = {
+    primary: skin[suit === "spades" ? "spades" : suit === "hearts" ? "hearts" : suit === "diamonds" ? "diamonds" : "clubs"],
+    shadow: `${skin[suit === "spades" ? "spades" : suit === "hearts" ? "hearts" : suit === "diamonds" ? "diamonds" : "clubs"]}66`,
+  };
   const sym = suitSymbols[suit];
   const uid = `card-${suit}-${rank}-${size}-${Math.random().toString(36).slice(2, 6)}`;
 

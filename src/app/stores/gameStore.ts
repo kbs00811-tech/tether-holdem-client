@@ -34,6 +34,10 @@ interface GameStore {
   shownCards: Record<string, any[]>;      // playerId → cards (쇼다운 공개)
   rabbitCards: any[];                      // Rabbit Hunt 결과
   handHistoryRecords: any[];               // Hand History 뷰어
+  showMuckPrompt: boolean;                 // 승리 후 Show/Muck 선택
+  runItTwiceRequest: boolean;              // Run It Twice 요청 대기
+  insuranceOffer: { premium: number; payout: number; equity: number; outs: number } | null;
+  isSittingOut: boolean;
 
   setConnected: (v: boolean) => void;
   handleServerMessage: (msg: ServerMessage) => void;
@@ -57,6 +61,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
   shownCards: {},
   rabbitCards: [],
   handHistoryRecords: [],
+  showMuckPrompt: false,
+  runItTwiceRequest: false,
+  insuranceOffer: null,
+  isSittingOut: false,
 
   setConnected: (v) => set({ connected: v }),
 
@@ -65,6 +73,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     isMyTurn: false, turnInfo: null, winners: null,
     showResult: false, equities: null,
     shownCards: {}, rabbitCards: [],
+    showMuckPrompt: false, runItTwiceRequest: false, insuranceOffer: null,
   }),
 
   handleServerMessage: (msg) => {
@@ -159,6 +168,19 @@ export const useGameStore = create<GameStore>((set, get) => ({
         break;
       case 'HAND_HISTORY':
         set({ handHistoryRecords: (msg as any).records ?? [] });
+        break;
+      case 'SHOW_MUCK_PROMPT':
+        set({ showMuckPrompt: true });
+        setTimeout(() => set({ showMuckPrompt: false }), 8000); // 8초 후 자동 Muck
+        break;
+      case 'RUN_IT_TWICE':
+        // 서버에서 두 번째 보드 결과 수신
+        break;
+      case 'INSURANCE_OFFER':
+        set({ insuranceOffer: { premium: (msg as any).premium, payout: (msg as any).payout, equity: (msg as any).equity, outs: (msg as any).outs } });
+        break;
+      case 'PLAYER_SIT_OUT':
+      case 'PLAYER_SIT_IN':
         break;
         break;
       case 'ERROR':
