@@ -4,12 +4,18 @@ import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { useState } from "react";
 import { motion } from "motion/react";
 import { useGameStore } from "../stores/gameStore";
+import { useSocket } from "../hooks/useSocket";
+import { SettingsModal } from "./SettingsModal";
 
 export function Header() {
   const location = useLocation();
+  const { send } = useSocket();
   const connected = useGameStore(s => s.connected);
   const balance = 12450.5;
   const [showPromo, setShowPromo] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
+  const [currentAvatar, setCurrentAvatar] = useState(3);
+  const [currentCardSkin, setCurrentCardSkin] = useState(1);
 
   const navItems = [
     { label: "Lobby", path: "/", exact: true },
@@ -129,12 +135,13 @@ export function Header() {
               </button>
 
               {/* Avatar */}
-              <button className="hidden sm:flex w-9 h-9 rounded-full items-center justify-center overflow-hidden"
+              <button onClick={() => setShowSettings(true)}
+                className="hidden sm:flex w-9 h-9 rounded-full items-center justify-center overflow-hidden"
                 style={{
-                  background: "linear-gradient(135deg, #FF6B35, #E5B800)",
                   boxShadow: "0 0 0 2px rgba(255,107,53,0.15)",
                 }}>
-                <span className="text-white text-xs font-black">T</span>
+                <img src={`/src/assets/avatars/${String(currentAvatar + 1).padStart(2, '0')}_${['bull','fox','penguin','ninja','shark','hacker','phoenix','wolf','astronaut','eagle'][currentAvatar]}.png`}
+                  alt="avatar" className="w-full h-full object-cover" />
               </button>
 
               {/* Mobile menu */}
@@ -171,6 +178,18 @@ export function Header() {
           </div>
         </div>
       </header>
+
+      <SettingsModal
+        open={showSettings}
+        onOpenChange={setShowSettings}
+        currentAvatar={currentAvatar}
+        onChangeAvatar={(id) => {
+          setCurrentAvatar(id);
+          send({ type: 'SET_PRE_ACTION', action: null } as any); // placeholder — 서버에 avatar 변경은 추후
+        }}
+        currentCardSkin={currentCardSkin}
+        onChangeCardSkin={setCurrentCardSkin}
+      />
     </>
   );
 }
