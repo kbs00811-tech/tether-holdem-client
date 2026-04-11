@@ -1,20 +1,21 @@
 import { Link, useLocation } from "react-router";
-import { Wallet, Bell, Menu, X } from "lucide-react";
-import { Button } from "./ui/button";
+import { Wallet, Bell, Menu, X, Settings } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
 import { useState } from "react";
 import { motion } from "motion/react";
+import { useGameStore } from "../stores/gameStore";
 
 export function Header() {
   const location = useLocation();
+  const connected = useGameStore(s => s.connected);
   const balance = 12450.5;
   const [showPromo, setShowPromo] = useState(true);
 
   const navItems = [
-    { label: "로비", path: "/", exact: true },
-    { label: "토너먼트", path: "/tournaments" },
-    { label: "캐셔", path: "/cashier" },
-    { label: "프로필", path: "/profile" },
+    { label: "Lobby", path: "/", exact: true },
+    { label: "Tournaments", path: "/tournaments" },
+    { label: "Cashier", path: "/cashier" },
+    { label: "Profile", path: "/profile" },
   ];
 
   const isActive = (path: string, exact?: boolean) =>
@@ -22,68 +23,68 @@ export function Header() {
 
   return (
     <>
-      {/* Promo — gradient ribbon */}
+      {/* Promo banner */}
       {showPromo && (
-        <div className="relative px-4 py-1.5 flex items-center justify-center"
+        <div className="relative px-4 py-2 flex items-center justify-center"
           style={{
-            background: "linear-gradient(90deg, #FF6B35 0%, #E85D2C 30%, #FF6B35 60%, #E85D2C 100%)",
+            background: "linear-gradient(90deg, #FF6B35 0%, #E85D2C 40%, #FF6B35 70%, #FFD700 100%)",
             backgroundSize: "200% 100%",
           }}>
-          <div className="flex items-center gap-1.5">
-            <span className="text-white/90 text-[10px] font-medium">🎁 첫 입금 100% 보너스 · 최대 $1,000</span>
-            <Link to="/cashier" className="text-white text-[10px] font-bold underline underline-offset-2 ml-1">
-              지금 받기 →
+          <div className="flex items-center gap-2">
+            <span className="text-white text-xs font-bold">🎁 First Deposit 100% Bonus · Up to $1,000</span>
+            <Link to="/cashier" className="text-white text-xs font-black underline underline-offset-2 ml-1">
+              Claim →
             </Link>
           </div>
           <button onClick={() => setShowPromo(false)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/80 transition-colors">
-            <X className="h-3 w-3" />
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-white/50 hover:text-white transition">
+            <X className="h-4 w-4" />
           </button>
         </div>
       )}
 
-      {/* Main Header — frosted glass */}
+      {/* Main Header */}
       <header className="sticky top-0 z-40"
         style={{
-          background: "rgba(8,12,18,0.88)",
-          backdropFilter: "blur(20px) saturate(1.3)",
-          borderBottom: "1px solid rgba(255,255,255,0.03)",
+          background: "rgba(8,12,18,0.92)",
+          backdropFilter: "blur(24px) saturate(1.4)",
+          borderBottom: "1px solid rgba(255,255,255,0.04)",
         }}>
         <div className="mx-auto px-4 sm:px-6">
-          <div className="flex h-12 items-center justify-between gap-3">
+          <div className="flex h-14 items-center justify-between gap-4">
 
             {/* Logo */}
-            <Link to="/" className="flex items-center gap-2 shrink-0">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center"
+            <Link to="/" className="flex items-center gap-2.5 shrink-0">
+              <div className="w-9 h-9 rounded-xl flex items-center justify-center"
                 style={{
                   background: "linear-gradient(135deg, #FF6B35, #E85D2C)",
-                  boxShadow: "0 2px 8px rgba(255,107,53,0.2)",
+                  boxShadow: "0 3px 12px rgba(255,107,53,0.3)",
                 }}>
-                <span className="text-white font-black text-[10px]">T</span>
+                <span className="text-white font-black text-sm">T</span>
               </div>
               <div className="hidden sm:flex items-baseline gap-0">
-                <span className="text-white font-black text-sm tracking-tight">TETHER</span>
-                <span className="text-[#FF6B35] font-black text-sm">.</span>
-                <span className="text-[#4A5A70] font-bold text-xs">BET</span>
+                <span className="text-white font-black text-base tracking-tight">TETHER</span>
+                <span className="text-[#FF6B35] font-black text-base">.</span>
+                <span className="text-[#6B7A90] font-bold text-sm">BET</span>
               </div>
             </Link>
 
             {/* Desktop Nav */}
-            <nav className="hidden md:flex items-center gap-0.5 relative">
+            <nav className="hidden md:flex items-center gap-1 relative">
               {navItems.map((item) => {
                 const active = isActive(item.path, item.exact);
                 return (
                   <Link key={item.path} to={item.path}>
-                    <button className="relative px-3 py-1.5 rounded-lg text-[12px] transition-all"
+                    <button className="relative px-4 py-2 rounded-lg text-sm transition-all"
                       style={{
                         color: active ? "#FFFFFF" : "#5A6A80",
-                        background: active ? "rgba(255,255,255,0.04)" : "transparent",
-                        fontWeight: active ? 600 : 400,
+                        background: active ? "rgba(255,107,53,0.08)" : "transparent",
+                        fontWeight: active ? 700 : 500,
                       }}>
                       {item.label}
                       {active && (
                         <motion.div layoutId="nav-underline"
-                          className="absolute bottom-0 left-1/2 w-4 h-[2px] rounded-full"
+                          className="absolute bottom-0 left-1/2 w-6 h-[2px] rounded-full"
                           style={{ background: "#FF6B35", transform: "translateX(-50%)" }}
                           transition={{ type: "spring", stiffness: 300, damping: 25 }} />
                       )}
@@ -94,70 +95,75 @@ export function Header() {
             </nav>
 
             {/* Right side */}
-            <div className="flex items-center gap-1.5">
-              {/* Balance chip */}
-              <Link to="/cashier" className="hidden sm:flex items-center gap-1.5 px-3 py-1 rounded-full"
+            <div className="flex items-center gap-2">
+              {/* Connection status */}
+              <div className={`w-2 h-2 rounded-full ${connected ? "bg-emerald-400" : "bg-red-500"}`}
+                style={{ boxShadow: connected ? "0 0 6px rgba(52,211,153,0.4)" : "0 0 6px rgba(239,68,68,0.4)" }} />
+
+              {/* Balance */}
+              <Link to="/cashier" className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl"
                 style={{
                   background: "rgba(255,255,255,0.03)",
-                  border: "1px solid rgba(255,255,255,0.04)",
+                  border: "1px solid rgba(255,255,255,0.05)",
                 }}>
-                <Wallet className="h-3 w-3 text-[#4A5A70]" />
-                <span className="font-mono text-[11px] text-white font-bold">${balance.toLocaleString()}</span>
+                <Wallet className="h-4 w-4 text-[#FF6B35]" />
+                <span className="font-mono text-sm text-white font-bold">₮{balance.toLocaleString()}</span>
               </Link>
 
-              {/* Deposit */}
+              {/* Deposit button */}
               <Link to="/cashier">
                 <motion.button whileTap={{ scale: 0.94 }}
-                  className="px-3 py-1.5 rounded-lg text-[10px] font-bold text-white"
+                  className="px-4 py-2 rounded-xl text-xs font-bold text-white"
                   style={{
                     background: "linear-gradient(135deg, #FF6B35, #E85D2C)",
-                    boxShadow: "0 2px 8px rgba(255,107,53,0.2)",
-                  }}>입금</motion.button>
+                    boxShadow: "0 3px 12px rgba(255,107,53,0.25)",
+                  }}>Deposit</motion.button>
               </Link>
 
               {/* Notification */}
-              <button className="relative w-7 h-7 rounded-lg items-center justify-center hidden sm:flex"
-                style={{ background: "rgba(255,255,255,0.02)" }}>
-                <Bell className="h-3.5 w-3.5 text-[#3D4F65]" />
-                <span className="absolute top-1 right-1 w-1.5 h-1.5 rounded-full bg-[#EF4444]"
-                  style={{ boxShadow: "0 0 4px rgba(239,68,68,0.4)" }} />
+              <button className="relative w-9 h-9 rounded-xl items-center justify-center hidden sm:flex"
+                style={{ background: "rgba(255,255,255,0.03)" }}>
+                <Bell className="h-4 w-4 text-[#4A5A70]" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-[#EF4444]"
+                  style={{ boxShadow: "0 0 4px rgba(239,68,68,0.5)" }} />
               </button>
 
               {/* Avatar */}
-              <button className="hidden sm:flex w-7 h-7 rounded-full items-center justify-center"
+              <button className="hidden sm:flex w-9 h-9 rounded-full items-center justify-center overflow-hidden"
                 style={{
                   background: "linear-gradient(135deg, #FF6B35, #E5B800)",
-                  boxShadow: "0 0 0 2px rgba(255,107,53,0.1)",
+                  boxShadow: "0 0 0 2px rgba(255,107,53,0.15)",
                 }}>
-                <span className="text-white text-[9px] font-black">T</span>
+                <span className="text-white text-xs font-black">T</span>
               </button>
 
-              {/* Mobile burger */}
+              {/* Mobile menu */}
               <Sheet>
                 <SheetTrigger asChild className="md:hidden">
-                  <Button variant="ghost" size="icon" className="text-[#5A6A80] h-8 w-8">
-                    <Menu className="h-4 w-4" />
-                  </Button>
+                  <button className="w-9 h-9 rounded-xl flex items-center justify-center"
+                    style={{ background: "rgba(255,255,255,0.03)" }}>
+                    <Menu className="h-5 w-5 text-[#5A6A80]" />
+                  </button>
                 </SheetTrigger>
-                <SheetContent style={{ background: "rgba(11,14,20,0.98)", borderColor: "rgba(255,255,255,0.03)" }}>
+                <SheetContent style={{ background: "rgba(11,14,20,0.98)", borderColor: "rgba(255,255,255,0.04)" }}>
                   <div className="mt-8 space-y-1">
                     {navItems.map((item) => (
                       <Link key={item.path} to={item.path}>
-                        <div className="px-4 py-3 rounded-xl text-sm transition-all"
+                        <div className="px-4 py-3.5 rounded-xl text-sm font-medium transition-all"
                           style={{
-                            color: isActive(item.path, item.exact) ? "#FF6B35" : "#5A6A80",
+                            color: isActive(item.path, item.exact) ? "#FF6B35" : "#6B7A90",
                             background: isActive(item.path, item.exact) ? "rgba(255,107,53,0.06)" : "transparent",
-                            fontWeight: isActive(item.path, item.exact) ? 600 : 400,
+                            fontWeight: isActive(item.path, item.exact) ? 700 : 500,
                           }}>
                           {item.label}
                         </div>
                       </Link>
                     ))}
                   </div>
-                  <div className="mt-8 p-4 rounded-xl"
-                    style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.03)" }}>
-                    <div className="text-[8px] text-[#3D4F65] font-bold uppercase tracking-[0.15em] mb-1">Balance</div>
-                    <div className="text-xl font-mono font-black text-white">${balance.toLocaleString()}</div>
+                  <div className="mt-8 p-5 rounded-xl"
+                    style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)" }}>
+                    <div className="text-[10px] text-[#3D4F65] font-bold uppercase tracking-[0.15em] mb-1">Balance</div>
+                    <div className="text-2xl font-mono font-black text-white">₮{balance.toLocaleString()}</div>
                   </div>
                 </SheetContent>
               </Sheet>

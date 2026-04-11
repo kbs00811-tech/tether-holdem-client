@@ -303,33 +303,16 @@ export default function GameTable() {
   // Top row 3 seats: 20%, 50%, 80% (equal 30% gaps)
   const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
 
-  // Portrait (mobile): tall oval
+  // Mobile: portrait
   const LAYOUT_8_PORTRAIT: [number, number][] = [
-    [75,  -5],    // 0: top right
-    [108, 31],    // 1: right upper
-    [108, 69],    // 2: right lower
-    [75,  105],   // 3: bottom right
-    [25,  105],   // 4: bottom left (hero)
-    [-8,  69],    // 5: left lower
-    [-8,  31],    // 6: left upper
-    [25,  -5],    // 7: top left
+    [75,  -5], [108, 31], [108, 69], [75, 105],
+    [25, 105], [-8,  69], [-8,  31], [25,  -5],
   ];
-
-  // Landscape (desktop): wide oval — GGPoker style
-  //     [7]    [0]    [1]
-  //  [6]                  [2]
-  //     [5]    [4]    [3]
+  // Desktop: landscape
   const LAYOUT_8_LANDSCAPE: [number, number][] = [
-    [50,  -8],    // 0: top center
-    [78,  -8],    // 1: top right
-    [108, 50],    // 2: right center
-    [78,  108],   // 3: bottom right
-    [50,  108],   // 4: bottom center (hero)
-    [22,  108],   // 5: bottom left
-    [-8,  50],    // 6: left center
-    [22,  -8],    // 7: top left
+    [50, -8], [82, -8], [108, 50], [82, 108],
+    [50, 108], [18, 108], [-8, 50], [18, -8],
   ];
-
   const LAYOUT_8 = isDesktop ? LAYOUT_8_LANDSCAPE : LAYOUT_8_PORTRAIT;
 
   const seatPositionsData = maxSeats === 6 ? LAYOUT_6 : LAYOUT_8;
@@ -428,41 +411,40 @@ export default function GameTable() {
 
         <div className="absolute inset-0 flex items-center justify-center px-2 sm:px-4"
           style={{ perspective: "800px" }}>
-          {/* Mobile: portrait 9:13, Desktop: landscape 16:10 */}
-          <div className="relative w-full
-            max-w-[380px] sm:max-w-[420px]
-            md:max-w-[700px] lg:max-w-[850px] xl:max-w-[950px]
-            h-full
-            max-h-[520px] sm:max-h-[600px]
-            md:max-h-[480px] lg:max-h-[550px] xl:max-h-[600px]"
+          {/* Mobile: portrait 9:13, Desktop: landscape 5:3 */}
+          <div className={`relative w-full h-full
+            ${typeof window !== 'undefined' && window.innerWidth >= 768
+              ? 'max-w-[800px] lg:max-w-[880px] max-h-[480px] lg:max-h-[530px]'
+              : 'max-w-[380px] sm:max-w-[420px] max-h-[520px] sm:max-h-[600px]'
+            }`}
             style={{
-              aspectRatio: typeof window !== 'undefined' && window.innerWidth >= 768 ? "16/10" : "9/13",
+              aspectRatio: typeof window !== 'undefined' && window.innerWidth >= 768 ? "5/3" : "9/13",
               transform: typeof window !== 'undefined' && window.innerWidth >= 768
-                ? "rotateX(12deg) translateY(-1%) scale(0.96)"
-                : "rotateX(16deg) translateY(-2%) scale(0.95)",
+                ? "rotateX(18deg) translateY(-1%) scale(0.94)"
+                : "rotateX(12deg) translateY(-1%) scale(0.96)",
               transformOrigin: "center 60%",
               transformStyle: "preserve-3d",
           }}>
 
-            {/* Table shadows + rim */}
+            {/* Table shadows + rim — stadium oval (50% = perfect pill shape) */}
             <div className="absolute inset-x-[8%] inset-y-[4%]" style={{ borderRadius: 160, boxShadow: "0 20px 60px rgba(0,0,0,0.8), 0 0 100px rgba(0,0,0,0.4)" }} />
 
-            {/* Neon glow rim — animated */}
+            {/* Neon glow rim — vivid animated */}
             <motion.div
               className="absolute inset-x-[7.5%] inset-y-[3.5%]"
               animate={{
                 boxShadow: [
-                  "0 0 15px rgba(38,161,123,0.15), 0 0 30px rgba(38,161,123,0.05), inset 0 0 15px rgba(38,161,123,0.05)",
-                  "0 0 25px rgba(38,161,123,0.25), 0 0 50px rgba(38,161,123,0.1), inset 0 0 25px rgba(38,161,123,0.08)",
-                  "0 0 15px rgba(255,107,53,0.15), 0 0 30px rgba(255,107,53,0.05), inset 0 0 15px rgba(255,107,53,0.05)",
-                  "0 0 25px rgba(255,107,53,0.2), 0 0 50px rgba(255,107,53,0.08), inset 0 0 25px rgba(255,107,53,0.06)",
-                  "0 0 15px rgba(38,161,123,0.15), 0 0 30px rgba(38,161,123,0.05), inset 0 0 15px rgba(38,161,123,0.05)",
+                  "0 0 20px rgba(38,161,123,0.25), 0 0 40px rgba(38,161,123,0.1), 0 0 80px rgba(38,161,123,0.05), inset 0 0 20px rgba(38,161,123,0.08)",
+                  "0 0 35px rgba(38,161,123,0.35), 0 0 70px rgba(38,161,123,0.15), 0 0 100px rgba(38,161,123,0.08), inset 0 0 30px rgba(38,161,123,0.12)",
+                  "0 0 25px rgba(255,107,53,0.25), 0 0 50px rgba(255,107,53,0.1), 0 0 80px rgba(255,107,53,0.05), inset 0 0 20px rgba(255,107,53,0.08)",
+                  "0 0 35px rgba(255,215,0,0.2), 0 0 60px rgba(255,215,0,0.08), 0 0 90px rgba(255,215,0,0.04), inset 0 0 25px rgba(255,215,0,0.06)",
+                  "0 0 20px rgba(38,161,123,0.25), 0 0 40px rgba(38,161,123,0.1), 0 0 80px rgba(38,161,123,0.05), inset 0 0 20px rgba(38,161,123,0.08)",
                 ],
               }}
-              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
               style={{
-                borderRadius: 165,
-                border: "1.5px solid rgba(38,161,123,0.12)",
+                borderRadius: 160,
+                border: "2px solid rgba(38,161,123,0.18)",
               }}
             />
 
@@ -483,19 +465,43 @@ export default function GameTable() {
                 </div>
               ))}
 
-              {/* ===== BET CHIPS — 60% toward center ===== */}
+              {/* ===== BET CHIPS — fly from seat to pot ===== */}
               {players.map((p, i) => {
                 if (!p || p.bet <= 0) return null;
-                const bx = 50 + (seatPositionsData[i]![0] - 50) * 0.55;
-                const by = 50 + (seatPositionsData[i]![1] - 50) * 0.55;
+                const sx = seatPositionsData[i]![0];
+                const sy = seatPositionsData[i]![1];
+                const bx = 50 + (sx - 50) * 0.5;
+                const by = 50 + (sy - 50) * 0.5;
+                // Multiple chip stack based on bet amount
+                const chipCount = Math.min(4, Math.max(1, Math.ceil(p.bet / 50)));
+                const chipColors = ["#26A17B", "#E5B800", "#8B5CF6", "#FF6B35"];
                 return (
-                  <motion.div key={`bet-${i}`} className="z-10" style={{
+                  <motion.div key={`bet-${i}-${p.bet}`} className="z-10" style={{
                     position: "absolute", left: `${bx}%`, top: `${by}%`, transform: "translate(-50%,-50%)",
                   }}
-                    initial={{ scale: 0 }} animate={{ scale: 1 }} transition={{ type: "spring", stiffness: 300 }}>
+                    initial={{ x: `${(sx - bx) * 2}%`, y: `${(sy - by) * 2}%`, scale: 0.3, opacity: 0 }}
+                    animate={{ x: 0, y: 0, scale: 1, opacity: 1 }}
+                    transition={{ type: "spring", stiffness: 200, damping: 18 }}>
                     <div className="flex items-center gap-1">
-                      <div style={{ width: 14, height: 14, borderRadius: "50%", background: "radial-gradient(circle at 35% 35%, #3BE8A8, #1A9B6E)", boxShadow: "0 0 8px rgba(26,155,110,0.3)", border: "1.5px solid rgba(255,255,255,0.2)" }} />
-                      <span className="text-[11px] font-mono font-bold" style={{ color: "#7EDBB8", textShadow: "0 1px 3px rgba(0,0,0,0.5)" }}>{p.bet}</span>
+                      {/* Chip stack */}
+                      <div className="flex flex-col-reverse items-center">
+                        {Array.from({ length: chipCount }).map((_, ci) => (
+                          <motion.div key={ci}
+                            initial={{ y: -20, opacity: 0 }}
+                            animate={{ y: 0, opacity: 1 }}
+                            transition={{ delay: ci * 0.05 }}
+                            style={{
+                              width: 16, height: 16, borderRadius: "50%",
+                              background: `radial-gradient(circle at 35% 35%, ${chipColors[ci % chipColors.length]}DD, ${chipColors[ci % chipColors.length]}88)`,
+                              boxShadow: `0 1px 4px rgba(0,0,0,0.4), 0 0 6px ${chipColors[ci % chipColors.length]}30`,
+                              border: "1.5px solid rgba(255,255,255,0.25)",
+                              marginTop: ci > 0 ? -10 : 0,
+                            }} />
+                        ))}
+                      </div>
+                      <span className="text-[11px] font-mono font-bold" style={{ color: "#7EDBB8", textShadow: "0 1px 3px rgba(0,0,0,0.6)" }}>
+                        {p.bet}
+                      </span>
                     </div>
                   </motion.div>
                 );
@@ -503,20 +509,29 @@ export default function GameTable() {
             </div>
             <div className="absolute inset-x-[9.5%] inset-y-[5%]" style={{ borderRadius: 150, background: "linear-gradient(180deg, #19232E 0%, #121A22 100%)", boxShadow: "inset 0 2px 6px rgba(0,0,0,0.5)" }} />
 
-            {/* Neon pinstripe — subtle color shift */}
+            {/* Neon pinstripe — vivid color shift */}
             <motion.div
               className="absolute inset-x-[10.5%] inset-y-[5.8%]"
               animate={{
                 borderColor: [
-                  "rgba(38,161,123,0.12)",
                   "rgba(38,161,123,0.2)",
-                  "rgba(255,107,53,0.15)",
-                  "rgba(255,215,0,0.1)",
-                  "rgba(38,161,123,0.12)",
+                  "rgba(38,161,123,0.35)",
+                  "rgba(255,107,53,0.25)",
+                  "rgba(255,215,0,0.2)",
+                  "rgba(139,92,246,0.15)",
+                  "rgba(38,161,123,0.2)",
+                ],
+                boxShadow: [
+                  "0 0 8px rgba(38,161,123,0.08), inset 0 0 8px rgba(38,161,123,0.04)",
+                  "0 0 15px rgba(38,161,123,0.12), inset 0 0 12px rgba(38,161,123,0.06)",
+                  "0 0 10px rgba(255,107,53,0.08), inset 0 0 8px rgba(255,107,53,0.04)",
+                  "0 0 12px rgba(255,215,0,0.06), inset 0 0 8px rgba(255,215,0,0.03)",
+                  "0 0 10px rgba(139,92,246,0.06), inset 0 0 8px rgba(139,92,246,0.03)",
+                  "0 0 8px rgba(38,161,123,0.08), inset 0 0 8px rgba(38,161,123,0.04)",
                 ],
               }}
-              transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
-              style={{ borderRadius: 145, border: "1px solid rgba(38,161,123,0.12)" }}
+              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
+              style={{ borderRadius: 145, border: "1.5px solid rgba(38,161,123,0.2)" }}
             />
 
             {/* Felt */}
