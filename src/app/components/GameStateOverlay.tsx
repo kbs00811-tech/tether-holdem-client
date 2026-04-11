@@ -1,5 +1,6 @@
 import { motion, AnimatePresence } from "motion/react";
 import { TrendingUp, Users, Trophy } from "lucide-react";
+import { getSymbol } from "../utils/currency";
 
 interface GameStateOverlayProps {
   type: "level-up" | "side-pot" | "waiting" | "countdown" | null;

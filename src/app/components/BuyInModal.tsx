@@ -1,4 +1,4 @@
-import { formatMoney } from "../utils/currency";
+import { formatMoney, getSymbol } from "../utils/currency";
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent } from "./ui/dialog";
 import { Slider } from "./ui/slider";

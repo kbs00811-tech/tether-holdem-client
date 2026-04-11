@@ -1,4 +1,4 @@
-import { formatMoney } from "../utils/currency";
+import { formatMoney, getSymbol } from "../utils/currency";
 import { TrendingUp, TrendingDown, Play, Award, Target, Calendar, Trophy, Flame, BarChart3, Clock } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
 import { LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer, Area, AreaChart } from "recharts";

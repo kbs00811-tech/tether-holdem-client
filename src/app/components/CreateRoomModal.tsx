@@ -1,4 +1,4 @@
-import { formatMoney } from "../utils/currency";
+import { formatMoney, getSymbol } from "../utils/currency";
 import { useState } from "react";
 import { Lock, Users, Zap, Crown, ChevronDown } from "lucide-react";
 import { Dialog, DialogContent } from "./ui/dialog";

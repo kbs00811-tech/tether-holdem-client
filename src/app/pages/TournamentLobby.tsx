@@ -1,4 +1,4 @@
-import { formatMoney } from "../utils/currency";
+import { formatMoney, getSymbol } from "../utils/currency";
 import { Link } from "react-router";
 import { Trophy, Users, Clock, DollarSign, Zap, Crown, Star, ChevronRight, Flame } from "lucide-react";
 import { Badge } from "../components/ui/badge";

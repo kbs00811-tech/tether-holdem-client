@@ -1,4 +1,4 @@
-import { formatMoney } from "../utils/currency";
+import { formatMoney, getSymbol } from "../utils/currency";
 import { Wallet, ExternalLink, ArrowUpFromLine, ArrowDownToLine, Shield, Zap, RefreshCw } from "lucide-react";
 import { motion } from "motion/react";
 

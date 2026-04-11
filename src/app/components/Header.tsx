@@ -7,7 +7,7 @@ import { useGameStore } from "../stores/gameStore";
 import { useSocket } from "../hooks/useSocket";
 import { SettingsModal } from "./SettingsModal";
 import { useSettingsStore, AVATAR_IMAGES } from "../stores/settingsStore";
-import { formatMoney } from "../utils/currency";
+import { formatMoney, getSymbol } from "../utils/currency";
 
 export function Header() {
   const location = useLocation();
