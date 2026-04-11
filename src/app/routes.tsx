@@ -7,6 +7,7 @@ import TournamentTable from "./pages/TournamentTable";
 import Profile from "./pages/Profile";
 import Cashier from "./pages/Cashier";
 import AssetShowcase from "./pages/AssetShowcase";
+import AdminDashboard from "./pages/AdminDashboard";
 
 export const router = createBrowserRouter([
   {
@@ -20,6 +21,7 @@ export const router = createBrowserRouter([
       { path: "profile", Component: Profile },
       { path: "cashier", Component: Cashier },
       { path: "assets", Component: AssetShowcase },
+      { path: "admin", Component: AdminDashboard },
     ],
   },
 ]);
