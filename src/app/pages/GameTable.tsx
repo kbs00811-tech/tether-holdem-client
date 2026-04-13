@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router";
-import { ArrowLeft, MessageSquare, Volume2, VolumeX, Zap, Users, MoreVertical, Shield, X } from "lucide-react";
+import { ArrowLeft, MessageSquare, Volume2, VolumeX, Zap, Users, MoreVertical, Shield, X, Plus } from "lucide-react";
 import { Slider } from "../components/ui/slider";
 import { PlayerSlot } from "../components/PlayerSlot";
 import { PokerCard } from "../components/PokerCard";
@@ -700,17 +700,17 @@ export default function GameTable() {
     [12,  -2],    // 7: 상단 좌측
     [28,   92],   // 8: 하단 좌측 (108→92)
   ];
-  // Desktop: landscape — 하단 여유 확보
+  // Desktop: landscape — 하단 여유 확보 (버그8 수정: 95% → 90% 안쪽으로 이동해서 림 경계와 겹치지 않게)
   const LAYOUT_9_LANDSCAPE: [number, number][] = [
     [50,  -8],    // 0: 상단 중앙
     [82,  -6],    // 1: 상단 우측
     [112,  34],   // 2: 우측 상단
     [112,  68],   // 3: 우측 하단
-    [70,   95],   // 4: 하단 우측
+    [70,   90],   // 4: 하단 우측
     [-12,  68],   // 5: 좌측 하단
     [-12,  34],   // 6: 좌측 상단
     [18,  -6],    // 7: 상단 좌측
-    [30,   95],   // 8: 하단 좌측
+    [30,   90],   // 8: 하단 좌측
   ];
   const LAYOUT_9 = isDesktop ? LAYOUT_9_LANDSCAPE : LAYOUT_9_PORTRAIT;
 
@@ -778,17 +778,16 @@ export default function GameTable() {
             style={{ background: "rgba(255,255,255,0.04)", color: "#6B7A90" }}>
             History
           </button>
-          {/* Top Up — 데스크탑만 */}
+          {/* Top Up — 헤더 우측 상단 (데스크탑만, 모바일은 베팅 영역 근처에 별도 표시) */}
           {seated && (
             <button onClick={() => {
-                // 핸드 진행 중이면 안내 + 예약 설정
                 const inHand = phase !== "WAITING" && phase !== "RESULT";
                 if (inHand) {
                   toast('⏱️ 현재 핸드 종료 후 충전 가능합니다', { duration: 2500, icon: '⏳' });
                 }
                 setShowTopUpModal(true);
               }}
-              className="hidden sm:block px-2 py-1 rounded-lg text-[10px] font-bold"
+              className="hidden md:block px-2 py-1 rounded-lg text-[10px] font-bold"
               style={{ background: "rgba(52,211,153,0.08)", color: "#34D399", border: "1px solid rgba(52,211,153,0.2)" }}>
               +$ Top Up
             </button>
@@ -1121,11 +1120,13 @@ export default function GameTable() {
                   left: `${seatPositionsData[i]![0]}%`,
                   top: `${seatPositionsData[i]![1]}%`,
                   transform: "translate(-50%,-50%)",
-                  zIndex: i === heroSeat ? 35 : 20,
+                  // 버그8 수정: 모든 시트가 중앙 UI(칩, 팟)보다 위에 오도록 z-index 보강
+                  zIndex: i === heroSeat ? 45 : 30,
                 }}>
                   <PlayerSlot position={i} player={player} isHero={i === heroSeat}
                     isCurrentTurn={gameState?.currentTurnSeat === i}
-                    timeLeft={isMyTurn && i === heroSeat ? Math.max(0, (turnInfo?.timeoutMs ?? 30000) / 300) : undefined}
+                    turnDeadline={gameState?.currentTurnSeat === i ? turnInfo?.deadline : undefined}
+                    turnTotalMs={turnInfo?.timeoutMs ?? 30000}
                     recentAction={lastActions[i] ? { action: lastActions[i].action, amount: lastActions[i].amount } : null}
                     onSitDown={() => handleSitClick(i)}
                     onTopUp={() => setShowBuyInModal(true)}
@@ -1378,12 +1379,18 @@ export default function GameTable() {
               })}
             </AnimatePresence>
 
-            {/* ===== 중앙 팟 칩 스택 (칩이 쌓이는 비주얼) — PokerChip 사용 ===== */}
+            {/* ===== 중앙 팟 칩 스택 (칩이 쌓이는 비주얼) — PokerChip 사용 =====
+                 ★ POT 뱃지와 겹치지 않도록 뱃지 "위쪽"에 배치
+                 ★ 칩 사이즈 축소 (42 → 28/22) — 사용자 요청
+                 래퍼는 1x1 포인트, 내부 칩은 center 기준 상대 offset */}
             {potChipStacks.length > 0 && (
-              <div className="absolute z-15 pointer-events-none"
-                style={{ left: '50%', top: isDesktop ? '52%' : '56%', transform: 'translate(-50%, -50%)' }}>
+              <div className="absolute z-[8] pointer-events-none"
+                style={{
+                  left: '50%',
+                  top: isDesktop ? '44%' : '48%',   // 팟 뱃지 위쪽 (뱃지는 52%/56%)
+                  width: 0, height: 0,
+                }}>
                 {potChipStacks.map((chip, i) => {
-                  // 색상명을 hex에서 PokerChip 색상명으로 매핑
                   const colorMap: Record<string, string> = {
                     '#26A17B': 'green', '#E5B800': 'gold', '#8B5CF6': 'purple',
                     '#FF6B35': 'orange', '#EF4444': 'red', '#34D399': 'green',
@@ -1391,16 +1398,17 @@ export default function GameTable() {
                   const chipColorName = colorMap[chip.color] || 'green';
                   return (
                     <motion.div key={`potchip-${i}`}
-                      initial={{ scale: 0, opacity: 0, y: -20 }}
+                      initial={{ scale: 0, opacity: 0, y: -12 }}
                       animate={{ scale: 1, opacity: 1, y: 0 }}
                       transition={{ type: "spring", stiffness: 250, damping: 18 }}
                       style={{
                         position: 'absolute',
-                        left: chip.x, top: chip.y,
+                        left: chip.x,
+                        top: chip.y,
                         transform: 'translate(-50%, -50%)',
                       }}
                     >
-                      <PokerChip size={42} color={chipColorName} />
+                      <PokerChip size={isDesktop ? 28 : 22} color={chipColorName} />
                     </motion.div>
                   );
                 })}
@@ -1582,7 +1590,6 @@ export default function GameTable() {
           <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none">
             <motion.button
               initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               onClick={() => {
@@ -1601,12 +1608,12 @@ export default function GameTable() {
               className="pointer-events-auto px-8 py-4 rounded-2xl font-black text-white shadow-2xl"
               style={{
                 background: "linear-gradient(135deg, #FF6B35, #E85D2C)",
-                boxShadow: "0 8px 30px rgba(255,107,53,0.5), 0 0 60px rgba(255,107,53,0.2)",
                 border: "2px solid rgba(255,255,255,0.15)",
                 fontSize: 18,
                 letterSpacing: "0.05em",
               }}
               animate={{
+                opacity: 1,
                 scale: [1, 1.03, 1],
                 boxShadow: [
                   "0 8px 30px rgba(255,107,53,0.5), 0 0 60px rgba(255,107,53,0.2)",
@@ -1910,6 +1917,31 @@ export default function GameTable() {
                   );
                 })}
               </div>
+
+              {/* ===== Top Up 미니 버튼 — 베팅 영역 위쪽 우측 (버그7: 기존엔 헤더에 있었고 모바일에선 숨겨져 있었음) ===== */}
+              {seated && (
+                <div className="flex justify-end mb-1.5">
+                  <button
+                    onClick={() => {
+                      const inHand = phase !== "WAITING" && phase !== "RESULT";
+                      if (inHand) {
+                        toast('⏱️ 현재 핸드 종료 후 충전 가능합니다', { duration: 2500, icon: '⏳' });
+                      }
+                      setShowTopUpModal(true);
+                    }}
+                    className="px-3 py-1 rounded-lg text-[11px] font-black flex items-center gap-1 active:scale-95"
+                    style={{
+                      background: "linear-gradient(180deg, rgba(52,211,153,0.18), rgba(52,211,153,0.08))",
+                      color: "#34D399",
+                      border: "1px solid rgba(52,211,153,0.35)",
+                      boxShadow: "0 2px 8px rgba(52,211,153,0.15)",
+                    }}
+                  >
+                    <Plus className="h-3 w-3" />
+                    Chips
+                  </button>
+                </div>
+              )}
 
               {/* ===== Action Buttons — GGPoker 3-button (FOLD / CHECK·CALL / RAISE·ALLIN) ===== */}
               <div className="flex gap-2">

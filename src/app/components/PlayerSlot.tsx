@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import { PokerCard } from "./PokerCard";
@@ -26,7 +26,9 @@ interface PlayerSlotProps {
     };
   };
   isCurrentTurn?: boolean;
-  timeLeft?: number;
+  timeLeft?: number;           // (legacy) 0~100 percent 폴백
+  turnDeadline?: number;       // 서버 기준 절대 시각(ms). 있으면 이걸 사용해 라이브 틱
+  turnTotalMs?: number;        // 전체 턴 제한 시간(ms) — 기본 30000
   isHero?: boolean;
   onSitDown?: () => void;
   hideCards?: boolean;
@@ -49,12 +51,37 @@ const avatarGlyphs = ["₿", "Ξ", "₮", "◆", "忍", "</>", "♦", "♛", "�
  * 처음: 카드 2장 바로 오픈 (플립 애니메이션)
  */
 
-export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, isHero, position, onSitDown, hideCards, onTopUp, onEmoji, onSitOut, recentAction }: PlayerSlotProps) {
+export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, turnDeadline, turnTotalMs = 30000, isHero, position, onSitDown, hideCards, onTopUp, onEmoji, onSitOut, recentAction }: PlayerSlotProps) {
   const navigate = useNavigate();
   const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 480;
   const avatarSize = isDesktop ? 68 : isMobile ? 42 : 52;
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
+
+  // ===== 라이브 카운트다운 (버그1 수정) =====
+  // turnDeadline 이 있으면 250ms 간격으로 남은 시간을 재계산해 표시
+  const [liveRemainMs, setLiveRemainMs] = useState<number | null>(null);
+  useEffect(() => {
+    if (!isCurrentTurn || !turnDeadline) {
+      setLiveRemainMs(null);
+      return;
+    }
+    const tick = () => {
+      const remain = Math.max(0, turnDeadline - Date.now());
+      setLiveRemainMs(remain);
+    };
+    tick();
+    const id = setInterval(tick, 250);
+    return () => clearInterval(id);
+  }, [isCurrentTurn, turnDeadline]);
+
+  // 표시값 계산: 라이브 데드라인 > 0~100 timeLeft prop > 기본 100
+  const effectivePercent = liveRemainMs !== null
+    ? Math.max(0, Math.min(100, (liveRemainMs / turnTotalMs) * 100))
+    : (typeof timeLeft === 'number' ? timeLeft : 100);
+  const effectiveSeconds = liveRemainMs !== null
+    ? Math.ceil(liveRemainMs / 1000)
+    : Math.max(0, Math.ceil((effectivePercent / 100) * (turnTotalMs / 1000)));
   const [showAvatarPicker, setShowAvatarPicker] = useState(false);
   const [pendingAvatar, setPendingAvatar] = useState<number | null>(null);
   const currentAvatar = useSettingsStore(s => s.avatar);
@@ -113,7 +140,7 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, isHero, posi
   const isDisconnected = player.status === "disconnected";
   const isTurn = isCurrentTurn && !isDead;
 
-  const timerColor = timeLeft > 50 ? "#34D399" : timeLeft > 20 ? "#FBBF24" : "#EF4444";
+  const timerColor = effectivePercent > 50 ? "#34D399" : effectivePercent > 20 ? "#FBBF24" : "#EF4444";
   const circumference = 2 * Math.PI * 19;
   const avatarColor = avatarColors[player.avatar % avatarColors.length];
   const avatarGlyph = avatarGlyphs[player.avatar % avatarGlyphs.length];
@@ -329,27 +356,26 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, isHero, posi
         {/* ===== TIMER BAR + COUNTDOWN — 아바타 아래 ===== */}
         {isTurn && (
           <div style={{ width: isDesktop ? 76 : isMobile ? 48 : 60, marginTop: 2, zIndex: 15 }}>
-            {/* 타이머 바 */}
+            {/* 타이머 바 — 라이브 percent 로 표시 (애니메이션 제거, 매 tick 재렌더) */}
             <div style={{
               width: "100%", height: 4, borderRadius: 2,
               background: "rgba(255,255,255,0.06)",
               overflow: "hidden",
             }}>
-              <motion.div
-                initial={{ width: "100%" }}
-                animate={{ width: "0%" }}
-                transition={{ duration: 30, ease: "linear" }}
+              <div
                 style={{
+                  width: `${effectivePercent}%`,
                   height: "100%", borderRadius: 2,
                   background: `linear-gradient(90deg, ${timerColor}, ${timerColor}CC)`,
                   boxShadow: `0 0 8px ${timerColor}60`,
+                  transition: "width 250ms linear",
                 }}
               />
             </div>
-            {/* 카운트다운 초 */}
+            {/* 카운트다운 초 — 실제 남은 시간 표시 */}
             <motion.div
-              animate={{ opacity: timeLeft < 30 ? [1, 0.4, 1] : 1 }}
-              transition={{ repeat: timeLeft < 30 ? Infinity : 0, duration: 0.8 }}
+              animate={{ opacity: effectiveSeconds <= 5 ? [1, 0.4, 1] : 1 }}
+              transition={{ repeat: effectiveSeconds <= 5 ? Infinity : 0, duration: 0.6 }}
               style={{
                 textAlign: "center", marginTop: 1,
                 fontSize: 10, fontWeight: 800,
@@ -358,7 +384,7 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, isHero, posi
                 textShadow: `0 0 6px ${timerColor}50`,
               }}
             >
-              {Math.max(0, Math.ceil(timeLeft * 0.3))}s
+              {effectiveSeconds}s
             </motion.div>
           </div>
         )}

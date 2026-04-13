@@ -19,6 +19,8 @@ import {
 
 interface TurnInfo {
   timeoutMs: number;
+  deadline?: number;   // 서버 절대 시각 (Date.now() 기준). 네트워크 지연 보정에 사용
+  serverTime?: number; // 서버가 보낸 시점 (오프셋 계산용)
   minBet: number;
   maxBet: number;
   callAmount: number;
@@ -174,19 +176,34 @@ export const useGameStore = create<GameStore>((set, get) => ({
         }
         try { useStatsStore.getState().onPhaseChange(String(msg.phase || 'FLOP')); } catch {}
         break;
-      case 'YOUR_TURN':
+      case 'YOUR_TURN': {
+        // 서버 deadline 보정 — 서버가 보낸 deadline(절대 시각)을 클라 시계로 변환
+        const msgAny = msg as any;
+        const srvTime: number | undefined = msgAny.serverTime;
+        const srvDeadline: number | undefined = msgAny.deadline;
+        let clientDeadline: number | undefined;
+        if (typeof srvDeadline === 'number') {
+          const offset = srvTime ? (Date.now() - srvTime) : 0;
+          clientDeadline = srvDeadline + offset;
+        } else if (typeof msg.timeoutMs === 'number') {
+          // 폴백: deadline 없으면 로컬 기준
+          clientDeadline = Date.now() + msg.timeoutMs;
+        }
         set({
           isMyTurn: true,
           turnInfo: {
             timeoutMs: msg.timeoutMs,
+            deadline: clientDeadline,
+            serverTime: srvTime,
             minBet: msg.minBet,
             maxBet: msg.maxBet,
             callAmount: msg.callAmount,
-            equity: (msg as any).equity,
+            equity: msgAny.equity,
           },
         });
         playSound('myTurn');
         break;
+      }
       case 'PLAYER_ACTION': {
         set({ isMyTurn: false });
         // 액션별 사운드
