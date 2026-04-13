@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200">
+  <defs>
+    <radialGradient id="bg21" cx="50%" cy="40%"><stop offset="0%" stop-color="#FFD700"/><stop offset="100%" stop-color="#B8860B"/></radialGradient>
+  </defs>
+  <rect width="200" height="200" fill="url(#bg21)"/>
+  <circle cx="100" cy="115" r="45" fill="#FFE4B5"/>
+  <path d="M55 75 L75 50 L100 70 L125 50 L145 75 L140 100 L60 100 Z" fill="#FFD700" stroke="#8B6914" stroke-width="2"/>
+  <circle cx="75" cy="60" r="5" fill="#FF0000"/>
+  <circle cx="100" cy="55" r="5" fill="#0000FF"/>
+  <circle cx="125" cy="60" r="5" fill="#FF0000"/>
+  <circle cx="85" cy="115" r="4" fill="#000"/>
+  <circle cx="115" cy="115" r="4" fill="#000"/>
+  <path d="M85 130 Q100 140 115 130" stroke="#000" stroke-width="2" fill="none"/>
+  <path d="M70 140 Q60 150 60 165 L140 165 Q140 150 130 140" fill="#8B0000"/>
+  <text x="100" y="195" text-anchor="middle" font-size="12" font-weight="900" fill="#FFD700" font-family="Arial">KING</text>
+</svg>

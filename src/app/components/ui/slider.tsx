@@ -23,6 +23,10 @@ function Slider({
     [value, defaultValue, min, max],
   );
 
+  // 값에 따른 색상 그라디언트 (초록→노랑→빨강)
+  const pct = _values[0] !== undefined ? (((_values[0] ?? min) - min) / (max - min)) * 100 : 50;
+  const trackColor = pct < 40 ? "#26A17B" : pct < 70 ? "#FBBF24" : "#EF4444";
+
   return (
     <SliderPrimitive.Root
       data-slot="slider"
@@ -31,29 +35,49 @@ function Slider({
       min={min}
       max={max}
       className={cn(
-        "relative flex w-full touch-none items-center select-none data-[disabled]:opacity-50 data-[orientation=vertical]:h-full data-[orientation=vertical]:min-h-44 data-[orientation=vertical]:w-auto data-[orientation=vertical]:flex-col",
+        "relative flex w-full touch-none items-center select-none data-[disabled]:opacity-50",
         className,
       )}
       {...props}
     >
       <SliderPrimitive.Track
         data-slot="slider-track"
-        className={cn(
-          "bg-muted relative grow overflow-hidden rounded-full data-[orientation=horizontal]:h-4 data-[orientation=horizontal]:w-full data-[orientation=vertical]:h-full data-[orientation=vertical]:w-1.5",
-        )}
+        style={{
+          position: "relative",
+          width: "100%",
+          height: 8,
+          borderRadius: 4,
+          background: "#1A2235",
+          overflow: "hidden",
+          boxShadow: "inset 0 1px 3px rgba(0,0,0,0.4)",
+        }}
       >
         <SliderPrimitive.Range
           data-slot="slider-range"
-          className={cn(
-            "bg-primary absolute data-[orientation=horizontal]:h-full data-[orientation=vertical]:w-full",
-          )}
+          style={{
+            position: "absolute",
+            height: "100%",
+            borderRadius: 4,
+            background: `linear-gradient(90deg, #26A17B, ${trackColor})`,
+            boxShadow: `0 0 8px ${trackColor}40`,
+          }}
         />
       </SliderPrimitive.Track>
       {Array.from({ length: _values.length }, (_, index) => (
         <SliderPrimitive.Thumb
           data-slot="slider-thumb"
           key={index}
-          className="border-primary bg-background ring-ring/50 block size-4 shrink-0 rounded-full border shadow-sm transition-[color,box-shadow] hover:ring-4 focus-visible:ring-4 focus-visible:outline-hidden disabled:pointer-events-none disabled:opacity-50"
+          style={{
+            display: "block",
+            width: 24,
+            height: 24,
+            borderRadius: "50%",
+            background: "linear-gradient(135deg, #FFF, #E0E0E0)",
+            border: `3px solid ${trackColor}`,
+            boxShadow: `0 2px 8px rgba(0,0,0,0.4), 0 0 12px ${trackColor}30`,
+            cursor: "grab",
+            outline: "none",
+          }}
         />
       ))}
     </SliderPrimitive.Root>

@@ -52,12 +52,53 @@ function DialogOverlay(
 
 const DialogOverlayWithRef = React.forwardRef(DialogOverlay);
 
+// VisuallyHidden: 화면에 안 보이지만 screen reader 에서 읽힘
+// Radix Dialog 접근성 경고 방지용
+function VisuallyHidden({ children }: { children: React.ReactNode }) {
+  return (
+    <span
+      style={{
+        position: 'absolute',
+        width: 1,
+        height: 1,
+        padding: 0,
+        margin: -1,
+        overflow: 'hidden',
+        clip: 'rect(0, 0, 0, 0)',
+        whiteSpace: 'nowrap',
+        border: 0,
+      }}
+    >
+      {children}
+    </span>
+  );
+}
+
 function DialogContent({
   className,
   children,
   hideClose,
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & { hideClose?: boolean }) {
+  // children 안에 DialogTitle 이 있는지 검사 — 없으면 자동으로 숨긴 Title 추가
+  // Radix Dialog 접근성 요구사항: DialogTitle 필수
+  let hasTitle = false;
+  React.Children.forEach(children, (child) => {
+    if (React.isValidElement(child)) {
+      // @ts-ignore — data-slot 체크
+      if (child.props?.['data-slot'] === 'dialog-title') hasTitle = true;
+      // 중첩 (DialogHeader 안)도 체크
+      const inner = (child.props as any)?.children;
+      if (inner) {
+        React.Children.forEach(inner, (gc) => {
+          if (React.isValidElement(gc) && (gc.props as any)?.['data-slot'] === 'dialog-title') {
+            hasTitle = true;
+          }
+        });
+      }
+    }
+  });
+
   return (
     <DialogPortal data-slot="dialog-portal">
       <DialogOverlayWithRef />
@@ -70,6 +111,11 @@ function DialogContent({
         )}
         {...props}
       >
+        {!hasTitle && (
+          <VisuallyHidden>
+            <DialogPrimitive.Title>Dialog</DialogPrimitive.Title>
+          </VisuallyHidden>
+        )}
         {children}
         {!hideClose && (
           <DialogPrimitive.Close className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4">

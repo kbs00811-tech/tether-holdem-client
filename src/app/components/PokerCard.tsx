@@ -52,25 +52,87 @@ export function PokerCard({ suit, rank, faceDown = false, size = "md", highlight
     return (
       <div className={className} style={{
         width: s.w, height: s.h, borderRadius: s.r, position: "relative", overflow: "hidden",
-        background: "linear-gradient(155deg, #1B5E3F 0%, #0F3D28 50%, #082418 100%)",
-        boxShadow: `0 ${s.shadow}px ${s.shadow * 1.5}px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.06)`,
-        border: `${s.stroke}px solid rgba(255,255,255,0.05)`,
+        background: "linear-gradient(150deg, #0E3D26 0%, #1A5E3F 20%, #0E3D26 40%, #082418 60%, #0E3D26 80%, #1A5E3F 100%)",
+        boxShadow: `0 ${s.shadow}px ${s.shadow * 1.5}px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.08)`,
+        border: `${s.stroke}px solid rgba(255,215,0,0.15)`,
       }}>
-        <svg style={{ position: "absolute", inset: 0, width: "100%", height: "100%" }}>
+        {/* 외부 흰색 얇은 테두리 */}
+        <div style={{
+          position: "absolute", inset: s.p * 0.4, borderRadius: Math.max(s.r - 1, 1),
+          border: `${Math.max(0.5, s.stroke * 0.6)}px solid rgba(255,255,255,0.18)`,
+          pointerEvents: "none",
+        }} />
+        {/* 내부 금색 테두리 */}
+        <div style={{
+          position: "absolute", inset: s.p * 0.9, borderRadius: Math.max(s.r - 2, 1),
+          border: `${Math.max(0.5, s.stroke * 0.5)}px solid rgba(255,215,0,0.35)`,
+          pointerEvents: "none",
+        }} />
+        {/* 바로크 패턴 — 작은 다이아몬드 격자 */}
+        <svg style={{ position: "absolute", inset: s.p * 1.5, width: `calc(100% - ${s.p * 3}px)`, height: `calc(100% - ${s.p * 3}px)` }}>
           <defs>
-            <pattern id={`bp-${uid}`} width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
-              <rect x="3" y="3" width="2" height="2" rx="0.3" fill="rgba(255,255,255,0.025)" />
+            <pattern id={`bp-${uid}`} width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+              <rect x="3" y="3" width="4" height="4" fill="none" stroke="rgba(255,215,0,0.08)" strokeWidth="0.5" />
+              <circle cx="5" cy="5" r="0.6" fill="rgba(255,215,0,0.12)" />
+            </pattern>
+            <pattern id={`bp2-${uid}`} width="20" height="20" patternUnits="userSpaceOnUse">
+              <path d="M10,2 L18,10 L10,18 L2,10 Z" fill="none" stroke="rgba(255,215,0,0.06)" strokeWidth="0.4" />
             </pattern>
           </defs>
-          <rect width="100%" height="100%" fill={`url(#bp-${uid})`} />
+          <rect width="100%" height="100%" fill={`url(#bp-${uid})`} rx={Math.max(s.r - 3, 1)} />
+          <rect width="100%" height="100%" fill={`url(#bp2-${uid})`} rx={Math.max(s.r - 3, 1)} />
         </svg>
+        {/* 중앙 메달리온 (GGPoker 스타일) */}
         <div style={{
-          position: "absolute", inset: s.p * 0.6, borderRadius: Math.max(s.r - 2, 1),
-          border: "1px solid rgba(218,165,32,0.06)",
-        }} />
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: "30%",
+          position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center",
+        }}>
+          {/* 외부 금색 링 */}
+          <div style={{
+            width: s.w * 0.55, height: s.w * 0.55, borderRadius: "50%",
+            background: "radial-gradient(circle at 35% 35%, rgba(255,215,0,0.35), rgba(218,165,32,0.2) 50%, rgba(139,109,0,0.15))",
+            border: "1.5px solid rgba(255,215,0,0.5)",
+            boxShadow: "0 0 12px rgba(255,215,0,0.25), inset 0 0 8px rgba(255,215,0,0.15)",
+            display: "flex", alignItems: "center", justifyContent: "center",
+            position: "relative",
+          }}>
+            {/* 내부 어두운 원 */}
+            <div style={{
+              width: "78%", height: "78%", borderRadius: "50%",
+              background: "radial-gradient(circle at 40% 40%, #1A5E3F, #082418)",
+              border: "0.8px solid rgba(255,215,0,0.4)",
+              display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "inset 0 1px 3px rgba(0,0,0,0.5)",
+            }}>
+              {/* ₮ 로고 */}
+              <span style={{
+                fontSize: s.rank * 0.95, fontWeight: 900,
+                color: "rgba(255,215,0,0.85)",
+                textShadow: "0 0 6px rgba(255,215,0,0.5), 0 1px 2px rgba(0,0,0,0.5)",
+                fontFamily: "'Arial Black', sans-serif",
+              }}>₮</span>
+            </div>
+            {/* 메달리온 광택 */}
+            <div style={{
+              position: "absolute", top: "5%", left: "15%", width: "40%", height: "30%",
+              borderRadius: "50%",
+              background: "radial-gradient(ellipse, rgba(255,255,255,0.25), transparent 70%)",
+              pointerEvents: "none",
+            }} />
+          </div>
+        </div>
+        {/* 상단 광택 */}
+        <div style={{
+          position: "absolute", top: 0, left: 0, right: 0, height: "40%",
           borderRadius: `${s.r}px ${s.r}px 0 0`,
-          background: "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, transparent 100%)",
+          background: "linear-gradient(180deg, rgba(255,255,255,0.06) 0%, transparent 100%)",
+          pointerEvents: "none",
+        }} />
+        {/* 하단 그림자 */}
+        <div style={{
+          position: "absolute", bottom: 0, left: 0, right: 0, height: "20%",
+          borderRadius: `0 0 ${s.r}px ${s.r}px`,
+          background: "linear-gradient(0deg, rgba(0,0,0,0.25) 0%, transparent 100%)",
+          pointerEvents: "none",
         }} />
       </div>
     );

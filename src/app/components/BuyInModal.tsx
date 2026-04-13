@@ -124,13 +124,31 @@ export function BuyInModal({
             ))}
           </div>
 
-          {/* Insufficient warning */}
+          {/* Insufficient warning + PeerX 지갑 CTA */}
           {!canAfford && (
             <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }}
-              className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#EF4444]/10 border border-[#EF4444]/20">
-              <span className="text-[11px] text-[#EF4444]">
-                Insufficient balance. Deposit more or lower the amount.
-              </span>
+              className="space-y-2">
+              <div className="flex items-center gap-2 px-3 py-2 rounded-lg bg-[#EF4444]/10 border border-[#EF4444]/20">
+                <span className="text-[11px] text-[#EF4444]">
+                  💸 잔액이 부족합니다. PeerX 지갑에서 충전하세요.
+                </span>
+              </div>
+              <button
+                onClick={() => {
+                  // 부모창(B2C HoldemPage)에 PeerX 지갑 열기 요청
+                  if (typeof window !== 'undefined' && window.parent !== window) {
+                    window.parent.postMessage({ type: 'OPEN_PEERX_WALLET', action: 'wallet-balance' }, '*');
+                  } else {
+                    window.open('/cashier', '_blank');
+                  }
+                }}
+                className="w-full py-2.5 rounded-lg text-[12px] font-bold text-white"
+                style={{
+                  background: "linear-gradient(135deg, #34D399, #059669)",
+                  boxShadow: "0 4px 14px rgba(52,211,153,0.3)",
+                }}>
+                🪙 PeerX 지갑에서 충전하기
+              </button>
             </motion.div>
           )}
         </div>

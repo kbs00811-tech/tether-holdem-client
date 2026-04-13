@@ -1,9 +1,11 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router";
-import { ArrowLeft, MessageSquare, Volume2, VolumeX, Zap, Users, MoreVertical, Shield } from "lucide-react";
+import { ArrowLeft, MessageSquare, Volume2, VolumeX, Zap, Users, MoreVertical, Shield, X } from "lucide-react";
 import { Slider } from "../components/ui/slider";
 import { PlayerSlot } from "../components/PlayerSlot";
 import { PokerCard } from "../components/PokerCard";
+import { CardSqueeze } from "../components/CardSqueeze";
+import { PokerChip, getChipColorByValue } from "../components/PokerChip";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "../components/ui/sheet";
 import { ChatPanel } from "../components/ChatPanel";
 import { BuyInModal } from "../components/BuyInModal";
@@ -13,6 +15,7 @@ import { useGameStore } from "../stores/gameStore";
 import { useSocket } from "../hooks/useSocket";
 import { playSound, setMuted as setSoundMuted, isMuted as isSoundMuted, startBGM, stopBGM, setBGMVolume } from "../hooks/useSound";
 import { useSettingsStore, TABLE_FELTS } from "../stores/settingsStore";
+import { useEmbedMode } from "../hooks/useEmbedMode";
 import { formatMoney, getSymbol } from "../utils/currency";
 
 // Suit 변환: 서버(1-4) → 피그마("spades" etc.)
@@ -31,11 +34,21 @@ export default function GameTable() {
     gameState, myCards, isMyTurn, turnInfo, winners, showResult,
     currentRoomId, serverSeedHash, equities, connected,
     shownCards, rabbitCards, handHistoryRecords,
-    showMuckPrompt, insuranceOffer, isSittingOut,
+    showMuckPrompt, insuranceOffer, cashOutOffer, isSittingOut, isDealing,
   } = useGameStore();
+  const emptySeats = useGameStore(s => s.emptySeats);
+  const runItBoards = useGameStore(s => s.runItBoards);
+  const lastActions = useGameStore(s => s.lastActions);
+  const allInBanner = useGameStore(s => s.allInBanner);
+  const dramaticMoment = useGameStore(s => s.dramaticMoment);
+  const currentAvatarIdx = useSettingsStore(s => s.avatar);
+  const { user: embedUser } = useEmbedMode();
+  const realBalance = embedUser?.balance ?? 0;
+  const myPlayerIdReactive = useGameStore(s => s.myPlayerId);
 
   const [raiseAmount, setRaiseAmount] = useState(400);
   const [showChat, setShowChat] = useState(false);
+  const [floatingEmoji, setFloatingEmoji] = useState<{ emoji: string; seat: number; key: number } | null>(null);
   const [showBuyInModal, setShowBuyInModal] = useState(false);
   const [isMuted, setIsMuted] = useState(isSoundMuted());
   const [showVolume, setShowVolume] = useState(false);
@@ -44,6 +57,232 @@ export default function GameTable() {
   const [showHandHistory, setShowHandHistory] = useState(false);
   const [showEmoji, setShowEmoji] = useState(false);
   const [seated, setSeated] = useState(false);
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const [iosFullscreenMode, setIosFullscreenMode] = useState(false);
+  const [leaveReserved, setLeaveReserved] = useState(false); // 나가기 예약 (핸드 끝나면 나감)
+  // 신규 기능 state
+  const [showTopUpModal, setShowTopUpModal] = useState(false);
+  const [showChangeSeatModal, setShowChangeSeatModal] = useState(false);
+  const [showPreActionPanel, setShowPreActionPanel] = useState(false);
+  const [runItMode, setRunItMode] = useState<'off' | 'twice' | 'thrice'>('off');
+  const [waitForBB, setWaitForBB] = useState(false);
+  const [preAction, setPreAction] = useState<'fold' | 'check_fold' | 'check' | 'call_any' | null>(null);
+
+  // iOS Safari 감지
+  const isIOS = typeof window !== 'undefined' &&
+    /iPad|iPhone|iPod/.test(navigator.userAgent) && !(window as any).MSStream;
+
+  // 전체화면 토글 (크로스 플랫폼)
+  const toggleFullscreen = useCallback(async () => {
+    const doc = document as any;
+    const el = document.documentElement as any;
+    const fsElement = doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement;
+
+    try {
+      if (!fsElement) {
+        // iOS Safari: Fullscreen API 없음 → CSS 기반 대응
+        if (isIOS) {
+          setIosFullscreenMode(true);
+          window.scrollTo(0, 1);
+          // iframe 내부면 부모에 알림 (CSS 모드 유지)
+          if (window.self !== window.top) {
+            window.parent?.postMessage({ type: 'REQUEST_FULLSCREEN' }, '*');
+          }
+          return;
+        }
+        // ★ iframe 내부라도 직접 requestFullscreen 호출 가능 (allow="fullscreen" 권한)
+        //   user gesture 컨텍스트 유지 — postMessage 경유 시 gesture 손실로 실패함
+        if (el.requestFullscreen) {
+          await el.requestFullscreen({ navigationUI: 'hide' });
+        } else if (el.webkitRequestFullscreen) {
+          el.webkitRequestFullscreen();
+        } else if (el.mozRequestFullScreen) {
+          el.mozRequestFullScreen();
+        } else if (window.self !== window.top) {
+          // 폴백: 부모에게 요청 (브라우저가 fullscreen API 미지원할 때만)
+          window.parent?.postMessage({ type: 'REQUEST_FULLSCREEN' }, '*');
+          setIosFullscreenMode(true);
+        }
+      } else {
+        if (doc.exitFullscreen) await doc.exitFullscreen();
+        else if (doc.webkitExitFullscreen) doc.webkitExitFullscreen();
+        else if (doc.mozCancelFullScreen) doc.mozCancelFullScreen();
+        setIosFullscreenMode(false);
+      }
+    } catch (e) {
+      console.warn('[Fullscreen] error:', e);
+    }
+  }, [isIOS]);
+
+  // 전체화면 상태 감지 (webkit/moz prefix 포함)
+  useEffect(() => {
+    const handler = () => {
+      const doc = document as any;
+      const fs = !!(doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement);
+      setIsFullscreen(fs || iosFullscreenMode);
+    };
+    document.addEventListener('fullscreenchange', handler);
+    document.addEventListener('webkitfullscreenchange', handler);
+    document.addEventListener('mozfullscreenchange', handler);
+    return () => {
+      document.removeEventListener('fullscreenchange', handler);
+      document.removeEventListener('webkitfullscreenchange', handler);
+      document.removeEventListener('mozfullscreenchange', handler);
+    };
+  }, [iosFullscreenMode]);
+
+  // ─── Screen Wake Lock — 착석 중 화면 꺼짐 방지 ───
+  // iOS Safari 16.4+ / Android Chrome / Desktop Chrome 지원
+  useEffect(() => {
+    if (!seated) return;
+    let wakeLock: any = null;
+    let released = false;
+
+    const request = async () => {
+      try {
+        if ('wakeLock' in navigator) {
+          wakeLock = await (navigator as any).wakeLock.request('screen');
+          console.log('[WakeLock] acquired');
+          wakeLock.addEventListener('release', () => {
+            console.log('[WakeLock] released by system');
+          });
+        }
+      } catch (e) {
+        console.warn('[WakeLock] request failed:', e);
+      }
+    };
+
+    request();
+
+    // 페이지 visible 상태로 돌아올 때 재요청 (iOS 등에서 필요)
+    const onVisible = () => {
+      if (document.visibilityState === 'visible' && !released) request();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+
+    return () => {
+      released = true;
+      document.removeEventListener('visibilitychange', onVisible);
+      if (wakeLock) { try { wakeLock.release(); } catch {} }
+    };
+  }, [seated]);
+
+  // ─── 전화/앱 전환 감지 — 모바일에서 장시간 백그라운드 시 자동 나가기 ───
+  // 30초 이상 페이지가 숨겨지면 SIT_OUT 처리, 5분 이상이면 자동 나가기
+  useEffect(() => {
+    if (!seated) return;
+    let hiddenAt: number | null = null;
+    let sitOutTimer: ReturnType<typeof setTimeout> | null = null;
+    let leaveTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') {
+        hiddenAt = Date.now();
+        // 30초 후 자동 sit out (이미 sit out이면 무시)
+        sitOutTimer = setTimeout(() => {
+          if (document.visibilityState === 'hidden') {
+            send({ type: 'SIT_OUT' });
+            useGameStore.setState({ isSittingOut: true });
+            toast('백그라운드 감지 — 자동 Sit Out', { icon: '⏸️' });
+          }
+        }, 30000);
+        // 5분 후 완전 나가기
+        leaveTimer = setTimeout(() => {
+          if (document.visibilityState === 'hidden') {
+            send({ type: 'STAND_UP' });
+            send({ type: 'LEAVE_ROOM' });
+          }
+        }, 5 * 60 * 1000);
+      } else {
+        // 돌아왔음 — 타이머 취소
+        if (sitOutTimer) clearTimeout(sitOutTimer);
+        if (leaveTimer) clearTimeout(leaveTimer);
+        const awayMs = hiddenAt ? Date.now() - hiddenAt : 0;
+        if (awayMs > 30000) {
+          toast.success(`${Math.round(awayMs/1000)}초 자리비움 후 복귀`);
+        }
+        hiddenAt = null;
+      }
+    };
+
+    document.addEventListener('visibilitychange', onVisibility);
+    return () => {
+      document.removeEventListener('visibilitychange', onVisibility);
+      if (sitOutTimer) clearTimeout(sitOutTimer);
+      if (leaveTimer) clearTimeout(leaveTimer);
+    };
+  }, [seated, send]);
+
+  // ─── 나가기 예약 — HAND_RESULT 이벤트 도착 시 자동 STAND_UP + LEAVE_ROOM ───
+  // 이전 버그: phase 변화로 감지했으나 RESULT가 너무 빨리 지나가 놓치는 경우 다수.
+  // 수정: handHistoryRecords 카운트로 신뢰성 있게 핸드 종료 감지.
+  const handHistoryCount = useGameStore(s => s.handHistoryRecords.length);
+  const reservedLeavePhase = useGameStore(s => s.gameState?.phase);
+  const reserveBaselineRef = useRef<number>(-1);
+
+  // leaveReserved=true 가 되는 순간 baseline 저장
+  useEffect(() => {
+    if (leaveReserved && reserveBaselineRef.current < 0) {
+      reserveBaselineRef.current = handHistoryCount;
+    }
+    if (!leaveReserved) {
+      reserveBaselineRef.current = -1;
+    }
+  }, [leaveReserved, handHistoryCount]);
+
+  useEffect(() => {
+    if (!leaveReserved) return;
+    const baseline = reserveBaselineRef.current;
+    // 1) 이미 좌석 없으면 즉시 나감
+    // 2) 새 HAND_RESULT 1개 이상 받음 (핸드 종료)
+    // 3) 페이즈가 WAITING/READY/RESULT (안전망)
+    const handFinished = baseline >= 0 && handHistoryCount > baseline;
+    const safePhase = reservedLeavePhase === 'WAITING' || reservedLeavePhase === 'READY' || reservedLeavePhase === 'RESULT';
+    if (!seated || handFinished || safePhase) {
+      send({ type: 'STAND_UP' });
+      setTimeout(() => { try { send({ type: 'LEAVE_ROOM' }); } catch {} }, 100);
+      setLeaveReserved(false);
+      reserveBaselineRef.current = -1;
+      toast.success('게임 종료 후 자동 퇴장');
+      setTimeout(() => navigate('/'), 300);
+    }
+  }, [leaveReserved, handHistoryCount, reservedLeavePhase, seated, send, navigate]);
+
+  // 게임 진입 시 자동 전체화면 — 모든 기기
+  // 브라우저 보안: requestFullscreen 은 user gesture 필수.
+  //   (1) 진입 직후 silent 시도 (대부분 실패하지만 iframe parent 유도)
+  //   (2) 첫 사용자 입력에서 무조건 재시도 (silent 실패와 무관)
+  useEffect(() => {
+    const checkAlready = (): boolean => {
+      const doc = document as any;
+      const fs = !!(doc.fullscreenElement || doc.webkitFullscreenElement || doc.mozFullScreenElement);
+      return fs || iosFullscreenMode;
+    };
+
+    // 1. silent 시도 (iframe → postMessage 경로)
+    const immediate = setTimeout(() => {
+      if (!checkAlready()) toggleFullscreen();
+    }, 300);
+
+    // 2. 첫 사용자 상호작용 → 다시 시도 (브라우저 gesture 요구사항 충족)
+    const onInteraction = () => {
+      if (!checkAlready()) toggleFullscreen();
+      cleanup();
+    };
+    const cleanup = () => {
+      document.removeEventListener('click', onInteraction);
+      document.removeEventListener('touchstart', onInteraction);
+      document.removeEventListener('keydown', onInteraction);
+    };
+    document.addEventListener('click', onInteraction);
+    document.addEventListener('touchstart', onInteraction);
+    document.addEventListener('keydown', onInteraction);
+
+    return () => {
+      clearTimeout(immediate);
+      cleanup();
+    };
+  }, [toggleFullscreen, iosFullscreenMode]);
 
   // 방 목록
   const rooms = useGameStore(s => s.rooms);
@@ -71,11 +310,15 @@ export default function GameTable() {
       }
 
       if (currentRooms.length > 0) {
-        const target = currentRooms.find(r => r.id === tableId) ?? currentRooms[0];
+        // ★ URL의 tableId와 정확히 매칭되는 방만 입장 (fallback 제거)
+        const target = currentRooms.find(r => r.id === tableId);
         if (target) {
           console.log(`[GAME] Joining room: ${target.id} (${target.name})`);
           send({ type: 'JOIN_ROOM', roomId: target.id, buyIn: 0 });
           setJoinAttempted(true);
+        } else {
+          console.warn(`[GAME] Room ${tableId} not found in rooms list — staying in lobby view`);
+          toast.error('Room not found');
         }
         clearInterval(timer);
       } else if (attempts > 10) {
@@ -87,52 +330,9 @@ export default function GameTable() {
     return () => clearInterval(timer);
   }, [connected]);
 
-  // 방 입장 후: 먼저 봇 추가 → 그 다음 빈 좌석에 착석
-  useEffect(() => {
-    if (!currentRoomId || seated) return;
-
-    // Step 1: 봇 먼저 추가 (1초 후)
-    const botTimer = setTimeout(() => {
-      console.log('[GAME] Adding bots first...');
-      send({ type: 'ADD_BOTS', count: 3 });
-    }, 1000);
-
-    // Step 2: 봇 추가 후 빈 좌석에 착석 (3초 후 — 봇이 앉은 뒤)
-    const sitTimer = setTimeout(() => {
-      const state = useGameStore.getState().gameState;
-      const players = state?.players ?? [];
-      const occupied = new Set(players.map(p => p.seat));
-
-      console.log(`[GAME] Occupied seats: ${[...occupied].join(',')} (${players.length} players)`);
-
-      // 마지막 좌석(hero 위치)부터 역순 탐색
-      let freeSeat = -1;
-      for (let i = maxSeats - 1; i >= 0; i--) {
-        if (!occupied.has(i)) { freeSeat = i; break; }
-      }
-
-      if (freeSeat < 0) {
-        console.warn('[GAME] No free seats!');
-        toast.error('Table is full');
-        return;
-      }
-
-      // 서버 minBuyIn 사용
-      const room = useGameStore.getState().rooms.find(r => r.id === currentRoomId);
-      const buyIn = room?.minBuyIn ?? 10000;
-
-      console.log(`[GAME] Auto-sitting at seat ${freeSeat}, buyIn=${buyIn}`);
-      send({ type: 'SIT_DOWN', seat: freeSeat, buyIn });
-      setSeated(true);
-      setLocalPlayers(prev => ({
-        ...prev,
-        [freeSeat]: { name: "You", stack: buyIn / 100, bet: 0, avatar: 3, status: "active", cards: undefined },
-      }));
-      toast.success(`Seated at position ${freeSeat}`);
-    }, 3000);
-
-    return () => { clearTimeout(botTimer); clearTimeout(sitTimer); };
-  }, [currentRoomId]);
+  // ★ 자동 착석 제거 — 유저가 빈 자리 직접 클릭해서 앉아야 함 (관전 모드 진입 가능)
+  // 이전: 입장 후 자동으로 빈 자리에 앉아서 의도치 않은 게임 시작
+  // 현재: 입장만 하고 관전 모드, 사용자가 자리 클릭 시 BuyInModal 열림
 
   // 턴 시작 시 raiseAmount 초기화
   useEffect(() => {
@@ -150,7 +350,7 @@ export default function GameTable() {
   }));
 
   // 좌석 수 (6 or 8)
-  const maxSeats = 8;
+  const maxSeats = 9;
 
   // 로컬 플레이어 (서버 응답 전 즉시 표시용)
   const [localPlayers, setLocalPlayers] = useState<Record<number, any>>({});
@@ -161,18 +361,23 @@ export default function GameTable() {
     // 서버 플레이어 우선
     const p = serverPlayers.find(sp => sp.seat === i);
     if (p) {
+      // ★ Hero 자리 매칭 — myPlayerId만 신뢰. handCards 폴백 제거 (server sanitize로 항상 빈 배열)
+      const isMySeat = !!(myPlayerIdReactive && p.id === myPlayerIdReactive);
+      const avatarToUse = isMySeat ? currentAvatarIdx : (p.avatarId ?? i);
       return {
         name: p.nickname,
         stack: p.stack / 100,
         bet: p.currentBet / 100,
-        avatar: p.avatarId ?? i,
+        avatar: avatarToUse,
         status: p.status === "ACTIVE" ? "active" : p.status === "FOLDED" ? "folded" :
           p.status === "ALL_IN" ? "allin" : p.status === "DISCONNECTED" ? "disconnected" :
-          p.status === "SIT_OUT" ? "sitting-out" : "waiting",
+          p.status === "SIT_OUT" ? "sitting-out" :
+          p.status === "WAIT_BB" ? "wait-bb" : "waiting",
         isDealer: p.isDealer,
         isSmallBlind: p.isSB,
         isBigBlind: p.isBB,
         cards: undefined,
+        hudStats: (p as any).hudStats,
       };
     }
     // 로컬 플레이어 (서버 응답 전 즉시 표시)
@@ -185,27 +390,124 @@ export default function GameTable() {
     suit: SUIT_MAP[c.suit] ?? "spades" as const,
     rank: (RANK_MAP[c.rank] ?? "A") as any,
   }));
-  const heroSeatIndex = serverPlayers.findIndex(p => p.handCards && p.handCards.length > 0);
-  const heroSeat = heroSeatIndex >= 0 ? serverPlayers[heroSeatIndex]!.seat : (maxSeats === 6 ? 3 : 4);
-  if (players[heroSeat] && myHoleCards.length > 0) {
+  // ★ Hero seat 감지 — myPlayerId 가 일치하는 경우만. 모를 때는 -1 (hero 없음).
+  //   이전 버그: -1일 때 중앙 좌석을 hero로 폴백하여 봇에 YOU 배지가 씌워짐.
+  const heroByPid = myPlayerIdReactive
+    ? serverPlayers.findIndex(p => p.id === myPlayerIdReactive)
+    : -1;
+  const heroSeat = heroByPid >= 0 ? serverPlayers[heroByPid]!.seat : -1;
+  if (heroSeat >= 0 && players[heroSeat] && myHoleCards.length > 0) {
     players[heroSeat].cards = myHoleCards;
   }
+  // ★ 내 서버 상태 — WAIT_BB 인지 판단
+  const myServerStatus = heroByPid >= 0 ? serverPlayers[heroByPid]!.status : null;
+  const isWaitingForBB = myServerStatus === "WAIT_BB";
 
-  const myStack = serverPlayers.find(p => p.seat === heroSeat)?.stack ?? 0;
+  const myStack = heroSeat >= 0 ? (serverPlayers.find(p => p.seat === heroSeat)?.stack ?? 0) : 0;
+
+  // ★ seated 상태 = 서버에 내가 있는지 (heroSeat >= 0). 자동 동기화 — 수동 setSeated 의존성 제거
+  useEffect(() => {
+    const isSeated = heroSeat >= 0;
+    if (isSeated !== seated) setSeated(isSeated);
+    // 서버에 내가 있으면 로컬 플레이어는 더 이상 필요 없음
+    if (isSeated) setLocalPlayers({});
+  }, [heroSeat, seated]);
+
+  // ★ 서버 에러 처리 — SIT_FAILED 등은 toast + 로컬 롤백
+  const lastError = useGameStore(s => s.lastError);
+  useEffect(() => {
+    if (!lastError) return;
+    if (['SIT_FAILED', 'INSUFFICIENT_BALANCE', 'DEDUCT_FAILED'].includes(lastError.code)) {
+      setLocalPlayers({});
+      setSeated(false);
+      toast.error(lastError.message || lastError.code);
+    } else if (lastError.code === 'RECONNECTED') {
+      toast.success(lastError.message, { duration: 5000, icon: '🔄' });
+    }
+  }, [lastError]);
   const canCheck = !turnInfo || turnInfo.callAmount <= 0;
   const callAmount = turnInfo?.callAmount ?? 0;
   const minRaise = turnInfo?.minBet ?? (currentBet * 2 || 400);
   const maxRaise = turnInfo?.maxBet ?? myStack;
-  const blinds = `${(gameState?.sbSeat ?? 0) >= 0 ? "50/100" : "—"}`;
+  const sbAmount = gameState?.smallBlind ? (gameState.smallBlind / 100).toLocaleString() : "—";
+  const bbAmount = gameState?.bigBlind ? (gameState.bigBlind / 100).toLocaleString() : "—";
+  const blinds = gameState?.smallBlind ? `${sbAmount}/${bbAmount}` : "—";
 
   // 베팅 액션
   // 칩 날아가는 애니메이션 트리거
-  const [flyingChip, setFlyingChip] = useState<{ action: string; amount: number; key: number } | null>(null);
+  const [flyingChips, setFlyingChips] = useState<Array<{ fromSeat: number; action: string; amount: number; key: number }>>([]);
+  // 승리 시 칩이 승자에게 날아가는 애니메이션
+  const [winChips, setWinChips] = useState<Array<{ toSeat: number; amount: number; key: number }>>([]);
+  // 팟 중앙 칩 스택 (누적)
+  const [potChipStacks, setPotChipStacks] = useState<Array<{ color: string; x: number; y: number; rot: number }>>([]);
 
-  const triggerChipFly = useCallback((action: string, amount: number) => {
-    setFlyingChip({ action, amount, key: Date.now() });
-    setTimeout(() => setFlyingChip(null), 1200);
-  }, []);
+  const triggerChipFly = useCallback((fromSeat: number, action: string, amount: number) => {
+    const chip = { fromSeat, action, amount, key: Date.now() + Math.random() };
+    setFlyingChips(prev => [...prev, chip]);
+    // 팟 중앙에 칩 쌓기 — 칩 도착 후
+    setTimeout(() => {
+      const chipCount = action === 'allin' ? 6 : action === 'raise' ? 4 : 2;
+      const chipColors = ['#26A17B', '#E5B800', '#8B5CF6', '#FF6B35', '#EF4444', '#34D399'];
+      const newStacks = Array.from({ length: chipCount }, (_, i) => ({
+        color: chipColors[(potChipStacks.length + i) % chipColors.length],
+        x: (Math.random() - 0.5) * 30,
+        y: (Math.random() - 0.5) * 16 - i * 2,
+        rot: Math.random() * 360,
+      }));
+      setPotChipStacks(prev => [...prev, ...newStacks].slice(-24)); // 최대 24개 칩
+    }, 700);
+    setTimeout(() => setFlyingChips(prev => prev.filter(c => c.key !== chip.key)), 1500);
+  }, [potChipStacks.length]);
+
+  // 승리 시 칩 수거 애니메이션
+  useEffect(() => {
+    if (showResult && winners && winners[0]) {
+      const winnerSeat = serverPlayers.find(p => p.id === winners[0].playerId)?.seat ?? heroSeat;
+      setTimeout(() => {
+        setWinChips([{ toSeat: winnerSeat, amount: winners[0].amount, key: Date.now() }]);
+        playSound('win');
+      }, 800);
+      // 칩 도착 후 정리
+      setTimeout(() => {
+        setWinChips([]);
+        setPotChipStacks([]);
+      }, 2200);
+    }
+  }, [showResult, winners]);
+
+  // 새 핸드 시작 시 팟 칩 리셋
+  useEffect(() => {
+    if (phase === "PREFLOP" || phase === "WAITING") {
+      setPotChipStacks([]);
+    }
+  }, [phase]);
+
+  // 다른 유저 액션 → 칩 플라이 애니메이션 트리거
+  useEffect(() => {
+    useGameStore.setState({
+      onExternalPlayerAction: (seat, action, amount) => {
+        if (action === 2 || action === 3 || action === 4) {
+          const tag = action === 4 ? 'allin' : action === 3 ? 'raise' : 'call';
+          triggerChipFly(seat, tag, amount);
+        }
+      },
+    });
+    return () => {
+      useGameStore.setState({ onExternalPlayerAction: null });
+    };
+  }, [triggerChipFly]);
+
+  // myCards가 새로 오면 딜링 비행 강제 트리거
+  const [forceDealAnim, setForceDealAnim] = useState(0);
+  useEffect(() => {
+    if (myCards.length >= 2) {
+      const now = Date.now();
+      setForceDealAnim(now);
+      playSound('cardDeal');
+      // 카드 2바퀴 (9-max 기준): 9×0.04 + 0.15 + 9×0.04 + 0.35 = 1.22s + 여유 = 1.8초
+      setTimeout(() => setForceDealAnim(prev => prev === now ? 0 : prev), 1800);
+    }
+  }, [myCards.length > 0 ? `${myCards[0]?.suit}-${myCards[0]?.rank}-${myCards[1]?.suit}-${myCards[1]?.rank}` : '']);
 
   const handleFold = useCallback(() => {
     send({ type: 'BET', action: 0 });
@@ -220,20 +522,20 @@ export default function GameTable() {
   const handleCall = useCallback(() => {
     send({ type: 'BET', action: 2 });
     playSound('chipBet');
-    triggerChipFly('call', callAmount);
-  }, [send, callAmount, triggerChipFly]);
+    triggerChipFly(heroSeat, 'call', callAmount);
+  }, [send, callAmount, heroSeat, triggerChipFly]);
 
   const handleRaise = useCallback(() => {
     send({ type: 'BET', action: 3, amount: raiseAmount });
     playSound('chipsRaise');
-    triggerChipFly('raise', raiseAmount);
-  }, [send, raiseAmount, triggerChipFly]);
+    triggerChipFly(heroSeat, 'raise', raiseAmount);
+  }, [send, raiseAmount, heroSeat, triggerChipFly]);
 
   const handleAllIn = useCallback(() => {
     send({ type: 'BET', action: 4 });
     playSound('allIn');
-    triggerChipFly('allin', myStack);
-  }, [send, myStack, triggerChipFly]);
+    triggerChipFly(heroSeat, 'allin', myStack);
+  }, [send, myStack, heroSeat, triggerChipFly]);
 
   // 클릭한 좌석 번호 저장
   const [clickedSeat, setClickedSeat] = useState<number>(4);
@@ -273,7 +575,7 @@ export default function GameTable() {
     }));
 
     send({ type: 'SIT_DOWN', seat: targetSeat, buyIn: Math.round(amount * 100) });
-    setSeated(true);
+    // ★ setSeated 는 useEffect로 자동 — 서버 PLAYER_JOINED 도착 시 heroSeat 갱신되며 동기화
     setShowBuyInModal(false);
     toast.success(`Bought in for ${getSymbol()}${amount.toLocaleString()}`);
   }, [send, clickedSeat, serverPlayers, maxSeats, currentRoomId]);
@@ -293,6 +595,33 @@ export default function GameTable() {
     setShowLeaveConfirm(false);
     navigate('/');
   }, [send, navigate]);
+
+  // ★ 강제 나가기 — 전역 핸들러 (PlayerSlot 메뉴에서 호출)
+  const forceLeave = useCallback(() => {
+    try { send({ type: 'STAND_UP' }); } catch {}
+    setTimeout(() => { try { send({ type: 'LEAVE_ROOM' }); } catch {}; navigate('/'); }, 200);
+  }, [send, navigate]);
+  useEffect(() => {
+    (window as any).__forceLeave = forceLeave;
+    return () => { delete (window as any).__forceLeave; };
+  }, [forceLeave]);
+
+  // ★ Stuck 감지 — 60초 동안 페이즈 변화/액션 없음 → 강제 나가기 배너
+  const lastActivityRef = useRef<number>(Date.now());
+  const [showStuckBanner, setShowStuckBanner] = useState(false);
+  useEffect(() => {
+    // 페이즈/팟/턴 변경이 있으면 활동 기록
+    lastActivityRef.current = Date.now();
+    setShowStuckBanner(false);
+  }, [phase, pot, isMyTurn]);
+  useEffect(() => {
+    if (!seated) { setShowStuckBanner(false); return; }
+    const iv = setInterval(() => {
+      const idleMs = Date.now() - lastActivityRef.current;
+      if (idleMs > 60000) setShowStuckBanner(true);
+    }, 5000);
+    return () => clearInterval(iv);
+  }, [seated]);
 
   const getStageIndex = () => {
     if (phase === "FLOP") return 1;
@@ -353,58 +682,78 @@ export default function GameTable() {
   // Top row 3 seats: 20%, 50%, 80% (equal 30% gaps)
   const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
 
-  // Mobile: portrait
-  const LAYOUT_8_PORTRAIT: [number, number][] = [
-    [75,  -5], [108, 31], [108, 69], [75, 105],
-    [25, 105], [-8,  69], [-8,  31], [25,  -5],
+  // 9-Max 좌석 배치 (하단 2석 + 상단 3석 + 양옆 4석)
+  //     [7]   [0]   [1]       상단 3석
+  //   [6]               [2]   중상단
+  //   [5]               [3]   중하단
+  //      [8]        [4]        하단 2석 (HERO 영역)
+  //
+  // Mobile: portrait (세로) — 하단 좌석 위로 올려 카드 공간 확보
+  const LAYOUT_9_PORTRAIT: [number, number][] = [
+    [50,  -6],    // 0: 상단 중앙
+    [88,  -2],    // 1: 상단 우측
+    [110,  32],   // 2: 우측 상단
+    [110,  68],   // 3: 우측 하단
+    [72,   92],   // 4: 하단 우측 (108→92)
+    [-8,   68],   // 5: 좌측 하단
+    [-8,   32],   // 6: 좌측 상단
+    [12,  -2],    // 7: 상단 좌측
+    [28,   92],   // 8: 하단 좌측 (108→92)
   ];
-  // Desktop: landscape
-  const LAYOUT_8_LANDSCAPE: [number, number][] = [
-    [50, -8], [82, -8], [108, 50], [82, 108],
-    [50, 108], [18, 108], [-8, 50], [18, -8],
+  // Desktop: landscape — 하단 여유 확보
+  const LAYOUT_9_LANDSCAPE: [number, number][] = [
+    [50,  -8],    // 0: 상단 중앙
+    [82,  -6],    // 1: 상단 우측
+    [112,  34],   // 2: 우측 상단
+    [112,  68],   // 3: 우측 하단
+    [70,   95],   // 4: 하단 우측
+    [-12,  68],   // 5: 좌측 하단
+    [-12,  34],   // 6: 좌측 상단
+    [18,  -6],    // 7: 상단 좌측
+    [30,   95],   // 8: 하단 좌측
   ];
-  const LAYOUT_8 = isDesktop ? LAYOUT_8_LANDSCAPE : LAYOUT_8_PORTRAIT;
+  const LAYOUT_9 = isDesktop ? LAYOUT_9_LANDSCAPE : LAYOUT_9_PORTRAIT;
 
-  const seatPositionsData = maxSeats === 6 ? LAYOUT_6 : LAYOUT_8;
+  const seatPositionsData = maxSeats === 6 ? LAYOUT_6 : LAYOUT_9;
   // No separate seatPositions/betChipPos objects needed here —
   // they'll be placed inside the rim div below
 
   return (
-    <div className="h-[100dvh] flex flex-col overflow-hidden select-none"
+    <div className={`h-[100dvh] flex flex-col overflow-hidden select-none ${iosFullscreenMode ? 'fixed inset-0 z-[9999]' : ''}`}
       style={{ background: "radial-gradient(ellipse at 50% 40%, #0C1620 0%, #080E16 40%, #050A10 100%)" }}>
 
-      {/* ====== TOP BAR — enlarged ====== */}
-      <div className="shrink-0 z-30 px-4 py-3 flex items-center justify-between"
-        style={{ background: "rgba(8,12,20,0.9)", backdropFilter: "blur(20px) saturate(1.2)", borderBottom: "1px solid rgba(255,255,255,0.05)" }}>
-        <div className="flex items-center gap-3">
-          <button onClick={handleLeave} className="w-9 h-9 rounded-lg flex items-center justify-center"
-            style={{ background: "rgba(255,255,255,0.04)" }}>
-            <ArrowLeft className="h-5 w-5 text-[#6B7A90]" />
+      {/* ====== TOP BAR — 모바일/데스크탑 반응형 ====== */}
+      <div className="shrink-0 z-30 px-2 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 flex items-center justify-between"
+        style={{ background: "rgba(8,12,20,0.92)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
+        <div className="flex items-center gap-1.5 sm:gap-3">
+          <button onClick={handleLeave} className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center"
+            style={{ background: "rgba(255,255,255,0.05)" }}>
+            <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 text-[#8899AB]" />
           </button>
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full"
+          <div className="flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg"
             style={{ background: "rgba(255,107,53,0.08)", border: "1px solid rgba(255,107,53,0.15)" }}>
-            <Zap className="h-3.5 w-3.5 text-[#FF6B35]" />
-            <span className="text-sm text-[#FF6B35] font-mono font-bold">{blinds}</span>
+            <Zap className="h-3 w-3 sm:h-4 sm:w-4 text-[#FF6B35]" />
+            <span className="text-xs sm:text-sm md:text-base text-[#FF6B35] font-mono font-black">{blinds}</span>
           </div>
-          <div className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-full"
-            style={{ background: "rgba(255,255,255,0.03)" }}>
-            <Users className="h-3.5 w-3.5 text-[#4A5A70]" />
-            <span className="text-xs text-[#6B7A90] font-mono">{playerCount}/{maxSeats}</span>
+          <div className="flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-lg"
+            style={{ background: "rgba(255,255,255,0.04)" }}>
+            <Users className="h-3 w-3 sm:h-4 sm:w-4 text-[#6B7A90]" />
+            <span className="text-[10px] sm:text-xs md:text-sm text-[#8899AB] font-mono font-bold">{playerCount}/{maxSeats}</span>
           </div>
           {handNumber > 0 && (
-            <span className="text-xs text-[#3D4F65] font-mono">#{handNumber}</span>
+            <span className="text-[10px] sm:text-xs text-[#4A5A70] font-mono hidden sm:inline">#{handNumber}</span>
           )}
         </div>
 
         {/* Stage */}
-        <div className="flex gap-1 rounded-full p-1" style={{ background: "rgba(0,0,0,0.35)" }}>
+        <div className="flex gap-0.5 sm:gap-1 rounded-lg p-1" style={{ background: "rgba(0,0,0,0.4)" }}>
           {["P","F","T","R"].map((l,i) => {
             const active = i <= getStageIndex();
             const current = i === getStageIndex();
             return (
               <div key={l} className="relative">
-                <div className="w-8 h-6 flex items-center justify-center rounded-full text-[10px] font-bold tracking-wider"
-                  style={{ background: active ? "rgba(52,211,153,0.15)" : "transparent", color: active ? "#34D399" : "#1A2535" }}>{l}</div>
+                <div className="w-6 h-5 sm:w-9 sm:h-7 md:w-10 md:h-8 flex items-center justify-center rounded text-[9px] sm:text-[11px] md:text-xs font-bold"
+                  style={{ background: active ? "rgba(52,211,153,0.18)" : "transparent", color: active ? "#34D399" : "#2A3545" }}>{l}</div>
                 {current && <motion.div className="absolute -bottom-0.5 left-1/2 w-1.5 h-0.5 rounded-full"
                   style={{ background: "#34D399", transform: "translateX(-50%)" }} layoutId="stage-dot" />}
               </div>
@@ -412,48 +761,112 @@ export default function GameTable() {
           })}
         </div>
 
-        <div className="flex items-center gap-1.5">
-          <button onClick={() => { send({ type: 'ADD_BOTS', count: 3 }); toast.success('AI bots joining...'); }}
-            className="px-3 py-1.5 rounded-lg text-xs font-bold transition-all hover:scale-105"
-            style={{ background: "rgba(255,107,53,0.1)", border: "1px solid rgba(255,107,53,0.2)", color: "#FF6B35" }}>
-            + Bots
-          </button>
-          {serverSeedHash && (
-            <div className="px-2 py-1 rounded-md" style={{ background: "rgba(52,211,153,0.08)" }}>
-              <Shield className="h-3.5 w-3.5 text-[#34D399]" />
-            </div>
-          )}
-          {/* My Balance */}
+        <div className="flex items-center gap-2 sm:gap-2.5">
+          {/* Stack — 데스크탑만 */}
           {seated && (
-            <div className="px-2.5 py-1 rounded-lg hidden sm:flex items-center gap-1.5"
-              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.04)" }}>
-              <span className="text-[9px] text-[#4A5A70]">Stack</span>
-              <span className="text-[11px] font-mono font-bold text-[#34D399]">
+            <div className="px-2 py-1 rounded-lg hidden md:flex items-center gap-1.5"
+              style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+              <span className="text-[10px] text-[#6B7A90]">Stack</span>
+              <span className="text-xs font-mono font-black text-[#34D399]">
                 {getSymbol()}{((serverPlayers.find(p => p.seat === heroSeat)?.stack ?? 0) / 100).toLocaleString()}
               </span>
             </div>
           )}
-          {/* Hand History */}
+          {/* History — 데스크탑만 */}
           <button onClick={() => { send({ type: 'GET_HAND_HISTORY', limit: 10 }); setShowHandHistory(true); }}
-            className="px-2 py-1 rounded-md text-[10px] font-semibold transition-all"
-            style={{ background: "rgba(255,255,255,0.03)", color: "#4A5A70" }}>
+            className="hidden sm:block px-2 py-1 rounded-lg text-[10px] font-semibold"
+            style={{ background: "rgba(255,255,255,0.04)", color: "#6B7A90" }}>
             History
+          </button>
+          {/* Top Up — 데스크탑만 */}
+          {seated && (
+            <button onClick={() => {
+                // 핸드 진행 중이면 안내 + 예약 설정
+                const inHand = phase !== "WAITING" && phase !== "RESULT";
+                if (inHand) {
+                  toast('⏱️ 현재 핸드 종료 후 충전 가능합니다', { duration: 2500, icon: '⏳' });
+                }
+                setShowTopUpModal(true);
+              }}
+              className="hidden sm:block px-2 py-1 rounded-lg text-[10px] font-bold"
+              style={{ background: "rgba(52,211,153,0.08)", color: "#34D399", border: "1px solid rgba(52,211,153,0.2)" }}>
+              +$ Top Up
+            </button>
+          )}
+          {/* Change Seat — 데스크탑만 */}
+          {seated && (
+            <button onClick={() => {
+                send({ type: 'GET_EMPTY_SEATS' });
+                setShowChangeSeatModal(true);
+              }}
+              className="hidden sm:block px-2 py-1 rounded-lg text-[10px] font-semibold"
+              style={{ background: "rgba(124,58,237,0.08)", color: "#A78BFA", border: "1px solid rgba(124,58,237,0.2)" }}>
+              🪑 Seat
+            </button>
+          )}
+          {/* Pre-Action */}
+          {seated && (
+            <button onClick={() => setShowPreActionPanel(v => !v)}
+              className="hidden sm:block px-2 py-1 rounded-lg text-[10px] font-bold"
+              style={{
+                background: preAction ? "rgba(240,185,11,0.15)" : "rgba(255,255,255,0.04)",
+                color: preAction ? "#F0B90B" : "#6B7A90",
+                border: preAction ? "1px solid rgba(240,185,11,0.3)" : "1px solid transparent",
+              }}>
+              ⚡ Pre
+            </button>
+          )}
+          {/* Wait for BB */}
+          {seated && (
+            <button onClick={() => {
+                const next = !waitForBB;
+                setWaitForBB(next);
+                send({ type: 'WAIT_FOR_BB', enabled: next });
+                toast.success(next ? 'Waiting for BB' : 'Wait for BB off');
+              }}
+              className="hidden md:block px-2 py-1 rounded-lg text-[10px] font-bold"
+              style={{
+                background: waitForBB ? "rgba(34,211,238,0.1)" : "rgba(255,255,255,0.04)",
+                color: waitForBB ? "#22D3EE" : "#6B7A90",
+                border: waitForBB ? "1px solid rgba(34,211,238,0.25)" : "1px solid transparent",
+              }}>
+              ⏳ BB
+            </button>
+          )}
+          {/* Run It Twice/Thrice */}
+          {seated && (
+            <button onClick={() => {
+                const next: 'off' | 'twice' | 'thrice' =
+                  runItMode === 'off' ? 'twice' :
+                  runItMode === 'twice' ? 'thrice' : 'off';
+                setRunItMode(next);
+                send({ type: 'SET_RUN_IT_MODE', mode: next });
+                toast.success(`Run It: ${next.toUpperCase()}`);
+              }}
+              className="hidden md:block px-2 py-1 rounded-lg text-[10px] font-bold"
+              style={{
+                background: runItMode !== 'off' ? "rgba(255,107,53,0.12)" : "rgba(255,255,255,0.04)",
+                color: runItMode !== 'off' ? "#FF6B35" : "#6B7A90",
+                border: runItMode !== 'off' ? "1px solid rgba(255,107,53,0.3)" : "1px solid transparent",
+              }}
+              title="Off → Twice → Thrice">
+              🎲 {runItMode === 'off' ? 'RIT' : runItMode === 'twice' ? '2×' : '3×'}
+            </button>
+          )}
+          {/* 전체화면 토글 */}
+          <button onClick={toggleFullscreen}
+            className="px-1.5 sm:px-2 py-1 rounded-lg text-xs"
+            style={{ background: "rgba(255,255,255,0.04)" }}
+            title={isFullscreen ? "전체화면 해제" : "전체화면"}>
+            {isFullscreen ? "⤢" : "⛶"}
           </button>
           {/* Emoji */}
           <button onClick={() => setShowEmoji(!showEmoji)}
-            className="px-2 py-1 rounded-md text-[10px] font-semibold transition-all"
-            style={{ background: "rgba(255,255,255,0.03)", color: "#4A5A70" }}>
+            className="px-1.5 sm:px-2 py-1 rounded-lg text-xs"
+            style={{ background: "rgba(255,255,255,0.04)" }}>
             😊
           </button>
-          {/* Rabbit Hunt (핸드 종료 후 남은 카드 보기) */}
-          {phase === "RESULT" && (
-            <button onClick={() => { send({ type: 'RABBIT_HUNT' }); toast.success('Revealing remaining cards...'); }}
-              className="px-2 py-1 rounded-md text-[10px] font-semibold transition-all"
-              style={{ background: "rgba(255,215,0,0.08)", color: "#FFD700" }}>
-              🐇 Rabbit
-            </button>
-          )}
-          {/* Sit Out toggle */}
+          {/* Sit Out — 모바일 간소화 */}
           {seated && (
             <button onClick={() => {
               if (isSittingOut) {
@@ -463,24 +876,15 @@ export default function GameTable() {
               } else {
                 send({ type: 'SIT_OUT' });
                 useGameStore.setState({ isSittingOut: true });
-                toast.success('Sitting out next hand');
+                toast.success('Sitting out');
               }
             }}
-              className="px-2 py-1 rounded-md text-[10px] font-semibold transition-all"
+              className="px-1.5 sm:px-2 py-1 rounded-lg text-[9px] sm:text-[10px] font-semibold"
               style={{
-                background: isSittingOut ? "rgba(239,68,68,0.08)" : "rgba(255,255,255,0.03)",
-                color: isSittingOut ? "#EF4444" : "#4A5A70",
-                border: isSittingOut ? "1px solid rgba(239,68,68,0.15)" : "none",
+                background: isSittingOut ? "rgba(239,68,68,0.1)" : "rgba(255,255,255,0.04)",
+                color: isSittingOut ? "#EF4444" : "#6B7A90",
               }}>
-              {isSittingOut ? "Sit In" : "Sit Out"}
-            </button>
-          )}
-          {/* Show Cards (after win) */}
-          {showResult && (
-            <button onClick={() => { send({ type: 'SHOW_CARDS' }); toast.success('Cards shown'); }}
-              className="px-2 py-1 rounded-md text-[10px] font-semibold transition-all"
-              style={{ background: "rgba(52,211,153,0.08)", color: "#34D399" }}>
-              Show
+              {isSittingOut ? "In" : "Out"}
             </button>
           )}
           <div className="relative">
@@ -531,31 +935,163 @@ export default function GameTable() {
         </div>
       </div>
 
+      {/* ====== Bad Beat / Cooler 드라마틱 배너 ====== */}
+      <AnimatePresence>
+        {dramaticMoment && (
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.9 }}
+            className="fixed inset-0 z-[9999] pointer-events-none flex items-center justify-center"
+            style={{
+              background: dramaticMoment.type === 'bad_beat'
+                ? "radial-gradient(ellipse at center, rgba(239,68,68,0.35) 0%, rgba(239,68,68,0.15) 40%, transparent 80%)"
+                : "radial-gradient(ellipse at center, rgba(240,185,11,0.30) 0%, rgba(240,185,11,0.12) 40%, transparent 80%)",
+            }}>
+            <motion.div
+              animate={{ opacity: [0, 0.4, 0] }}
+              transition={{ duration: 0.8, repeat: 4 }}
+              className="absolute inset-0"
+              style={{
+                background: dramaticMoment.type === 'bad_beat'
+                  ? "rgba(239,68,68,0.2)"
+                  : "rgba(240,185,11,0.15)",
+              }}
+            />
+            <div className="relative z-10 text-center max-w-lg px-4">
+              <motion.div
+                initial={{ scale: 0.4, rotate: -10 }}
+                animate={{ scale: [0.4, 1.3, 1.1], rotate: [-10, 3, 0] }}
+                transition={{ duration: 0.6 }}
+                style={{
+                  fontSize: "clamp(44px, 12vw, 130px)",
+                  fontWeight: 900,
+                  color: "#FFFFFF",
+                  textShadow: dramaticMoment.type === 'bad_beat'
+                    ? "0 0 40px rgba(239,68,68,0.9), 0 0 80px rgba(239,68,68,0.5), 0 6px 20px rgba(0,0,0,0.8)"
+                    : "0 0 40px rgba(240,185,11,0.9), 0 0 80px rgba(240,185,11,0.5), 0 6px 20px rgba(0,0,0,0.8)",
+                  letterSpacing: "-0.02em",
+                  fontFamily: "'Space Grotesk', sans-serif",
+                  WebkitTextStroke: dramaticMoment.type === 'bad_beat' ? "3px #EF4444" : "3px #F0B90B",
+                }}>
+                {dramaticMoment.type === 'bad_beat' ? '😱 BAD BEAT!' : '🧊 COOLER!'}
+              </motion.div>
+
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.4 }}
+                className="mt-6 bg-black/70 rounded-2xl p-4 border border-white/10 backdrop-blur-md">
+                <div className="flex items-center justify-around gap-4">
+                  <div className="flex-1">
+                    <div className="text-[10px] text-[#F0B90B] uppercase tracking-wider mb-1 font-bold">Winner</div>
+                    <div className="text-sm font-black text-white truncate">{dramaticMoment.winnerNickname}</div>
+                    <div className="text-[11px] text-[#34D399] mt-0.5 font-mono">{dramaticMoment.winnerHand}</div>
+                  </div>
+                  <div className="text-2xl">⚡</div>
+                  <div className="flex-1">
+                    <div className="text-[10px] text-[#6B7A90] uppercase tracking-wider mb-1 font-bold">Lost</div>
+                    <div className="text-sm font-black text-[#8899AB] truncate">{dramaticMoment.loserNickname}</div>
+                    <div className="text-[11px] text-[#EF4444] mt-0.5 font-mono">{dramaticMoment.loserHand}</div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ====== ALL-IN 풀스크린 배너 ====== */}
+      <AnimatePresence>
+        {allInBanner && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[9998] pointer-events-none flex items-center justify-center"
+            style={{
+              background: "radial-gradient(ellipse at center, rgba(239,68,68,0.25) 0%, rgba(239,68,68,0.1) 40%, transparent 80%)",
+            }}>
+            {/* Red pulse overlay */}
+            <motion.div
+              className="absolute inset-0"
+              animate={{ opacity: [0, 0.3, 0] }}
+              transition={{ duration: 0.6, repeat: 3 }}
+              style={{ background: "rgba(239,68,68,0.15)" }}
+            />
+            {/* Big ALL IN text */}
+            <motion.div
+              initial={{ scale: 0.3, rotate: -15 }}
+              animate={{ scale: [0.3, 1.3, 1.1, 1.2], rotate: [-15, 5, -2, 0] }}
+              transition={{ duration: 0.8, ease: "easeOut" }}
+              style={{
+                fontSize: "clamp(60px, 18vw, 180px)",
+                fontWeight: 900,
+                color: "#FFFFFF",
+                textShadow: "0 0 40px rgba(239,68,68,0.9), 0 0 80px rgba(239,68,68,0.5), 0 6px 20px rgba(0,0,0,0.8)",
+                letterSpacing: "-0.02em",
+                fontFamily: "'Space Grotesk', sans-serif",
+                WebkitTextStroke: "3px #EF4444",
+              }}>
+              ALL IN!
+            </motion.div>
+            {/* Nickname + amount */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
+              className="absolute bottom-1/3 flex flex-col items-center gap-2">
+              <div className="text-xl sm:text-3xl font-black text-white" style={{ textShadow: "0 2px 12px rgba(0,0,0,0.8)" }}>
+                {allInBanner.nickname}
+              </div>
+              <div className="text-base sm:text-xl font-mono font-black text-[#FFD700]"
+                style={{ textShadow: "0 0 20px rgba(255,215,0,0.6)" }}>
+                {getSymbol()}{(allInBanner.amount / 100).toLocaleString()}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ====== 나가기 예약 배너 ====== */}
+      {leaveReserved && seated && (
+        <div className="shrink-0 z-20 px-3 py-1.5 flex items-center justify-between text-[11px] font-bold"
+          style={{ background: "linear-gradient(90deg, rgba(240,185,11,0.15), rgba(240,185,11,0.05))", borderBottom: "1px solid rgba(240,185,11,0.3)", color: "#F0B90B" }}>
+          <span>⏱️ 나가기 예약됨 — 이번 핸드 종료 후 자동 퇴장</span>
+          <button onClick={() => { setLeaveReserved(false); toast.success('예약 취소됨'); }}
+            className="px-2 py-0.5 rounded text-[10px] border border-[#F0B90B]/40">
+            취소
+          </button>
+        </div>
+      )}
+
       {/* ====== TABLE AREA ====== */}
-      <div className="flex-1 relative overflow-hidden">
+      <div className="flex-1 relative overflow-visible">
         <div className="absolute inset-0 pointer-events-none">
           <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[800px]"
             style={{ background: "radial-gradient(ellipse at 50% 25%, rgba(30,80,60,0.08) 0%, transparent 60%)" }} />
         </div>
 
-        <div className="absolute inset-0 flex items-center justify-center px-2 sm:px-4"
+        <div className="absolute inset-0 flex items-center justify-center px-1 sm:px-4"
           style={{ perspective: "800px" }}>
-          {/* Mobile: portrait 9:13, Desktop: landscape 5:3 */}
+          {/* Mobile: portrait 9:14, Desktop: landscape */}
           <div className={`relative w-full h-full
-            ${typeof window !== 'undefined' && window.innerWidth >= 768
-              ? 'max-w-[800px] lg:max-w-[880px] max-h-[480px] lg:max-h-[530px]'
-              : 'max-w-[380px] sm:max-w-[420px] max-h-[520px] sm:max-h-[600px]'
+            ${isDesktop
+              ? 'max-w-[1100px] xl:max-w-[1280px] max-h-[520px] lg:max-h-[580px] xl:max-h-[620px]'
+              : 'max-h-[560px]'
             }`}
             style={{
-              aspectRatio: typeof window !== 'undefined' && window.innerWidth >= 768 ? "5/3" : "9/13",
-              transform: typeof window !== 'undefined' && window.innerWidth >= 768
-                ? "rotateX(18deg) translateY(-1%) scale(0.94)"
-                : "rotateX(12deg) translateY(-1%) scale(0.96)",
+              // 모바일: viewport 기반 동적 너비 (min 92vw, max 380px)
+              maxWidth: isDesktop ? undefined : "min(96vw, 380px)",
+              aspectRatio: isDesktop ? "16/8" : "10/14",
+              transform: isDesktop
+                ? "rotateX(16deg) translateY(-1%) scale(0.95)"
+                : "rotateX(8deg) translateY(0%) scale(0.99)",
               transformOrigin: "center 60%",
               transformStyle: "preserve-3d",
           }}>
 
-            {/* Table shadows + rim — stadium oval (50% = perfect pill shape) */}
+            {/* Table shadows + rim */}
             <div className="absolute inset-x-[8%] inset-y-[4%]" style={{ borderRadius: 160, boxShadow: "0 20px 60px rgba(0,0,0,0.8), 0 0 100px rgba(0,0,0,0.4)" }} />
 
             {/* Neon glow rim — vivid animated */}
@@ -563,11 +1099,10 @@ export default function GameTable() {
               className="absolute inset-x-[7.5%] inset-y-[3.5%]"
               animate={{
                 boxShadow: [
-                  "0 0 20px rgba(38,161,123,0.25), 0 0 40px rgba(38,161,123,0.1), 0 0 80px rgba(38,161,123,0.05), inset 0 0 20px rgba(38,161,123,0.08)",
-                  "0 0 35px rgba(38,161,123,0.35), 0 0 70px rgba(38,161,123,0.15), 0 0 100px rgba(38,161,123,0.08), inset 0 0 30px rgba(38,161,123,0.12)",
-                  "0 0 25px rgba(255,107,53,0.25), 0 0 50px rgba(255,107,53,0.1), 0 0 80px rgba(255,107,53,0.05), inset 0 0 20px rgba(255,107,53,0.08)",
-                  "0 0 35px rgba(255,215,0,0.2), 0 0 60px rgba(255,215,0,0.08), 0 0 90px rgba(255,215,0,0.04), inset 0 0 25px rgba(255,215,0,0.06)",
-                  "0 0 20px rgba(38,161,123,0.25), 0 0 40px rgba(38,161,123,0.1), 0 0 80px rgba(38,161,123,0.05), inset 0 0 20px rgba(38,161,123,0.08)",
+                  "0 0 20px rgba(38,161,123,0.25), 0 0 40px rgba(38,161,123,0.1), inset 0 0 20px rgba(38,161,123,0.08)",
+                  "0 0 35px rgba(38,161,123,0.35), 0 0 70px rgba(38,161,123,0.15), inset 0 0 30px rgba(38,161,123,0.12)",
+                  "0 0 25px rgba(255,107,53,0.25), 0 0 50px rgba(255,107,53,0.1), inset 0 0 20px rgba(255,107,53,0.08)",
+                  "0 0 20px rgba(38,161,123,0.25), 0 0 40px rgba(38,161,123,0.1), inset 0 0 20px rgba(38,161,123,0.08)",
                 ],
               }}
               transition={{ duration: 6, repeat: Infinity, ease: "easeInOut" }}
@@ -577,103 +1112,86 @@ export default function GameTable() {
               }}
             />
 
-            {/* Dark rim body — SEATS ARE CHILDREN OF THIS DIV */}
+            {/* Dark rim body */}
             <div className="absolute inset-x-[8%] inset-y-[4%]" style={{ borderRadius: 160, background: "linear-gradient(180deg, #1E2A36 0%, #151E28 40%, #0E161E 100%)", boxShadow: "inset 0 1px 0 rgba(255,255,255,0.05), inset 0 -2px 0 rgba(0,0,0,0.3)", overflow: "visible" }}>
               {/* ===== PLAYERS — positioned relative to rim ===== */}
               {players.map((player, i) => (
-                <div key={`seat-${i}`} className="z-20" style={{
+                <div key={`seat-${i}`} style={{
                   position: "absolute",
                   left: `${seatPositionsData[i]![0]}%`,
                   top: `${seatPositionsData[i]![1]}%`,
                   transform: "translate(-50%,-50%)",
+                  zIndex: i === heroSeat ? 35 : 20,
                 }}>
                   <PlayerSlot position={i} player={player} isHero={i === heroSeat}
                     isCurrentTurn={gameState?.currentTurnSeat === i}
                     timeLeft={isMyTurn && i === heroSeat ? Math.max(0, (turnInfo?.timeoutMs ?? 30000) / 300) : undefined}
-                    onSitDown={() => handleSitClick(i)} />
+                    recentAction={lastActions[i] ? { action: lastActions[i].action, amount: lastActions[i].amount } : null}
+                    onSitDown={() => handleSitClick(i)}
+                    onTopUp={() => setShowBuyInModal(true)}
+                    onEmoji={() => setShowEmoji(true)}
+                    onSitOut={() => {
+                      if (isSittingOut) { send({ type: 'SIT_IN' }); useGameStore.setState({ isSittingOut: false }); }
+                      else { send({ type: 'SIT_OUT' }); useGameStore.setState({ isSittingOut: true }); }
+                    }}
+                    />
                 </div>
               ))}
 
-              {/* ===== BET CHIPS — GGPoker style throw animation ===== */}
+              {/* ===== BET CHIPS — 플레이어 근처 미니 칩 + 금액 ===== */}
               {players.map((p, i) => {
                 if (!p || p.bet <= 0) return null;
                 const sx = seatPositionsData[i]![0];
                 const sy = seatPositionsData[i]![1];
-                const bx = 50 + (sx - 50) * 0.45;
-                const by = 50 + (sy - 50) * 0.45;
-                const chipCount = Math.min(5, Math.max(1, Math.ceil(p.bet / 30)));
-                const chipColors = ["#26A17B", "#E5B800", "#8B5CF6", "#FF6B35", "#EF4444"];
-                // Random scatter offsets (like real thrown chips)
-                const scatterSeeds = Array.from({ length: chipCount }, (_, ci) => ({
-                  dx: (Math.sin(ci * 2.4 + i) * 12),
-                  dy: (Math.cos(ci * 1.7 + i) * 8),
-                  rot: (ci * 45 + i * 30) % 360,
-                }));
+                const bx = 50 + (sx - 50) * 0.42;
+                const by = 50 + (sy - 50) * 0.42;
+                const chipCount = Math.min(5, Math.max(2, Math.ceil(p.bet / 100)));
+                const chipColor = getChipColorByValue(p.bet);
+                // ★ 작은 칩 사이즈
+                const chipSize = isDesktop ? 28 : 14;
+                const chipStackW = isDesktop ? 30 : 16;
+                const chipStackH = isDesktop ? 36 : 18;
+                const stackOffset = isDesktop ? 3 : 1.5;
                 return (
-                  <div key={`bet-${i}-${p.bet}`} className="z-10" style={{
+                  <div key={`bet-${i}-${p.bet}`} className="z-10 flex flex-col items-center" style={{
                     position: "absolute", left: `${bx}%`, top: `${by}%`, transform: "translate(-50%,-50%)",
                   }}>
-                    {/* Individual chips flying from seat */}
-                    {scatterSeeds.map((seed, ci) => (
-                      <motion.div key={ci}
-                        className="absolute"
-                        initial={{
-                          x: (sx - bx) * 3,
-                          y: (sy - by) * 3,
-                          scale: 0,
-                          opacity: 0,
-                          rotate: 0,
-                        }}
-                        animate={{
-                          x: seed.dx,
-                          y: seed.dy - ci * 3,
-                          scale: 1,
-                          opacity: 1,
-                          rotate: seed.rot,
-                        }}
-                        transition={{
-                          type: "spring",
-                          stiffness: 180 + ci * 20,
-                          damping: 14,
-                          delay: ci * 0.06,
-                        }}
-                        style={{
-                          width: 18, height: 18, borderRadius: "50%",
-                          background: `radial-gradient(circle at 30% 30%, ${chipColors[ci % chipColors.length]}EE, ${chipColors[ci % chipColors.length]}77)`,
-                          boxShadow: `0 2px 5px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.3), 0 0 8px ${chipColors[ci % chipColors.length]}25`,
-                          border: "2px solid rgba(255,255,255,0.3)",
-                        }}
-                      >
-                        {/* Chip stripe pattern */}
-                        <div style={{
-                          position: "absolute", inset: 3, borderRadius: "50%",
-                          border: "1.5px dashed rgba(255,255,255,0.15)",
-                        }} />
-                      </motion.div>
-                    ))}
-                    {/* Bet amount label */}
+                    {/* 칩 스택 (작게) */}
+                    <div className="relative" style={{ width: chipStackW, height: chipStackH }}>
+                      {Array.from({ length: chipCount }).map((_, ci) => (
+                        <motion.div key={ci}
+                          initial={{ scale: 0, y: 15 }}
+                          animate={{ scale: 1, y: -ci * stackOffset }}
+                          transition={{ delay: ci * 0.05, type: "spring", stiffness: 300, damping: 20 }}
+                          style={{ position: "absolute", left: 0, top: isDesktop ? 6 : 3 }}
+                        >
+                          <PokerChip size={chipSize} color={chipColor} />
+                        </motion.div>
+                      ))}
+                    </div>
+                    {/* ★ 금액 라벨 — 칩 바로 아래 중앙 (사용자 요청) */}
                     <motion.div
-                      initial={{ opacity: 0, scale: 0.5 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ delay: chipCount * 0.06 + 0.1 }}
-                      className="absolute whitespace-nowrap"
-                      style={{ left: chipCount * 6 + 4, top: -2 }}
-                    >
-                      <span className="text-[11px] font-mono font-bold px-1.5 py-0.5 rounded"
+                      initial={{ opacity: 0, y: -4 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.2 }}
+                      className="whitespace-nowrap"
+                      style={{ marginTop: isDesktop ? 4 : 2 }}>
+                      <span className={`${isDesktop ? 'text-[10px]' : 'text-[8px]'} font-mono font-black px-1.5 py-0.5 rounded`}
                         style={{
-                          color: "#7EDBB8",
-                          textShadow: "0 1px 3px rgba(0,0,0,0.8)",
-                          background: "rgba(0,0,0,0.4)",
-                          backdropFilter: "blur(4px)",
+                          color: "#FFD700",
+                          textShadow: "0 1px 3px rgba(0,0,0,0.9)",
+                          background: "rgba(0,0,0,0.85)",
+                          border: "1px solid rgba(255,215,0,0.3)",
+                          boxShadow: "0 2px 6px rgba(0,0,0,0.5)",
                         }}>
-                        {p.bet}
+                        ₩{Math.round(p.bet / 100).toLocaleString()}
                       </span>
                     </motion.div>
                   </div>
                 );
               })}
             </div>
-            <div className="absolute inset-x-[9.5%] inset-y-[5%]" style={{ borderRadius: 150, background: "linear-gradient(180deg, #19232E 0%, #121A22 100%)", boxShadow: "inset 0 2px 6px rgba(0,0,0,0.5)" }} />
+            <div className="absolute inset-x-[9.5%] inset-y-[5%]" style={{ borderRadius: 160, background: "linear-gradient(180deg, #19232E 0%, #121A22 100%)", boxShadow: "inset 0 2px 6px rgba(0,0,0,0.5)" }} />
 
             {/* Neon pinstripe — vivid color shift */}
             <motion.div
@@ -697,16 +1215,16 @@ export default function GameTable() {
                 ],
               }}
               transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-              style={{ borderRadius: 145, border: "1.5px solid rgba(38,161,123,0.2)" }}
+              style={{ borderRadius: 160, border: "1.5px solid rgba(38,161,123,0.2)" }}
             />
 
             {/* Felt — dynamic color from settings */}
             <div className="absolute inset-x-[11%] inset-y-[6.2%] overflow-hidden" style={{
-              borderRadius: 140,
+              borderRadius: 160,
               background: TABLE_FELTS[useSettingsStore.getState().tableFelt as keyof typeof TABLE_FELTS]?.gradient ?? TABLE_FELTS[1].gradient,
               boxShadow: "inset 0 0 60px rgba(0,0,0,0.3), inset 0 -20px 40px rgba(0,0,0,0.12)",
             }}>
-              <div className="absolute inset-x-[12%] inset-y-[10%]" style={{ borderRadius: 100, border: "1px solid rgba(255,255,255,0.03)" }} />
+              <div className="absolute inset-x-[12%] inset-y-[10%]" style={{ borderRadius: 160, border: "1px solid rgba(255,255,255,0.03)" }} />
               <motion.div
                 className="absolute top-[42%] left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none select-none"
                 animate={{ opacity: [0.18, 0.35, 0.18] }}
@@ -735,9 +1253,12 @@ export default function GameTable() {
               </motion.div>
             </div>
 
-            {/* ===== COMMUNITY CARDS — deal from deck animation ===== */}
-            <div className="absolute top-[37%] left-1/2 -translate-x-1/2 z-10">
-              <div className="flex gap-1.5">
+            {/* 딜링 애니메이션은 하단 forceDealAnim 한 벌만 사용 — 중복 제거 */}
+
+            {/* ===== COMMUNITY CARDS ===== */}
+            <div className="absolute left-1/2 -translate-x-1/2 z-10"
+              style={{ top: isDesktop ? "30%" : "29%" }}>
+              <div className="flex items-center justify-center" style={{ gap: isDesktop ? 6 : 3 }}>
                 <AnimatePresence>
                   {communityCards.map((card, i) => (
                     <motion.div key={`comm-${card.suit}-${card.rank}-${i}`}
@@ -750,10 +1271,10 @@ export default function GameTable() {
                         type: "spring",
                         stiffness: 150,
                         damping: 15,
-                      }}>
+                      }}
+                      className="shrink-0">
                       <div className="relative">
-                        <PokerCard suit={card.suit} rank={card.rank} size="md" />
-                        {/* Card shadow on table */}
+                        <PokerCard suit={card.suit} rank={card.rank} size={isDesktop ? "lg" : "sm"} />
                         <div className="absolute -bottom-1 left-1 right-1 h-2 rounded-full"
                           style={{ background: "rgba(0,0,0,0.3)", filter: "blur(3px)" }} />
                       </div>
@@ -762,8 +1283,8 @@ export default function GameTable() {
                 </AnimatePresence>
                 {/* Empty card slots */}
                 {Array.from({ length: Math.max(0, 5 - communityCards.length) }).map((_, i) => (
-                  <div key={`empty-${i}`} style={{
-                    width: 54, height: 76, borderRadius: 6,
+                  <div key={`empty-${i}`} className="shrink-0" style={{
+                    width: isDesktop ? 72 : 40, height: isDesktop ? 101 : 56, borderRadius: 6,
                     border: "1px dashed rgba(255,255,255,0.04)",
                     background: "rgba(255,255,255,0.01)",
                   }} />
@@ -771,10 +1292,11 @@ export default function GameTable() {
               </div>
             </div>
 
-            {/* ===== POT — animated ===== */}
+            {/* ===== POT — 카드 아래에 표시 (모바일에서 더 아래로) ===== */}
             {pot > 0 && (
               <motion.div
-                className="absolute top-[49%] left-1/2 -translate-x-1/2 z-10"
+                className="absolute left-1/2 -translate-x-1/2 z-10"
+                style={{ top: isDesktop ? "52%" : "56%" }}
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 key={pot}
@@ -820,51 +1342,105 @@ export default function GameTable() {
               </motion.div>
             )}
 
-            {/* ===== MY CHIP FLY ANIMATION (베팅 시 내 좌석→팟) ===== */}
+            {/* ===== CHIP FLY ANIMATION (베팅 시 좌석→중앙) — PokerChip 사용 ===== */}
             <AnimatePresence>
-              {flyingChip && (
-                <>
-                  {Array.from({ length: flyingChip.action === 'allin' ? 8 : flyingChip.action === 'raise' ? 5 : 3 }).map((_, ci) => {
-                    const heroPos = seatPositionsData[heroSeat] ?? [50, 100];
-                    const colors = ['#26A17B', '#E5B800', '#8B5CF6', '#FF6B35', '#EF4444', '#34D399', '#FFD700', '#60A5FA'];
-                    return (
-                      <motion.div key={`fly-${flyingChip.key}-${ci}`}
-                        className="z-30 pointer-events-none"
-                        style={{ position: 'absolute' }}
-                        initial={{
-                          left: `${heroPos[0]}%`,
-                          top: `${heroPos[1]}%`,
-                          scale: 0.5,
-                          opacity: 1,
-                        }}
-                        animate={{
-                          left: '50%',
-                          top: '48%',
-                          scale: 0.8,
-                          opacity: 0,
-                          rotate: 360 + ci * 45,
-                        }}
-                        exit={{ opacity: 0 }}
-                        transition={{
-                          duration: 0.6 + ci * 0.05,
-                          delay: ci * 0.04,
-                          ease: [0.25, 0.8, 0.25, 1],
-                        }}
-                      >
-                        <div style={{
-                          width: 20, height: 20, borderRadius: '50%',
-                          background: `radial-gradient(circle at 30% 30%, ${colors[ci % colors.length]}EE, ${colors[ci % colors.length]}66)`,
-                          boxShadow: `0 2px 8px rgba(0,0,0,0.5), 0 0 12px ${colors[ci % colors.length]}40`,
-                          border: '2px solid rgba(255,255,255,0.35)',
-                          transform: 'translate(-50%, -50%)',
-                        }}>
-                          <div style={{ position: 'absolute', inset: 4, borderRadius: '50%', border: '1px dashed rgba(255,255,255,0.2)' }} />
-                        </div>
-                      </motion.div>
-                    );
-                  })}
-                </>
-              )}
+              {flyingChips.map(chip => {
+                const seatPos = seatPositionsData[chip.fromSeat] ?? [50, 100];
+                const chipCount = chip.action === 'allin' ? 8 : chip.action === 'raise' ? 5 : 3;
+                const chipColor = getChipColorByValue(chip.amount);
+                return Array.from({ length: chipCount }).map((_, ci) => (
+                  <motion.div key={`fly-${chip.key}-${ci}`}
+                    className="z-30 pointer-events-none"
+                    style={{ position: 'absolute', transform: 'translate(-50%, -50%)' }}
+                    initial={{
+                      left: `${seatPos[0]}%`,
+                      top: `${seatPos[1]}%`,
+                      scale: 0.3,
+                      opacity: 1,
+                    }}
+                    animate={{
+                      left: `${50 + (Math.random() - 0.5) * 10}%`,
+                      top: `${48 + (Math.random() - 0.5) * 8}%`,
+                      scale: 1,
+                      opacity: [1, 1, 0.85],
+                      rotate: ci * 60,
+                    }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                    transition={{
+                      duration: 0.8 + ci * 0.06,
+                      delay: ci * 0.06,
+                      ease: [0.22, 0.68, 0.36, 1],
+                    }}
+                  >
+                    <PokerChip size={48} color={chipColor} />
+                  </motion.div>
+                ));
+              })}
+            </AnimatePresence>
+
+            {/* ===== 중앙 팟 칩 스택 (칩이 쌓이는 비주얼) — PokerChip 사용 ===== */}
+            {potChipStacks.length > 0 && (
+              <div className="absolute z-15 pointer-events-none"
+                style={{ left: '50%', top: isDesktop ? '52%' : '56%', transform: 'translate(-50%, -50%)' }}>
+                {potChipStacks.map((chip, i) => {
+                  // 색상명을 hex에서 PokerChip 색상명으로 매핑
+                  const colorMap: Record<string, string> = {
+                    '#26A17B': 'green', '#E5B800': 'gold', '#8B5CF6': 'purple',
+                    '#FF6B35': 'orange', '#EF4444': 'red', '#34D399': 'green',
+                  };
+                  const chipColorName = colorMap[chip.color] || 'green';
+                  return (
+                    <motion.div key={`potchip-${i}`}
+                      initial={{ scale: 0, opacity: 0, y: -20 }}
+                      animate={{ scale: 1, opacity: 1, y: 0 }}
+                      transition={{ type: "spring", stiffness: 250, damping: 18 }}
+                      style={{
+                        position: 'absolute',
+                        left: chip.x, top: chip.y,
+                        transform: 'translate(-50%, -50%)',
+                      }}
+                    >
+                      <PokerChip size={42} color={chipColorName} />
+                    </motion.div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* ===== WIN CHIPS — 팟 → 승자 좌석으로 비행 — PokerChip 사용 ===== */}
+            <AnimatePresence>
+              {winChips.map(wc => {
+                const toPos = seatPositionsData[wc.toSeat] ?? [50, 100];
+                const chipCount = Math.min(12, Math.max(5, Math.ceil(wc.amount / 1000)));
+                const chipColor = getChipColorByValue(wc.amount);
+                return Array.from({ length: chipCount }).map((_, ci) => (
+                  <motion.div key={`win-${wc.key}-${ci}`}
+                    className="z-40 pointer-events-none"
+                    style={{ position: 'absolute', transform: 'translate(-50%, -50%)' }}
+                    initial={{
+                      left: `${50 + (Math.random() - 0.5) * 12}%`,
+                      top: `${50 + (Math.random() - 0.5) * 8}%`,
+                      scale: 1,
+                      opacity: 1,
+                    }}
+                    animate={{
+                      left: `${toPos[0]}%`,
+                      top: `${toPos[1]}%`,
+                      scale: [1, 1.2, 0.7],
+                      opacity: [1, 1, 0],
+                      rotate: 360 + ci * 30,
+                    }}
+                    exit={{ opacity: 0 }}
+                    transition={{
+                      duration: 1.0,
+                      delay: ci * 0.07,
+                      ease: [0.25, 0.46, 0.45, 0.94],
+                    }}
+                  >
+                    <PokerChip size={50} color={chipColor === 'white' ? 'gold' : chipColor} />
+                  </motion.div>
+                ));
+              })}
             </AnimatePresence>
 
             {/* ===== ALL-IN EQUITY DISPLAY ===== */}
@@ -1001,110 +1577,395 @@ export default function GameTable() {
           </div>
         </div>
 
-        {/* 착석 안 했으면 안내 */}
-        {!seated && serverPlayers.length === 0 && (
-          <div className="absolute inset-0 z-20 flex justify-center" style={{ paddingTop: "62%" }}>
-            <motion.button initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}
-              onClick={() => setShowBuyInModal(true)}
-              className="px-5 py-2 rounded-lg text-xs font-bold text-white h-fit"
+        {/* 착석 안 했으면 큰 Take a Seat 버튼 표시 (자동으로 빈 자리 찾아서 앉기) */}
+        {!seated && (
+          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none">
+            <motion.button
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              onClick={() => {
+                // 빈 자리 찾아서 자동 착석
+                const occupied = new Set(serverPlayers.map(p => p.seat));
+                let emptySeat = -1;
+                for (let i = 0; i < maxSeats; i++) {
+                  if (!occupied.has(i)) { emptySeat = i; break; }
+                }
+                if (emptySeat === -1) {
+                  toast.error('테이블이 꽉 찼습니다');
+                  return;
+                }
+                handleSitClick(emptySeat);
+              }}
+              className="pointer-events-auto px-8 py-4 rounded-2xl font-black text-white shadow-2xl"
               style={{
-                background: "linear-gradient(135deg, rgba(255,107,53,0.15), rgba(255,107,53,0.08))",
-                border: "1px solid rgba(255,107,53,0.2)",
-                boxShadow: "0 0 15px rgba(255,107,53,0.1)",
-                backdropFilter: "blur(4px)",
-              }}>
-              Take a Seat
+                background: "linear-gradient(135deg, #FF6B35, #E85D2C)",
+                boxShadow: "0 8px 30px rgba(255,107,53,0.5), 0 0 60px rgba(255,107,53,0.2)",
+                border: "2px solid rgba(255,255,255,0.15)",
+                fontSize: 18,
+                letterSpacing: "0.05em",
+              }}
+              animate={{
+                scale: [1, 1.03, 1],
+                boxShadow: [
+                  "0 8px 30px rgba(255,107,53,0.5), 0 0 60px rgba(255,107,53,0.2)",
+                  "0 8px 40px rgba(255,107,53,0.7), 0 0 80px rgba(255,107,53,0.35)",
+                  "0 8px 30px rgba(255,107,53,0.5), 0 0 60px rgba(255,107,53,0.2)",
+                ],
+              }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}>
+              🎴 Take a Seat
             </motion.button>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="mt-3 text-[11px] text-[#8899AB] font-semibold text-center"
+              style={{ textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>
+              클릭해서 게임에 참여하세요
+            </motion.div>
           </div>
         )}
       </div>
 
+      {/* ═══════ DEALING ANIMATION — GG 포커 스타일 2바퀴 ═══════
+          원칙:
+          - 자리당 카드 2장 (1바퀴 → 2바퀴, 진짜 포커처럼)
+          - 1바퀴 모두 도착 후 2바퀴 시작 (delay 분리)
+          - 1장 0.04초 간격 + 1바퀴/2바퀴 사이 0.15초 짧은 휴지
+          - 직선 이동, 회전 최소
+          - 총 시간 ~1.4초 (9-max 기준) */}
+      <AnimatePresence>
+        {forceDealAnim > 0 && (
+          <div key={forceDealAnim} style={{ position: "fixed", inset: 0, zIndex: 80, pointerEvents: "none", overflow: "visible" }}>
+            {(() => {
+              const activeSeats = serverPlayers
+                .filter(p => p.status === "ACTIVE" || p.status === "ALL_IN")
+                .map(p => p.seat);
+              const dealerSeat = serverPlayers.find(p => p.isDealer)?.seat ?? 0;
+              const N = activeSeats.length;
+
+              // 2바퀴 = N×2 카드, 라운드 사이 휴지 0.15s 추가
+              const cards: Array<{ seat: number; round: 0 | 1; idx: number }> = [];
+              activeSeats.forEach((seat, i) => cards.push({ seat, round: 0, idx: i }));
+              activeSeats.forEach((seat, i) => cards.push({ seat, round: 1, idx: i }));
+
+              return cards.map((card, ci) => {
+                const pos = seatPositionsData[card.seat] ?? [50, 50];
+                const tableLeft = 50, tableTop = 35, tableW = isDesktop ? 60 : 80, tableH = isDesktop ? 40 : 50;
+                // 두 카드 살짝 옆으로 (좌우 분리)
+                const offsetX = card.round === 0 ? -2 : 2;
+                const targetX = tableLeft + (pos[0] - 50) * tableW / 200 + offsetX;
+                const targetY = tableTop + pos[1] * tableH / 100;
+                const dealerPos = seatPositionsData[dealerSeat] ?? [50, 50];
+                const startX = tableLeft + (dealerPos[0] - 50) * tableW / 200;
+                const startY = tableTop;
+
+                // 1바퀴: 0~Nx0.04, 2바퀴: (Nx0.04 + 0.15)~ + Nx0.04
+                const baseDelay = card.round === 0
+                  ? card.idx * 0.04
+                  : N * 0.04 + 0.15 + card.idx * 0.04;
+
+                return (
+                  <motion.div key={`fdeal-${card.seat}-${card.round}-${forceDealAnim}`}
+                    style={{ position: "absolute" }}
+                    initial={{
+                      left: `${startX}%`, top: `${startY}%`,
+                      scale: 0.5, opacity: 0,
+                    }}
+                    animate={{
+                      left: `${targetX}%`, top: `${targetY}%`,
+                      scale: 0.7, opacity: 1,
+                    }}
+                    exit={{ opacity: 0, scale: 0.5 }}
+                    transition={{
+                      duration: 0.35,
+                      delay: baseDelay,
+                      ease: "easeOut",
+                    }}
+                  >
+                    <div style={{
+                      width: 28, height: 40, borderRadius: 4,
+                      background: "linear-gradient(150deg, #0E3D26, #1A5E3F, #082418)",
+                      border: "1px solid rgba(255,215,0,0.25)",
+                      boxShadow: "0 3px 8px rgba(0,0,0,0.5)",
+                      transform: "translate(-50%, -50%)",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                    }}>
+                      <span style={{ fontSize: 11, color: "rgba(255,215,0,0.5)", fontWeight: 900 }}>₮</span>
+                    </div>
+                  </motion.div>
+                );
+              });
+            })()}
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* ====== STUCK BANNER — 60초 활동 없음 시 강제 나가기 옵션 ====== */}
+      <AnimatePresence>
+        {showStuckBanner && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-16 left-1/2 -translate-x-1/2 z-[100] px-4 py-3 rounded-xl flex items-center gap-3"
+            style={{
+              background: "linear-gradient(135deg, rgba(239,68,68,0.95), rgba(220,38,38,0.95))",
+              border: "1.5px solid rgba(255,255,255,0.3)",
+              boxShadow: "0 8px 30px rgba(239,68,68,0.4)",
+              maxWidth: "calc(100vw - 32px)",
+            }}>
+            <span className="text-lg">⚠️</span>
+            <div className="flex-1 min-w-0">
+              <div className="text-[11px] font-black text-white whitespace-nowrap">게임이 멈춘 것 같습니다</div>
+              <div className="text-[9px] text-white/80">60초 동안 변화 없음</div>
+            </div>
+            <button
+              onClick={forceLeave}
+              className="px-3 py-1.5 rounded-lg text-[10px] font-black text-red-700 bg-white whitespace-nowrap"
+              style={{ boxShadow: "0 2px 8px rgba(0,0,0,0.2)" }}>
+              강제 나가기
+            </button>
+            <button
+              onClick={() => { lastActivityRef.current = Date.now(); setShowStuckBanner(false); }}
+              className="text-white/70 text-base px-1">✕</button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ====== HERO CARDS — 고정 위치 스퀴즈 ====== */}
+      {myHoleCards.length >= 2 && (
+        <div style={{
+          position: "fixed",
+          bottom: isMyTurn ? 220 : 180,
+          left: "50%",
+          transform: "translateX(-50%)",
+          zIndex: 90,
+          pointerEvents: "auto",
+        }}>
+          <CardSqueeze
+            key={`hero-${myHoleCards[0]?.suit}-${myHoleCards[0]?.rank}-${myHoleCards[1]?.suit}-${myHoleCards[1]?.rank}`}
+            card1={{ suit: myHoleCards[0]!.suit as any, rank: myHoleCards[0]!.rank as any }}
+            card2={{ suit: myHoleCards[1]!.suit as any, rank: myHoleCards[1]!.rank as any }}
+          />
+        </div>
+      )}
+
       {/* ====== ACTION PANEL — mobile-optimized ====== */}
       <div className="shrink-0 z-30 action-panel safe-bottom"
         style={{ background: "rgba(5,8,12,0.95)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-        <div className="px-3 sm:px-4 pt-2 pb-2 max-w-lg mx-auto">
+        <div className="px-2 sm:px-3 md:px-4 pt-1.5 pb-1.5 sm:pt-2 sm:pb-2 max-w-lg mx-auto">
 
           {isMyTurn ? (
             <>
-              {/* Timer bar */}
-              <motion.div className="h-1 rounded-full mb-2 overflow-hidden" style={{ background: "rgba(255,255,255,0.04)" }}>
+              {/* Timer bar — 두껍고 눈에 띄게 */}
+              <motion.div className="rounded-full mb-1.5 overflow-hidden relative" style={{ height: 6, background: "rgba(255,255,255,0.06)" }}>
                 <motion.div initial={{ width: "100%" }} animate={{ width: "0%" }}
                   transition={{ duration: (turnInfo?.timeoutMs ?? 30000) / 1000, ease: "linear" }}
-                  className="h-full" style={{ background: "linear-gradient(90deg, #34D399, #E5B800, #EF4444)" }} />
+                  className="h-full rounded-full"
+                  style={{ background: "linear-gradient(90deg, #34D399, #FBBF24, #EF4444)", boxShadow: "0 0 10px rgba(52,211,153,0.4)" }} />
               </motion.div>
 
-              {/* Raise slider — larger touch target */}
-              <div className="flex items-center gap-3 mb-2">
+              {/* ===== Hand Strength Meter — 승률 실시간 표시 ===== */}
+              {typeof turnInfo?.equity === 'number' && turnInfo.equity > 0 && (
+                <div className="mb-2 flex items-center gap-2">
+                  <div className="flex-1 h-3 rounded-full overflow-hidden relative"
+                    style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                    <motion.div
+                      initial={{ width: 0 }}
+                      animate={{ width: `${turnInfo.equity}%` }}
+                      transition={{ duration: 0.6, ease: "easeOut" }}
+                      className="h-full rounded-full"
+                      style={{
+                        background: turnInfo.equity >= 65
+                          ? "linear-gradient(90deg, #10B981, #34D399)"
+                          : turnInfo.equity >= 45
+                            ? "linear-gradient(90deg, #FBBF24, #FCD34D)"
+                            : turnInfo.equity >= 30
+                              ? "linear-gradient(90deg, #F97316, #FB923C)"
+                              : "linear-gradient(90deg, #DC2626, #EF4444)",
+                        boxShadow: turnInfo.equity >= 65
+                          ? "0 0 10px rgba(16,185,129,0.4)"
+                          : "0 0 8px rgba(251,191,36,0.3)",
+                      }}
+                    />
+                    {/* 50% 기준선 */}
+                    <div style={{
+                      position: "absolute", left: "50%", top: 0, bottom: 0, width: 1,
+                      background: "rgba(255,255,255,0.25)",
+                    }} />
+                  </div>
+                  <div className="shrink-0 font-mono font-black text-[11px]"
+                    style={{
+                      color: turnInfo.equity >= 65 ? "#34D399"
+                        : turnInfo.equity >= 45 ? "#FBBF24"
+                        : turnInfo.equity >= 30 ? "#FB923C" : "#EF4444",
+                      minWidth: 36, textAlign: "right",
+                    }}>
+                    {turnInfo.equity}%
+                  </div>
+                  <div className="shrink-0 text-[8px] text-[#4A5A70] font-bold uppercase tracking-wider">WIN</div>
+                </div>
+              )}
+
+              {/* ===== GGPoker-style Raise Amount + Slider ===== */}
+              <div className="flex items-center gap-2 mb-2">
+                {/* 금액 직접 입력 */}
+                <div className="shrink-0 px-2 py-1.5 rounded-lg min-w-[90px] text-center"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  <input type="number" value={Math.round(raiseAmount / 100)}
+                    onChange={e => {
+                      const v = Math.max(minRaise, Math.min(maxRaise, Number(e.target.value) * 100));
+                      setRaiseAmount(v);
+                    }}
+                    className="w-full bg-transparent text-center text-sm font-mono font-black text-white outline-none
+                      [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                    style={{ caretColor: "#26A17B" }}
+                  />
+                  <div className="text-[8px] text-[#4A5A70] mt-0.5">{getSymbol()} amount</div>
+                </div>
+                {/* 슬라이더 */}
                 <div className="flex-1 py-1">
                   <Slider value={[raiseAmount]} onValueChange={(v) => setRaiseAmount(v[0]!)}
                     min={minRaise} max={maxRaise} step={Math.max(1, Math.floor((maxRaise - minRaise) / 100))}
                     className="[&_[data-slot=slider-thumb]]:w-6 [&_[data-slot=slider-thumb]]:h-6" />
                 </div>
-                <div className="shrink-0 px-3 py-1.5 rounded-lg min-w-[70px] text-center"
-                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                  <span className="text-xs font-mono font-black text-white">{getSymbol()}{(raiseAmount/100).toLocaleString()}</span>
-                </div>
               </div>
 
-              {/* Presets — larger touch targets */}
-              <div className="flex gap-1.5 mb-3">
+              {/* ===== Preset Buttons — 표준 포커 팟베팅 공식 ===== */}
+              {/* raiseTo = callAmount + fraction × (pot + 2 × callAmount)
+                   → 내가 콜한 후 새 팟의 fraction 만큼 레이즈 */}
+              <div className="flex gap-1 mb-1.5">
                 {[
-                  { l: "MIN", v: minRaise },
-                  { l: "⅓", v: Math.floor(pot / 3) + callAmount },
-                  { l: "½", v: Math.floor(pot / 2) + callAmount },
-                  { l: "POT", v: pot + callAmount },
-                  { l: "ALL IN", v: maxRaise },
+                  { l: "MIN", v: minRaise, tier: 'normal' as const },
+                  { l: "1/3", v: callAmount + Math.floor((pot + callAmount * 2) / 3), tier: 'normal' as const },
+                  { l: "1/2", v: callAmount + Math.floor((pot + callAmount * 2) / 2), tier: 'normal' as const },
+                  { l: "2/3", v: callAmount + Math.floor((pot + callAmount * 2) * 2 / 3), tier: 'normal' as const },
+                  { l: "POT", v: callAmount + (pot + callAmount * 2), tier: 'normal' as const },
                 ].map((p) => {
                   const clamped = Math.max(minRaise, Math.min(maxRaise, p.v));
-                  const isAllIn = p.l === "ALL IN";
                   const isSelected = raiseAmount === clamped;
                   return (
-                    <button key={p.l} onClick={() => { setRaiseAmount(clamped); playSound('click'); }}
-                      className="flex-1 py-2 text-[10px] sm:text-[11px] font-bold tracking-wider rounded-lg transition-all touch-target"
+                    <motion.button key={p.l}
+                      whileTap={{ scale: 0.92 }}
+                      onClick={() => { setRaiseAmount(clamped); playSound('click'); }}
+                      className="flex-1 py-2 text-[10px] sm:text-[11px] font-black tracking-wider rounded-md transition-all"
                       style={{
-                        background: isSelected ? (isAllIn ? "rgba(229,184,0,0.15)" : "rgba(52,211,153,0.1)")
-                          : (isAllIn ? "rgba(229,184,0,0.05)" : "rgba(255,255,255,0.02)"),
-                        color: isSelected ? (isAllIn ? "#FFD700" : "#34D399") : (isAllIn ? "#E5B800" : "#3D4F65"),
-                        border: isSelected ? `1px solid ${isAllIn ? "rgba(229,184,0,0.3)" : "rgba(52,211,153,0.2)"}` : "1px solid rgba(255,255,255,0.04)",
-                      }}>{p.l}</button>
+                        background: isSelected
+                          ? "linear-gradient(180deg, rgba(38,161,123,0.35), rgba(38,161,123,0.2))"
+                          : "rgba(255,255,255,0.06)",
+                        color: isSelected ? "#26A17B" : "#8899AB",
+                        border: isSelected
+                          ? "1px solid rgba(38,161,123,0.5)"
+                          : "1px solid rgba(255,255,255,0.1)",
+                        boxShadow: isSelected ? "0 0 12px rgba(38,161,123,0.25)" : "none",
+                      }}>{p.l}</motion.button>
+                  );
+                })}
+              </div>
+              {/* ===== Row 2: Overbet (1.5x / 2x / 3x) + MAX ===== */}
+              <div className="flex gap-1 mb-2.5">
+                {[
+                  { l: "1.5x", v: callAmount + Math.floor((pot + callAmount * 2) * 1.5), tier: 'overbet' as const },
+                  { l: "2x",   v: callAmount + (pot + callAmount * 2) * 2, tier: 'overbet' as const },
+                  { l: "3x",   v: callAmount + (pot + callAmount * 2) * 3, tier: 'overbet' as const },
+                  { l: "MAX", v: maxRaise, tier: 'max' as const },
+                ].map((p) => {
+                  const clamped = Math.max(minRaise, Math.min(maxRaise, p.v));
+                  const isSelected = raiseAmount === clamped;
+                  const isMax = p.tier === 'max';
+                  // 오버벳이 MAX보다 크면 비활성화
+                  const disabled = !isMax && p.v > maxRaise;
+                  return (
+                    <motion.button key={p.l}
+                      whileTap={disabled ? undefined : { scale: 0.92 }}
+                      disabled={disabled}
+                      onClick={() => { if (disabled) return; setRaiseAmount(clamped); playSound('click'); }}
+                      className="flex-1 py-2 text-[10px] sm:text-[11px] font-black tracking-wider rounded-md transition-all"
+                      style={{
+                        background: disabled
+                          ? "rgba(255,255,255,0.02)"
+                          : isSelected
+                            ? (isMax
+                                ? "linear-gradient(180deg, rgba(229,184,0,0.35), rgba(229,184,0,0.2))"
+                                : "linear-gradient(180deg, rgba(255,107,53,0.35), rgba(255,107,53,0.2))")
+                            : "rgba(255,255,255,0.06)",
+                        color: disabled
+                          ? "rgba(255,255,255,0.2)"
+                          : isSelected
+                            ? (isMax ? "#FFD700" : "#FF8F5C")
+                            : (isMax ? "#D4A437" : "#FF6B35"),
+                        border: disabled
+                          ? "1px solid rgba(255,255,255,0.04)"
+                          : isSelected
+                            ? `1px solid ${isMax ? "rgba(229,184,0,0.5)" : "rgba(255,107,53,0.5)"}`
+                            : `1px solid ${isMax ? "rgba(229,184,0,0.3)" : "rgba(255,107,53,0.3)"}`,
+                        boxShadow: isSelected && !disabled
+                          ? `0 0 12px ${isMax ? "rgba(229,184,0,0.25)" : "rgba(255,107,53,0.25)"}`
+                          : "none",
+                        opacity: disabled ? 0.4 : 1,
+                      }}>{p.l}</motion.button>
                   );
                 })}
               </div>
 
-              {/* Action buttons — large, touch-friendly */}
+              {/* ===== Action Buttons — GGPoker 3-button (FOLD / CHECK·CALL / RAISE·ALLIN) ===== */}
               <div className="flex gap-2">
                 <motion.button whileTap={{ scale: 0.93 }} onClick={handleFold}
-                  className="flex-1 py-3.5 sm:py-4 rounded-xl action-btn active:brightness-110"
-                  style={{ background: "linear-gradient(180deg, #C62828 0%, #B71C1C 100%)", boxShadow: "0 4px 12px rgba(198,40,40,0.25)" }}>
-                  <span className="text-white text-[13px] sm:text-[14px] font-bold uppercase tracking-wider">Fold</span>
+                  className="flex-1 py-3.5 sm:py-4 rounded-xl active:brightness-110 relative overflow-hidden"
+                  style={{
+                    background: "linear-gradient(180deg, #D32F2F 0%, #B71C1C 100%)",
+                    boxShadow: "0 4px 14px rgba(211,47,47,0.3), inset 0 1px 0 rgba(255,255,255,0.1)",
+                  }}>
+                  <span className="text-white text-[13px] sm:text-[14px] font-black uppercase tracking-widest">Fold</span>
                 </motion.button>
 
                 <motion.button whileTap={{ scale: 0.93 }} onClick={canCheck ? handleCheck : handleCall}
-                  className="flex-[1.4] py-3.5 sm:py-4 rounded-xl action-btn active:brightness-110"
-                  style={{ background: "linear-gradient(180deg, #2E7D32 0%, #1B5E20 100%)", boxShadow: "0 4px 12px rgba(46,125,50,0.25)" }}>
+                  className="flex-[1.5] py-3.5 sm:py-4 rounded-xl active:brightness-110 relative overflow-hidden"
+                  style={{
+                    background: "linear-gradient(180deg, #388E3C 0%, #1B5E20 100%)",
+                    boxShadow: "0 4px 14px rgba(56,142,60,0.3), inset 0 1px 0 rgba(255,255,255,0.1)",
+                  }}>
                   <div className="flex flex-col items-center">
-                    <span className="text-white text-[13px] sm:text-[14px] font-bold uppercase tracking-wider">{canCheck ? "Check" : "Call"}</span>
-                    {!canCheck && <span className="text-white/60 text-[10px] font-mono">{getSymbol()}{(callAmount/100).toLocaleString()}</span>}
+                    <span className="text-white text-[13px] sm:text-[14px] font-black uppercase tracking-widest">
+                      {canCheck ? "Check" : "Call"}
+                    </span>
+                    {!canCheck && (
+                      <span className="text-white/70 text-[10px] font-mono font-bold">
+                        {getSymbol()}{(callAmount/100).toLocaleString()}
+                      </span>
+                    )}
                   </div>
                 </motion.button>
 
                 <motion.button whileTap={{ scale: 0.93 }}
                   onClick={raiseAmount >= maxRaise ? handleAllIn : handleRaise}
-                  className="flex-1 py-3.5 sm:py-4 rounded-xl action-btn active:brightness-110"
+                  className="flex-[1.3] py-3.5 sm:py-4 rounded-xl active:brightness-110 relative overflow-hidden"
                   style={{
                     background: raiseAmount >= maxRaise
-                      ? "linear-gradient(180deg, #B8860B 0%, #8B6914 100%)"
-                      : "linear-gradient(180deg, #1565C0 0%, #0D47A1 100%)",
+                      ? "linear-gradient(180deg, #E5A100 0%, #B8860B 100%)"
+                      : "linear-gradient(180deg, #1976D2 0%, #0D47A1 100%)",
                     boxShadow: raiseAmount >= maxRaise
-                      ? "0 4px 12px rgba(184,134,11,0.25)"
-                      : "0 4px 12px rgba(21,101,192,0.25)",
+                      ? "0 4px 14px rgba(229,161,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15)"
+                      : "0 4px 14px rgba(25,118,210,0.3), inset 0 1px 0 rgba(255,255,255,0.1)",
                   }}>
                   <div className="flex flex-col items-center">
-                    <span className="text-white text-[13px] sm:text-[14px] font-bold uppercase tracking-wider">
+                    <span className="text-white text-[13px] sm:text-[14px] font-black uppercase tracking-widest">
                       {raiseAmount >= maxRaise ? "All In" : "Raise"}
                     </span>
-                    <span className="text-white/60 text-[10px] font-mono">{getSymbol()}{(raiseAmount/100).toLocaleString()}</span>
+                    <span className="text-white/70 text-[10px] font-mono font-bold">
+                      {getSymbol()}{(raiseAmount/100).toLocaleString()}
+                    </span>
                   </div>
+                  {/* ALL-IN 골드 글로우 */}
+                  {raiseAmount >= maxRaise && (
+                    <motion.div className="absolute inset-0 rounded-xl pointer-events-none"
+                      animate={{ opacity: [0, 0.15, 0] }}
+                      transition={{ duration: 1.5, repeat: Infinity }}
+                      style={{ background: "radial-gradient(circle, rgba(255,215,0,0.3), transparent 70%)" }} />
+                  )}
                 </motion.button>
               </div>
             </>
@@ -1112,7 +1973,7 @@ export default function GameTable() {
             /* Pre-action buttons — select action before your turn */
             <div className="py-3">
               <div className="text-[9px] text-[#2A3650] text-center mb-2 uppercase tracking-wider">Pre-select action</div>
-              <div className="flex gap-2 justify-center">
+              <div className="flex gap-2 justify-center mb-2">
                 {[
                   { label: "Fold", action: 0, color: "#C62828", bg: "rgba(198,40,40,0.08)" },
                   { label: "Check/Fold", action: 1, color: "#4A5A70", bg: "rgba(255,255,255,0.02)" },
@@ -1125,6 +1986,50 @@ export default function GameTable() {
                     {pre.label}
                   </button>
                 ))}
+              </div>
+              {/* Cash Out 요청 버튼 — 올인 상태일 때 표시 */}
+              {myStack === 0 && communityCards.length < 5 && communityCards.length > 0 && (
+                <div className="flex justify-center">
+                  <button onClick={() => { send({ type: 'CASH_OUT', accept: false } as any); playSound('click'); }}
+                    className="px-4 py-2 rounded-lg text-[11px] font-bold transition-all active:scale-95 flex items-center gap-1.5"
+                    style={{
+                      background: "linear-gradient(180deg, rgba(16,185,129,0.2), rgba(16,185,129,0.08))",
+                      color: "#34D399",
+                      border: "1px solid rgba(52,211,153,0.35)",
+                      boxShadow: "0 2px 10px rgba(52,211,153,0.15)",
+                    }}>
+                    💰 Request Cash Out
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : isWaitingForBB ? (
+            /* WAIT_BB 상태 — Post BB 옵션 표시 */
+            <div className="py-3">
+              <div className="flex flex-col items-center gap-2">
+                <div className="flex items-center gap-2">
+                  <motion.div
+                    animate={{ opacity: [0.6, 1, 0.6] }}
+                    transition={{ duration: 1.6, repeat: Infinity }}
+                    className="w-2 h-2 rounded-full" style={{ background: "#FBBF24" }}
+                  />
+                  <span className="text-[11px] font-bold text-[#FBBF24] uppercase tracking-wider">
+                    Waiting for Big Blind
+                  </span>
+                </div>
+                <div className="text-[9px] text-[#6B7A90] text-center max-w-[280px]">
+                  다음 BB가 자기 자리에 오면 자동 입장합니다. 즉시 입장하려면 데드 BB를 내세요.
+                </div>
+                <button
+                  onClick={() => { send({ type: 'POST_BB' } as any); toast.success('Will post BB next hand'); playSound('click'); }}
+                  className="px-5 py-2 rounded-lg text-[12px] font-black text-white transition-all active:scale-95 mt-1"
+                  style={{
+                    background: "linear-gradient(135deg, #FBBF24, #F59E0B)",
+                    boxShadow: "0 4px 16px rgba(251,191,36,0.35)",
+                    border: "1px solid rgba(255,255,255,0.2)",
+                  }}>
+                  💰 Post BB & Join Next Hand
+                </button>
               </div>
             </div>
           ) : (
@@ -1139,7 +2044,7 @@ export default function GameTable() {
 
       <ChatPanel open={showChat} onOpenChange={setShowChat} />
       <BuyInModal open={showBuyInModal} onOpenChange={setShowBuyInModal}
-        minBuyIn={2000} maxBuyIn={10000} currentBalance={12450.50}
+        minBuyIn={50000} maxBuyIn={2000000} currentBalance={realBalance}
         tableName="NL Hold'em" blinds="50/100" onJoinTable={handleBuyIn} />
 
       {/* ===== Leave Confirm Modal ===== */}
@@ -1148,20 +2053,42 @@ export default function GameTable() {
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
             <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }}
-              className="rounded-2xl p-6 text-center max-w-[300px]"
+              className="rounded-2xl p-6 text-center max-w-[320px]"
               style={{ background: "#141820", border: "1px solid rgba(255,255,255,0.06)" }}>
               <div className="text-base font-bold text-white mb-2">Leave Table?</div>
               <div className="text-xs text-[#6B7A90] mb-5">Your chips will be cashed out automatically.</div>
-              <div className="flex gap-3">
-                <button onClick={() => setShowLeaveConfirm(false)}
-                  className="flex-1 py-2.5 rounded-lg text-xs font-semibold text-[#6B7A90] bg-white/[0.03] border border-white/[0.06]">
-                  Stay
-                </button>
-                <button onClick={confirmLeave}
-                  className="flex-1 py-2.5 rounded-lg text-xs font-bold text-white"
-                  style={{ background: "linear-gradient(135deg, #EF4444, #DC2626)" }}>
-                  Leave
-                </button>
+              <div className="flex flex-col gap-2">
+                {/* Reserved leave — safely leave after next hand */}
+                {!leaveReserved ? (
+                  <button onClick={() => {
+                    setLeaveReserved(true);
+                    setShowLeaveConfirm(false);
+                    toast('You will leave after the current hand', { icon: '⏱️' });
+                  }}
+                    className="w-full py-2.5 rounded-lg text-xs font-bold text-white"
+                    style={{ background: "linear-gradient(135deg, #F0B90B, #E5A00D)" }}>
+                    Leave After This Hand
+                  </button>
+                ) : (
+                  <button onClick={() => {
+                    setLeaveReserved(false);
+                    toast.success('Leave reservation cancelled');
+                  }}
+                    className="w-full py-2.5 rounded-lg text-xs font-bold text-[#F0B90B] border border-[#F0B90B]/40">
+                    Cancel Reservation
+                  </button>
+                )}
+                <div className="flex gap-2">
+                  <button onClick={() => setShowLeaveConfirm(false)}
+                    className="flex-1 py-2.5 rounded-lg text-xs font-semibold text-[#6B7A90] bg-white/[0.03] border border-white/[0.06]">
+                    Keep Playing
+                  </button>
+                  <button onClick={confirmLeave}
+                    className="flex-1 py-2.5 rounded-lg text-xs font-bold text-white"
+                    style={{ background: "linear-gradient(135deg, #EF4444, #DC2626)" }}>
+                    Leave Now
+                  </button>
+                </div>
               </div>
             </motion.div>
           </motion.div>
@@ -1172,66 +2099,418 @@ export default function GameTable() {
       <AnimatePresence>
         {showHandHistory && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-md p-3"
             onClick={() => setShowHandHistory(false)}>
-            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }}
-              className="rounded-2xl p-5 max-w-[400px] max-h-[70vh] overflow-y-auto"
-              style={{ background: "#141820", border: "1px solid rgba(255,255,255,0.06)" }}
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }}
+              className="rounded-2xl w-full max-w-[520px] max-h-[85vh] flex flex-col overflow-hidden"
+              style={{
+                background: "linear-gradient(180deg, #141820, #0B1018)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.6)",
+              }}
               onClick={e => e.stopPropagation()}>
-              <div className="text-sm font-bold text-white mb-3">Hand History</div>
-              {handHistoryRecords.length === 0 ? (
-                <div className="text-xs text-[#4A5A70] text-center py-6">No hands played yet</div>
-              ) : (
-                <div className="space-y-2">
-                  {handHistoryRecords.slice(-10).reverse().map((rec: any, i: number) => (
-                    <div key={i} className="p-3 rounded-lg text-xs" style={{ background: "rgba(255,255,255,0.02)" }}>
-                      <div className="flex justify-between mb-1">
-                        <span className="text-[#6B7A90]">Hand #{rec.handNumber}</span>
-                        <span className="text-[#4A5A70]">{new Date(rec.timestamp).toLocaleTimeString()}</span>
-                      </div>
-                      <div className="text-white font-semibold">
-                        Pot: {formatMoney(rec.pot / 100)} | Rake: {formatMoney(rec.rake / 100)}
-                      </div>
-                      {rec.winners?.[0] && (
-                        <div className="text-emerald-400 text-[10px] mt-1">
-                          Winner: {rec.winners[0].nickname} — {rec.winners[0].handResult?.description}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-              {/* Rabbit Hunt results */}
-              {rabbitCards.length > 0 && (
-                <div className="mt-3 p-3 rounded-lg" style={{ background: "rgba(255,215,0,0.05)", border: "1px solid rgba(255,215,0,0.1)" }}>
-                  <div className="text-[10px] text-[#FFD700] font-bold mb-1">🐇 Rabbit Hunt</div>
-                  <div className="text-[11px] text-[#8899AB]">
-                    Remaining cards would have been: {rabbitCards.map((c: any) => `${c.rank}${['♣','♥','♦','♠'][c.suit-1]}`).join(' ')}
+
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.06]">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+                    style={{ background: "rgba(38,161,123,0.15)", border: "1px solid rgba(38,161,123,0.3)" }}>
+                    <span className="text-sm">📜</span>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-white">핸드 히스토리</h3>
+                    <p className="text-[10px] text-[#4A5A70]">최근 {handHistoryRecords.length}개 핸드 기록</p>
                   </div>
                 </div>
-              )}
+                <button onClick={() => setShowHandHistory(false)}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-[#6B7A90] hover:bg-white/[0.05]">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="flex-1 overflow-y-auto px-5 py-4">
+                {handHistoryRecords.length === 0 ? (
+                  <div className="text-center py-12">
+                    <div className="text-4xl mb-2">🃏</div>
+                    <div className="text-sm text-[#4A5A70] font-semibold">아직 플레이한 핸드가 없습니다</div>
+                    <div className="text-[10px] text-[#3D4F65] mt-1">게임을 진행하면 여기에 기록됩니다</div>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {handHistoryRecords.slice().reverse().map((rec: any, i: number) => {
+                      const board: any[] = rec.board ?? [];
+                      const winner = rec.winners?.[0];
+                      const suitSymbols = ['', '♠', '♥', '♦', '♣'];
+                      const suitColors = ['', '#FFFFFF', '#EF4444', '#60A5FA', '#34D399'];
+                      return (
+                        <motion.div key={i}
+                          initial={{ opacity: 0, x: -10 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.02 }}
+                          className="p-4 rounded-xl"
+                          style={{
+                            background: "rgba(255,255,255,0.02)",
+                            border: "1px solid rgba(255,255,255,0.04)",
+                          }}>
+
+                          {/* Top: Hand # + Time */}
+                          <div className="flex justify-between items-center mb-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded"
+                                style={{ background: "rgba(255,107,53,0.1)", color: "#FF6B35" }}>
+                                #{rec.handNumber ?? (handHistoryRecords.length - i)}
+                              </span>
+                              <span className="text-[10px] text-[#4A5A70]">
+                                {new Date(rec.timestamp).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+                              </span>
+                            </div>
+                            <div className="text-[11px] font-mono font-bold text-[#FFD700]">
+                              Pot: {getSymbol()}{((rec.pot ?? 0) / 100).toLocaleString()}
+                            </div>
+                          </div>
+
+                          {/* Community Cards */}
+                          {board.length > 0 && (
+                            <div className="flex items-center gap-1.5 mb-3 justify-center">
+                              {board.map((c, idx) => {
+                                const rankMap: Record<number, string> = {1:'A',2:'2',3:'3',4:'4',5:'5',6:'6',7:'7',8:'8',9:'9',10:'10',11:'J',12:'Q',13:'K'};
+                                return (
+                                  <div key={idx} className="flex flex-col items-center justify-center rounded-md"
+                                    style={{
+                                      width: 32, height: 44,
+                                      background: "#FFFFFF",
+                                      border: "1px solid rgba(0,0,0,0.1)",
+                                      boxShadow: "0 2px 6px rgba(0,0,0,0.2)",
+                                    }}>
+                                    <span className="text-[11px] font-black leading-none" style={{ color: suitColors[c.suit] === '#FFFFFF' ? '#111' : suitColors[c.suit] }}>
+                                      {rankMap[c.rank] ?? c.rank}
+                                    </span>
+                                    <span className="text-[10px] leading-none" style={{ color: suitColors[c.suit] === '#FFFFFF' ? '#111' : suitColors[c.suit] }}>
+                                      {suitSymbols[c.suit]}
+                                    </span>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          )}
+
+                          {/* Winner */}
+                          {winner && (
+                            <div className="flex items-center justify-between px-3 py-2 rounded-lg"
+                              style={{
+                                background: "linear-gradient(135deg, rgba(52,211,153,0.08), rgba(52,211,153,0.03))",
+                                border: "1px solid rgba(52,211,153,0.2)",
+                              }}>
+                              <div className="flex items-center gap-2">
+                                <span className="text-base">🏆</span>
+                                <div>
+                                  <div className="text-[11px] font-bold text-white">{winner.nickname ?? 'Unknown'}</div>
+                                  {winner.handResult?.description && (
+                                    <div className="text-[9px] text-[#34D399] font-semibold">
+                                      {winner.handResult.description}
+                                    </div>
+                                  )}
+                                </div>
+                              </div>
+                              <div className="font-mono font-black text-[13px] text-[#34D399]">
+                                +{getSymbol()}{((winner.amount ?? 0) / 100).toLocaleString()}
+                              </div>
+                            </div>
+                          )}
+
+                          {/* Rake */}
+                          {rec.rake > 0 && (
+                            <div className="mt-2 text-[9px] text-[#4A5A70] text-right">
+                              Rake: {getSymbol()}{(rec.rake / 100).toLocaleString()}
+                            </div>
+                          )}
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* Rabbit Hunt results */}
+                {rabbitCards.length > 0 && (
+                  <div className="mt-4 p-3 rounded-xl"
+                    style={{ background: "rgba(255,215,0,0.05)", border: "1px solid rgba(255,215,0,0.15)" }}>
+                    <div className="text-[10px] text-[#FFD700] font-bold mb-1 flex items-center gap-1">
+                      🐇 Rabbit Hunt
+                    </div>
+                    <div className="text-[11px] text-[#8899AB]">
+                      만약 끝까지 갔다면: {rabbitCards.map((c: any) => `${c.rank}${['','♠','♥','♦','♣'][c.suit]}`).join(' ')}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* Footer */}
+              <div className="px-5 py-3 border-t border-white/[0.06]">
+                <button onClick={() => setShowHandHistory(false)}
+                  className="w-full py-2.5 rounded-lg text-xs font-bold"
+                  style={{
+                    background: "rgba(255,255,255,0.04)",
+                    color: "#8899AB",
+                    border: "1px solid rgba(255,255,255,0.06)",
+                  }}>
+                  닫기
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}
       </AnimatePresence>
 
-      {/* ===== Emoji Picker ===== */}
+      {/* ═══════ Top-Up Modal ═══════ */}
       <AnimatePresence>
-        {showEmoji && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 px-4 py-3 rounded-2xl"
-            style={{ background: "rgba(20,24,32,0.95)", border: "1px solid rgba(255,255,255,0.06)", backdropFilter: "blur(12px)" }}>
-            <div className="flex gap-3">
-              {['👍','😂','😡','🤔','💪','🔥','💀','🎉','😎','🃏'].map(emoji => (
-                <button key={emoji} onClick={() => {
-                  send({ type: 'CHAT', message: emoji });
-                  setShowEmoji(false);
-                  playSound('click');
-                }}
-                  className="text-2xl hover:scale-125 transition-transform active:scale-90">
-                  {emoji}
+        {showTopUpModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setShowTopUpModal(false)}
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+            style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)" }}>
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-sm rounded-2xl p-5"
+              style={{ background: "linear-gradient(180deg, #141820, #0B0E14)", border: "1px solid rgba(52,211,153,0.3)" }}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base font-black text-white">💰 Top Up</h3>
+                <button onClick={() => setShowTopUpModal(false)}
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-[#6B7A90]"
+                  style={{ background: "rgba(255,255,255,0.05)" }}>✕</button>
+              </div>
+              <div className="text-[11px] text-[#6B7A90] mb-4">
+                Add more chips to your stack. Only available between hands.
+              </div>
+              <TopUpForm
+                currentStack={serverPlayers.find(p => p.seat === heroSeat)?.stack ?? 0}
+                send={send}
+                onDone={() => setShowTopUpModal(false)}
+              />
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ═══════ Change Seat Modal ═══════ */}
+      <AnimatePresence>
+        {showChangeSeatModal && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            onClick={() => setShowChangeSeatModal(false)}
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+            style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)" }}>
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+              className="w-full max-w-sm rounded-2xl p-5"
+              style={{ background: "linear-gradient(180deg, #141820, #0B0E14)", border: "1px solid rgba(124,58,237,0.3)" }}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-base font-black text-white">🪑 Change Seat</h3>
+                <button onClick={() => setShowChangeSeatModal(false)}
+                  className="w-7 h-7 rounded-full flex items-center justify-center text-[#6B7A90]"
+                  style={{ background: "rgba(255,255,255,0.05)" }}>✕</button>
+              </div>
+              <div className="text-[11px] text-[#6B7A90] mb-3">
+                Select an empty seat. You must wait until the current hand ends.
+              </div>
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                {Array.from({ length: maxSeats }).map((_, i) => {
+                  const isEmpty = emptySeats.includes(i);
+                  const isMine = i === heroSeat;
+                  return (
+                    <button key={i}
+                      disabled={!isEmpty || isMine}
+                      onClick={() => {
+                        send({ type: 'CHANGE_SEAT', seat: i });
+                        toast.success(`Seat change requested (${i + 1})`);
+                        setShowChangeSeatModal(false);
+                      }}
+                      className="py-3 rounded-lg text-xs font-bold transition-all disabled:opacity-30"
+                      style={{
+                        background: isMine ? "rgba(255,215,0,0.15)" :
+                                    isEmpty ? "rgba(52,211,153,0.1)" : "rgba(255,255,255,0.02)",
+                        color: isMine ? "#FFD700" : isEmpty ? "#34D399" : "#4A5A70",
+                        border: `1px solid ${isMine ? "rgba(255,215,0,0.3)" : isEmpty ? "rgba(52,211,153,0.25)" : "rgba(255,255,255,0.04)"}`,
+                      }}>
+                      {isMine ? `Seat ${i + 1} (You)` : `Seat ${i + 1}`}
+                      <div className="text-[9px] opacity-60 mt-0.5">
+                        {isMine ? 'Current' : isEmpty ? 'Empty' : 'Taken'}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+              <button onClick={() => { send({ type: 'GET_EMPTY_SEATS' }); }}
+                className="w-full py-2 rounded-lg text-[10px] text-[#8899AB]"
+                style={{ background: "rgba(255,255,255,0.03)" }}>
+                🔄 Refresh available seats
+              </button>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ═══════ Pre-Action Panel ═══════ */}
+      <AnimatePresence>
+        {showPreActionPanel && (
+          <motion.div initial={{ opacity: 0, x: 40 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 40 }}
+            className="fixed right-3 bottom-28 z-[200] p-3 rounded-2xl min-w-[240px]"
+            style={{
+              background: "rgba(14,17,25,0.96)",
+              border: "1px solid rgba(240,185,11,0.3)",
+              backdropFilter: "blur(12px)",
+              boxShadow: "0 8px 30px rgba(0,0,0,0.5)",
+            }}>
+            <div className="flex items-center justify-between mb-2.5">
+              <h4 className="text-[11px] font-black text-[#F0B90B] uppercase tracking-wider">⚡ Pre-Action</h4>
+              <button onClick={() => setShowPreActionPanel(false)}
+                className="w-5 h-5 rounded text-[#6B7A90] text-[11px]"
+                style={{ background: "rgba(255,255,255,0.05)" }}>✕</button>
+            </div>
+            <div className="space-y-1.5">
+              {([
+                { id: null as any, label: 'None (manual)', color: '#6B7A90' },
+                { id: 'check', label: 'Check', color: '#34D399' },
+                { id: 'check_fold', label: 'Check/Fold', color: '#60A5FA' },
+                { id: 'call_any', label: 'Call Any', color: '#F0B90B' },
+                { id: 'fold', label: 'Fold', color: '#EF4444' },
+              ] as const).map(opt => (
+                <button key={opt.label}
+                  onClick={() => {
+                    setPreAction(opt.id as any);
+                    // 액션 매핑: fold=0, check=1, check/fold=1(check로 시도), call_any=2
+                    const mapped =
+                      opt.id === 'fold' ? 0 :
+                      opt.id === 'check' ? 1 :
+                      opt.id === 'check_fold' ? 1 :
+                      opt.id === 'call_any' ? 2 : null;
+                    send({ type: 'SET_PRE_ACTION', action: mapped });
+                  }}
+                  className="w-full py-2 rounded-lg text-[11px] font-bold flex items-center justify-between px-3 transition-all"
+                  style={{
+                    background: preAction === opt.id ? `${opt.color}20` : "rgba(255,255,255,0.03)",
+                    border: `1px solid ${preAction === opt.id ? opt.color + '50' : 'rgba(255,255,255,0.05)'}`,
+                    color: preAction === opt.id ? opt.color : '#8899AB',
+                  }}>
+                  <span>{opt.label}</span>
+                  {preAction === opt.id && <span>✓</span>}
                 </button>
               ))}
+            </div>
+            <div className="text-[9px] text-[#4A5A70] mt-2 text-center">
+              Auto-execute when it's your turn
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ===== Emoji Picker — GGPoker+ 스타일 ===== */}
+      <AnimatePresence>
+        {showEmoji && (
+          <motion.div initial={{ opacity: 0, y: 30, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 30, scale: 0.9 }}
+            className="fixed bottom-28 left-1/2 -translate-x-1/2 z-50 px-5 py-4 rounded-2xl"
+            style={{ background: "rgba(15,20,28,0.97)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(16px)", boxShadow: "0 10px 40px rgba(0,0,0,0.6)" }}>
+            {/* 카테고리 */}
+            <div className="text-[9px] text-[#4A5A70] uppercase tracking-wider mb-2 font-semibold">Reactions</div>
+            <div className="grid grid-cols-6 gap-2 mb-3">
+              {[
+                { emoji: '😂', label: 'LOL' },
+                { emoji: '😡', label: 'Angry' },
+                { emoji: '😢', label: 'Sad' },
+                { emoji: '🤩', label: 'Wow' },
+                { emoji: '😎', label: 'Cool' },
+                { emoji: '🤔', label: 'Think' },
+              ].map(e => (
+                <motion.button key={e.emoji}
+                  whileHover={{ scale: 1.3 }} whileTap={{ scale: 0.8 }}
+                  onClick={() => {
+                    send({ type: 'CHAT', message: e.emoji });
+                    setFloatingEmoji({ emoji: e.emoji, seat: heroSeat, key: Date.now() });
+                    setTimeout(() => setFloatingEmoji(null), 2500);
+                    setShowEmoji(false);
+                    playSound('click');
+                  }}
+                  className="flex flex-col items-center gap-0.5 p-2 rounded-xl transition-colors hover:bg-white/[0.05]">
+                  <span className="text-3xl">{e.emoji}</span>
+                  <span className="text-[8px] text-[#4A5A70]">{e.label}</span>
+                </motion.button>
+              ))}
+            </div>
+            <div className="text-[9px] text-[#4A5A70] uppercase tracking-wider mb-2 font-semibold">Actions</div>
+            <div className="grid grid-cols-6 gap-2 mb-3">
+              {[
+                { emoji: '👍', label: 'GG' },
+                { emoji: '👏', label: 'Nice' },
+                { emoji: '🔥', label: 'Hot' },
+                { emoji: '💪', label: 'Strong' },
+                { emoji: '💀', label: 'Dead' },
+                { emoji: '🎉', label: 'Party' },
+              ].map(e => (
+                <motion.button key={e.emoji}
+                  whileHover={{ scale: 1.3 }} whileTap={{ scale: 0.8 }}
+                  onClick={() => {
+                    send({ type: 'CHAT', message: e.emoji });
+                    setFloatingEmoji({ emoji: e.emoji, seat: heroSeat, key: Date.now() });
+                    setTimeout(() => setFloatingEmoji(null), 2500);
+                    setShowEmoji(false);
+                    playSound('click');
+                  }}
+                  className="flex flex-col items-center gap-0.5 p-2 rounded-xl transition-colors hover:bg-white/[0.05]">
+                  <span className="text-3xl">{e.emoji}</span>
+                  <span className="text-[8px] text-[#4A5A70]">{e.label}</span>
+                </motion.button>
+              ))}
+            </div>
+            <div className="text-[9px] text-[#4A5A70] uppercase tracking-wider mb-2 font-semibold">Taunt</div>
+            <div className="grid grid-cols-6 gap-2">
+              {[
+                { emoji: '🃏', label: 'Bluff' },
+                { emoji: '💰', label: 'Money' },
+                { emoji: '🏆', label: 'Win' },
+                { emoji: '😈', label: 'Devil' },
+                { emoji: '🐟', label: 'Fish' },
+                { emoji: '🦈', label: 'Shark' },
+              ].map(e => (
+                <motion.button key={e.emoji}
+                  whileHover={{ scale: 1.3 }} whileTap={{ scale: 0.8 }}
+                  onClick={() => {
+                    send({ type: 'CHAT', message: e.emoji });
+                    setFloatingEmoji({ emoji: e.emoji, seat: heroSeat, key: Date.now() });
+                    setTimeout(() => setFloatingEmoji(null), 2500);
+                    setShowEmoji(false);
+                    playSound('click');
+                  }}
+                  className="flex flex-col items-center gap-0.5 p-2 rounded-xl transition-colors hover:bg-white/[0.05]">
+                  <span className="text-3xl">{e.emoji}</span>
+                  <span className="text-[8px] text-[#4A5A70]">{e.label}</span>
+                </motion.button>
+              ))}
+            </div>
+            <button onClick={() => setShowEmoji(false)}
+              className="w-full mt-3 py-2 rounded-lg text-[10px] text-[#4A5A70] bg-white/[0.03]">Close</button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ===== Floating Emoji Animation — 플레이어 위에 큰 이모티콘 팝업 ===== */}
+      <AnimatePresence>
+        {floatingEmoji && (
+          <motion.div
+            key={floatingEmoji.key}
+            className="fixed z-[100] pointer-events-none"
+            style={{ left: "50%", top: "40%" }}
+            initial={{ scale: 0, opacity: 0, y: 20 }}
+            animate={{ scale: [0, 1.5, 1.2], opacity: [0, 1, 1], y: [20, -20, -40] }}
+            exit={{ scale: 2, opacity: 0, y: -80 }}
+            transition={{ duration: 2, ease: "easeOut" }}
+          >
+            <div style={{ transform: "translate(-50%, -50%)", textAlign: "center" }}>
+              <motion.span style={{ fontSize: 80, display: "block" }}
+                animate={{ rotate: [0, -10, 10, -5, 0] }}
+                transition={{ duration: 0.5, delay: 0.3 }}>
+                {floatingEmoji.emoji}
+              </motion.span>
             </div>
           </motion.div>
         )}
@@ -1255,6 +2534,82 @@ export default function GameTable() {
                 style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
                 Muck
               </button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ===== Cash Out Offer (GGPoker-style) ===== */}
+      <AnimatePresence>
+        {cashOutOffer && (
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div className="rounded-2xl p-5 w-full max-w-[340px]"
+              style={{
+                background: "linear-gradient(180deg, #141820, #0B1018)",
+                border: "1px solid rgba(52,211,153,0.3)",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.6), 0 0 40px rgba(52,211,153,0.15)",
+              }}>
+              <div className="flex items-center gap-2 mb-3">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+                  style={{ background: "rgba(52,211,153,0.15)", border: "1px solid rgba(52,211,153,0.3)" }}>
+                  <span className="text-lg">💰</span>
+                </div>
+                <div>
+                  <div className="text-sm font-black text-[#34D399]">Cash Out Available</div>
+                  <div className="text-[10px] text-[#6B7A90]">Skip the showdown, take your equity now</div>
+                </div>
+              </div>
+
+              {/* Equity bar */}
+              <div className="mb-3">
+                <div className="flex justify-between text-[10px] mb-1">
+                  <span className="text-[#6B7A90] uppercase tracking-wider">Your Equity</span>
+                  <span className="text-[#34D399] font-mono font-black">{cashOutOffer.equity}%</span>
+                </div>
+                <div className="h-2 rounded-full overflow-hidden" style={{ background: "rgba(255,255,255,0.05)" }}>
+                  <div className="h-full rounded-full"
+                    style={{
+                      width: `${cashOutOffer.equity}%`,
+                      background: "linear-gradient(90deg, #10B981, #34D399)",
+                    }} />
+                </div>
+              </div>
+
+              {/* Amount breakdown */}
+              <div className="grid grid-cols-2 gap-2 mb-4">
+                <div className="p-2.5 rounded-lg" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                  <div className="text-[9px] text-[#4A5A70] uppercase">Cash Out</div>
+                  <div className="font-mono text-base text-[#34D399] font-black">
+                    {formatMoney(cashOutOffer.offerAmount / 100)}
+                  </div>
+                </div>
+                <div className="p-2.5 rounded-lg" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                  <div className="text-[9px] text-[#4A5A70] uppercase">Fee</div>
+                  <div className="font-mono text-base text-[#FF6B35] font-black">
+                    {(cashOutOffer.feeRate * 100).toFixed(1)}%
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex gap-2">
+                <button onClick={() => { send({ type: 'CASH_OUT', accept: true } as any); useGameStore.setState({ cashOutOffer: null }); playSound('chipBet'); }}
+                  className="flex-1 py-3 rounded-xl text-xs font-black text-white uppercase tracking-wider"
+                  style={{
+                    background: "linear-gradient(180deg, #10B981, #047857)",
+                    boxShadow: "0 4px 14px rgba(16,185,129,0.4)",
+                  }}>
+                  Cash Out
+                </button>
+                <button onClick={() => useGameStore.setState({ cashOutOffer: null })}
+                  className="flex-1 py-3 rounded-xl text-xs font-bold text-[#8899AB] uppercase tracking-wider"
+                  style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
+                  Run Cards
+                </button>
+              </div>
+              <div className="text-[9px] text-[#4A5A70] text-center mt-2">
+                Run Cards = See the remaining community cards (normal)
+              </div>
             </div>
           </motion.div>
         )}
@@ -1315,6 +2670,79 @@ export default function GameTable() {
           </motion.div>
         )}
       </AnimatePresence>
+    </div>
+  );
+}
+
+// ─────────────────────────────────────────────────────
+// Top-Up Form — 수동 스택 충전
+// ─────────────────────────────────────────────────────
+function TopUpForm({ currentStack, send, onDone }: {
+  currentStack: number;
+  send: (msg: any) => void;
+  onDone: () => void;
+}) {
+  const [amount, setAmount] = useState(50000); // 기본 50,000원 (cents: 5,000,000)
+  const presets = [
+    { label: '₩50K',  value: 5000000 },
+    { label: '₩100K', value: 10000000 },
+    { label: '₩250K', value: 25000000 },
+    { label: '₩500K', value: 50000000 },
+    { label: '₩1M',   value: 100000000 },
+  ];
+
+  const handleSubmit = () => {
+    if (amount <= 0) {
+      toast.error('Enter a valid amount');
+      return;
+    }
+    send({ type: 'TOP_UP', amount });
+    toast.success(`Top Up requested: ₩${(amount / 100).toLocaleString()}`);
+    onDone();
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="bg-[#0a0b10] rounded-lg p-3 border border-white/5">
+        <div className="text-[10px] text-[#4A5A70] uppercase">Current Stack</div>
+        <div className="text-lg font-mono font-black text-[#34D399]">
+          ₩{(currentStack / 100).toLocaleString()}
+        </div>
+      </div>
+      <div>
+        <label className="text-[10px] text-[#6B7A90] uppercase tracking-wider">Top-Up Amount</label>
+        <input type="number"
+          value={amount}
+          onChange={(e) => setAmount(Number(e.target.value) || 0)}
+          className="w-full mt-1 bg-[#0a0b10] border border-white/5 rounded-lg px-3 py-2 text-sm text-white font-mono"
+        />
+        <div className="grid grid-cols-5 gap-1 mt-2">
+          {presets.map(p => (
+            <button key={p.label}
+              onClick={() => setAmount(p.value)}
+              className="py-1.5 rounded text-[10px] font-bold"
+              style={{
+                background: amount === p.value ? "rgba(52,211,153,0.15)" : "rgba(255,255,255,0.03)",
+                color: amount === p.value ? "#34D399" : "#6B7A90",
+                border: `1px solid ${amount === p.value ? "rgba(52,211,153,0.3)" : "rgba(255,255,255,0.05)"}`,
+              }}>
+              {p.label}
+            </button>
+          ))}
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <button onClick={onDone}
+          className="flex-1 py-2.5 rounded-lg text-xs font-bold text-[#6B7A90]"
+          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
+          Cancel
+        </button>
+        <button onClick={handleSubmit}
+          className="flex-1 py-2.5 rounded-lg text-xs font-black text-white"
+          style={{ background: "linear-gradient(135deg, #34D399, #059669)" }}>
+          Top Up
+        </button>
+      </div>
     </div>
   );
 }

@@ -24,11 +24,13 @@ export interface RoomConfig {
 }
 
 const blindPresets = [
-  { label: "Micro", sub: "1/2", small: 1, big: 2, color: "#34D399" },
-  { label: "Low", sub: "5/10", small: 5, big: 10, color: "#60A5FA" },
-  { label: "Mid", sub: "25/50", small: 25, big: 50, color: "#FF6B35" },
-  { label: "High", sub: "50/100", small: 50, big: 100, color: "#A78BFA" },
-  { label: "VIP", sub: "100/200", small: 100, big: 200, color: "#FFD700" },
+  { label: "Beginner", sub: "₩500/1K", small: 500, big: 1000, color: "#34D399" },
+  { label: "Standard", sub: "₩2K/5K", small: 2000, big: 5000, color: "#60A5FA" },
+  { label: "Standard+", sub: "₩5K/10K", small: 5000, big: 10000, color: "#FF6B35" },
+  { label: "High", sub: "₩10K/20K", small: 10000, big: 20000, color: "#FFD700" },
+  { label: "High+", sub: "₩20K/50K", small: 20000, big: 50000, color: "#FFA500" },
+  { label: "VIP", sub: "₩50K/100K", small: 50000, big: 100000, color: "#A78BFA" },
+  { label: "VIP+", sub: "₩100K/200K", small: 100000, big: 200000, color: "#EF4444" },
 ];
 
 export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModalProps) {
