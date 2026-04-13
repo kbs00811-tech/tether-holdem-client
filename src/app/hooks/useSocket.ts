@@ -7,7 +7,34 @@ import { useEffect, useCallback } from 'react';
 import { useGameStore } from '../stores/gameStore';
 import type { ClientMessage, ServerMessage } from '../types/serverTypes';
 
-const WS_URL = (typeof window !== 'undefined' && (window as any).__HOLDEM_WS_URL) || 'ws://localhost:9950';
+// 페이지와 동일한 오리진으로 WebSocket 연결 → serve.js(4000)가 9950으로 프록시
+// 로컬 개발(vite dev)에서는 명시적으로 9950 직접 연결
+// TETHER.BET iframe 통합: URL 쿼리(token/userId 등)를 WS URL에 전달
+function resolveWsUrl(): string {
+  if (typeof window === 'undefined') return 'ws://localhost:9950';
+  if ((window as any).__HOLDEM_WS_URL) return (window as any).__HOLDEM_WS_URL;
+  const { protocol, host, hostname, search } = window.location;
+
+  // 현재 URL 쿼리에서 인증 관련 파라미터 추출
+  const params = new URLSearchParams(search);
+  const authKeys = ['token', 'userId', 'nickname', 'balance', 'currency', 'tenant'];
+  const authQuery = new URLSearchParams();
+  for (const key of authKeys) {
+    const v = params.get(key);
+    if (v) authQuery.set(key, v);
+  }
+  const queryStr = authQuery.toString() ? `?${authQuery.toString()}` : '';
+
+  // Vite dev 서버(5173)에서는 9950 직접 연결
+  if (hostname === 'localhost' && window.location.port === '5173') {
+    return `ws://localhost:9950${queryStr}`;
+  }
+  // 프로덕션/serve.js(4000): 현재 오리진으로 연결 (프록시)
+  const wsProtocol = protocol === 'https:' ? 'wss:' : 'ws:';
+  return `${wsProtocol}//${host}${queryStr}`;
+}
+
+const WS_URL = resolveWsUrl();
 
 // ─── Singleton WebSocket ───
 let ws: WebSocket | null = null;

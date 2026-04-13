@@ -117,6 +117,14 @@ export enum PlayerStatus {
 // Player Types
 // ============================================================
 
+export interface HudStats {
+  vpip: number;   // Voluntarily Put in Pot %
+  pfr: number;    // Preflop Raise %
+  af: number;     // Aggression Factor
+  type: 'nit' | 'tag' | 'lag' | 'maniac' | 'fish' | 'whale' | 'reg' | 'pro' | 'unknown';
+  hands: number;  // 샘플 크기
+}
+
 export interface Player {
   id: string;
   nickname: string;
@@ -133,6 +141,7 @@ export interface Player {
   handResult?: HandResult;
   lastAction?: BettingAction;
   disconnectedAt?: number;
+  hudStats?: HudStats;    // Smart HUD (본인 제외)
 }
 
 // ============================================================
@@ -235,14 +244,20 @@ export type ClientMessage =
   | { type: 'SIT_OUT' }                           // 자리 비움
   | { type: 'SIT_IN' }                            // 자리 복귀
   | { type: 'WAIT_FOR_BB'; enabled: boolean }     // BB 대기 옵션
+  | { type: 'POST_BB' }                            // 즉시 데드 BB 내고 다음 핸드 입장
   | { type: 'SHOW_CARDS' }                        // 승자 카드 공개
   | { type: 'MUCK_CARDS' }                        // 승자 카드 숨김
   | { type: 'RABBIT_HUNT' }                       // 남은 커뮤니티 카드 보기
   | { type: 'STRADDLE'; enabled: boolean }         // Straddle 토글
   | { type: 'SET_PRE_ACTION'; action: BettingAction | null }
   | { type: 'SET_RUN_IT_TWICE'; enabled: boolean }
+  | { type: 'SET_RUN_IT_MODE'; mode: 'off' | 'twice' | 'thrice' }
   | { type: 'SET_AUTO_TOPUP'; enabled: boolean; amount: number }
+  | { type: 'TOP_UP'; amount: number }                 // 수동 재충전
+  | { type: 'CHANGE_SEAT'; seat: number }              // 자리 변경
+  | { type: 'GET_EMPTY_SEATS' }                        // 빈 자리 조회
   | { type: 'BUY_INSURANCE'; accept: boolean }
+  | { type: 'CASH_OUT'; accept: boolean }
   | { type: 'SET_CLIENT_SEED'; seed: string }     // Provably Fair 클라이언트 시드
   | { type: 'VERIFY_HAND'; handId: string }       // 핸드 검증 요청
   | { type: 'GET_HAND_HISTORY'; limit?: number }
@@ -253,6 +268,7 @@ export type ClientMessage =
 
 // Server → Client
 export type ServerMessage =
+  | { type: 'WELCOME'; playerId: string; nickname: string }
   | { type: 'ROOM_LIST'; rooms: RoomInfo[] }
   | { type: 'ROOM_JOINED'; roomId: string; state: GameState }
   | { type: 'ROOM_LEFT' }
@@ -280,8 +296,17 @@ export type ServerMessage =
   | { type: 'PROVABLY_FAIR_REVEAL'; serverSeed: string; serverSeedHash: string; clientSeed: string; nonce: number }
   | { type: 'HAND_VERIFICATION'; handId: string; isValid: boolean; deck: Card[] }
   | { type: 'ALLIN_EQUITY'; equities: { playerId: string; equity: number }[] }
-  | { type: 'RUN_IT_TWICE'; board1: Card[]; board2: Card[] }
+  | { type: 'RUN_IT_TWICE'; board1: Card[]; board2: Card[]; boards?: Card[][] }
+  | { type: 'RUN_IT_THRICE'; board1: Card[]; board2: Card[]; board3: Card[]; boards?: Card[][] }
+  | { type: 'BAD_BEAT'; winnerId: string; winnerNickname: string; winnerHand: string; loserId: string; loserNickname: string; loserHand: string }
+  | { type: 'COOLER'; winnerId: string; winnerNickname: string; winnerHand: string; loserId: string; loserNickname: string; loserHand: string }
+  | { type: 'TOP_UP_RESULT'; success: boolean; amount: number }
+  | { type: 'TOP_UP'; playerId: string; amount: number; newStack: number }
+  | { type: 'SEAT_CHANGED'; playerId: string; oldSeat: number; newSeat: number }
+  | { type: 'EMPTY_SEATS'; seats: number[] }
   | { type: 'INSURANCE_OFFER'; premium: number; payout: number; equity: number; outs: number }
+  | { type: 'CASH_OUT_OFFER'; equity: number; potShare: number; offerAmount: number; feeRate: number; expiresAt: number }
+  | { type: 'CASH_OUT_RESULT'; accepted: boolean; amount: number }
   | { type: 'TIME_BANK_STARTED'; playerId: string; seconds: number }
   | { type: 'HAND_HISTORY'; records: any[] }
   | { type: 'MY_STATS'; stats: { handsPlayed: number; handsWon: number; totalProfit: number; winRate: number } }
@@ -289,6 +314,8 @@ export type ServerMessage =
   | { type: 'WAITING_LIST_SEAT_AVAILABLE'; roomId: string; seat: number }
   | { type: 'AUTO_TOP_UP'; playerId: string; amount: number }
   | { type: 'ANTES_POSTED'; ante: number; pot: number }
+  | { type: 'POST_BB_CONFIRMED'; playerId: string; seat: number }
+  | { type: 'DEAD_BB_POSTED'; playerId: string; seat: number; amount: number }
   | { type: 'REALITY_CHECK'; message: string; sessionMinutes: number }
   | { type: 'RG_LIMIT_WARNING'; limitType: string; message: string };
 
@@ -303,7 +330,9 @@ export interface RoomInfo {
   phase: GamePhase;
   waitingListCount: number;     // 대기열 인원
   straddleEnabled: boolean;
-  variant: string;              // 'NLHE', 'PLO', 'SHORT_DECK' etc.
+  variant: string;
+  isPrivate?: boolean;          // 비밀번호 방
+  spectatorCount?: number;      // 관전자 수
 }
 
 export interface WinnerInfo {

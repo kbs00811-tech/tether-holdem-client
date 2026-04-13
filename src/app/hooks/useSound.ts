@@ -27,20 +27,51 @@ function getAudio(file: string): HTMLAudioElement {
 }
 
 // ── Unlock audio on first user interaction ──
+// iOS Safari / Chrome autoplay policy: HTMLAudioElement는 첫 사용자 제스처 내에서
+// 한 번 play() 호출되어야 이후 자유롭게 재생 가능. AudioContext.resume()도 함께.
 let audioUnlocked = false;
+const KNOWN_FILES = [
+  'deal.wav', 'chip.mp3', 'check.mp3', 'call.mp3', 'fold.mp3', 'raise.mp3',
+  'allin.mp3', 'win.mp3', 'showdown.mp3', 'start.mp3', 'click.mp3',
+  'cardwin.mp3', 'chips_raise.mp3', 'spark.mp3', 'bonus.wav',
+  'royalflush.mp3', 'fullhouse.mp3', 'flush.mp3', 'straight.mp3', 'bgm.mp3',
+];
+
 function unlockAudio() {
   if (audioUnlocked) return;
-  // Play a silent buffer to unlock AudioContext
+  audioUnlocked = true;
   try {
-    const ctx = new AudioContext();
-    const buf = ctx.createBuffer(1, 1, 22050);
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    src.connect(ctx.destination);
-    src.start(0);
-    audioUnlocked = true;
+    // 1) AudioContext resume
+    const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext;
+    if (Ctx) {
+      const ctx = new Ctx();
+      const buf = ctx.createBuffer(1, 1, 22050);
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.connect(ctx.destination);
+      src.start(0);
+      if (ctx.state === 'suspended') ctx.resume().catch(() => {});
+    }
+    // 2) 모든 사운드 파일 pre-warm — 무음으로 즉시 play → pause
+    for (const file of KNOWN_FILES) {
+      const audio = new Audio(`/sounds/${file}`);
+      audio.volume = 0;
+      audio.play().then(() => {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.volume = 1;
+        // pool에 등록하여 이후 재사용
+        let pool = audioPool.get(file);
+        if (!pool) { pool = []; audioPool.set(file, pool); }
+        pool.push(audio);
+      }).catch(() => {});
+    }
     console.log('[SOUND] Audio unlocked');
-  } catch {}
+    // BGM 자동 시작 (사용자가 mute 안 했으면)
+    if (!muted) startBGM();
+  } catch (e) {
+    console.warn('[SOUND] Unlock failed:', e);
+  }
 }
 
 // Auto-unlock on first click/touch
@@ -51,9 +82,9 @@ if (typeof window !== 'undefined') {
     document.removeEventListener('touchstart', unlock);
     document.removeEventListener('keydown', unlock);
   };
-  document.addEventListener('click', unlock, { once: true });
-  document.addEventListener('touchstart', unlock, { once: true });
-  document.addEventListener('keydown', unlock, { once: true });
+  document.addEventListener('click', unlock);
+  document.addEventListener('touchstart', unlock);
+  document.addEventListener('keydown', unlock);
 }
 
 // ── Play function ──
