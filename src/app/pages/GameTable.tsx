@@ -1146,12 +1146,16 @@ export default function GameTable() {
                 const sy = seatPositionsData[i]![1];
                 const bx = 50 + (sx - 50) * 0.42;
                 const by = 50 + (sy - 50) * 0.42;
-                const chipCount = Math.min(5, Math.max(2, Math.ceil(p.bet / 100)));
+                // p.bet 은 이미 GameTable 상단에서 /100 된 외부 KRW 값
+                // 칩 개수는 BB 대비 비율로 결정 — 2~5개
+                const bbExternal = (gameState?.bigBlind ?? 0) / 100;
+                const betRatio = bbExternal > 0 ? p.bet / bbExternal : 1;
+                const chipCount = Math.min(5, Math.max(2, Math.ceil(betRatio)));
                 const chipColor = getChipColorByValue(p.bet);
                 // ★ 작은 칩 사이즈
-                const chipSize = isDesktop ? 28 : 14;
-                const chipStackW = isDesktop ? 30 : 16;
-                const chipStackH = isDesktop ? 36 : 18;
+                const chipSize = isDesktop ? 22 : 12;
+                const chipStackW = isDesktop ? 24 : 14;
+                const chipStackH = isDesktop ? 30 : 16;
                 const stackOffset = isDesktop ? 3 : 1.5;
                 return (
                   <div key={`bet-${i}-${p.bet}`} className="z-10 flex flex-col items-center" style={{
@@ -1185,7 +1189,8 @@ export default function GameTable() {
                           border: "1px solid rgba(255,215,0,0.3)",
                           boxShadow: "0 2px 6px rgba(0,0,0,0.5)",
                         }}>
-                        ₩{Math.round(p.bet / 100).toLocaleString()}
+                        {/* p.bet 은 이미 /100 완료 — 중복 나눗셈 제거 (버그: W5/W10 표기 오류) */}
+                        ₩{Math.round(p.bet).toLocaleString()}
                       </span>
                     </motion.div>
                   </div>
@@ -1263,15 +1268,17 @@ export default function GameTable() {
                 <AnimatePresence>
                   {communityCards.map((card, i) => (
                     <motion.div key={`comm-${card.suit}-${card.rank}-${i}`}
-                      initial={{ rotateY: 180, opacity: 0, x: -100 + i * 10, y: -60, scale: 0.3 }}
+                      initial={{ rotateY: 180, opacity: 0, x: -120 + i * 12, y: -80, scale: 0.25 }}
                       animate={{ rotateY: 0, opacity: 1, x: 0, y: 0, scale: 1 }}
                       exit={{ opacity: 0, scale: 0.5, y: -20 }}
                       transition={{
-                        delay: i * 0.15,
-                        duration: 0.5,
+                        // 버그2 수정: 플랍(0~2)만 300ms 스태거, 턴(3)·리버(4)는 즉시 펼침
+                        // 지속시간도 0.5 → 0.75 로 늘려 카드 뒤집히는 느낌 강화
+                        delay: i < 3 ? i * 0.30 : 0,
+                        duration: 0.75,
                         type: "spring",
-                        stiffness: 150,
-                        damping: 15,
+                        stiffness: 120,
+                        damping: 14,
                       }}
                       className="shrink-0">
                       <div className="relative">
@@ -1343,11 +1350,12 @@ export default function GameTable() {
               </motion.div>
             )}
 
-            {/* ===== CHIP FLY ANIMATION (베팅 시 좌석→중앙) — PokerChip 사용 ===== */}
+            {/* ===== CHIP FLY ANIMATION (베팅 시 좌석→중앙) — PokerChip 사용 =====
+                 ★ 칩 크기 축소 (48 → 28) + 착지점 POT 뱃지 위쪽 (44%) — POT 텍스트 가림 방지 */}
             <AnimatePresence>
               {flyingChips.map(chip => {
                 const seatPos = seatPositionsData[chip.fromSeat] ?? [50, 100];
-                const chipCount = chip.action === 'allin' ? 8 : chip.action === 'raise' ? 5 : 3;
+                const chipCount = chip.action === 'allin' ? 6 : chip.action === 'raise' ? 4 : 2;
                 const chipColor = getChipColorByValue(chip.amount);
                 return Array.from({ length: chipCount }).map((_, ci) => (
                   <motion.div key={`fly-${chip.key}-${ci}`}
@@ -1360,8 +1368,8 @@ export default function GameTable() {
                       opacity: 1,
                     }}
                     animate={{
-                      left: `${50 + (Math.random() - 0.5) * 10}%`,
-                      top: `${48 + (Math.random() - 0.5) * 8}%`,
+                      left: `${50 + (Math.random() - 0.5) * 8}%`,
+                      top: `${(isDesktop ? 44 : 48) + (Math.random() - 0.5) * 4}%`,
                       scale: 1,
                       opacity: [1, 1, 0.85],
                       rotate: ci * 60,
@@ -1373,7 +1381,7 @@ export default function GameTable() {
                       ease: [0.22, 0.68, 0.36, 1],
                     }}
                   >
-                    <PokerChip size={48} color={chipColor} />
+                    <PokerChip size={isDesktop ? 28 : 20} color={chipColor} />
                   </motion.div>
                 ));
               })}
@@ -1415,19 +1423,20 @@ export default function GameTable() {
               </div>
             )}
 
-            {/* ===== WIN CHIPS — 팟 → 승자 좌석으로 비행 — PokerChip 사용 ===== */}
+            {/* ===== WIN CHIPS — 팟 → 승자 좌석으로 비행 — PokerChip 사용 =====
+                 ★ 칩 크기 축소 (50 → 30) */}
             <AnimatePresence>
               {winChips.map(wc => {
                 const toPos = seatPositionsData[wc.toSeat] ?? [50, 100];
-                const chipCount = Math.min(12, Math.max(5, Math.ceil(wc.amount / 1000)));
+                const chipCount = Math.min(10, Math.max(4, Math.ceil(wc.amount / 10000)));
                 const chipColor = getChipColorByValue(wc.amount);
                 return Array.from({ length: chipCount }).map((_, ci) => (
                   <motion.div key={`win-${wc.key}-${ci}`}
                     className="z-40 pointer-events-none"
                     style={{ position: 'absolute', transform: 'translate(-50%, -50%)' }}
                     initial={{
-                      left: `${50 + (Math.random() - 0.5) * 12}%`,
-                      top: `${50 + (Math.random() - 0.5) * 8}%`,
+                      left: `${50 + (Math.random() - 0.5) * 10}%`,
+                      top: `${(isDesktop ? 44 : 48) + (Math.random() - 0.5) * 6}%`,
                       scale: 1,
                       opacity: 1,
                     }}
@@ -1445,7 +1454,7 @@ export default function GameTable() {
                       ease: [0.25, 0.46, 0.45, 0.94],
                     }}
                   >
-                    <PokerChip size={50} color={chipColor === 'white' ? 'gold' : chipColor} />
+                    <PokerChip size={isDesktop ? 30 : 22} color={chipColor === 'white' ? 'gold' : chipColor} />
                   </motion.div>
                 ));
               })}
