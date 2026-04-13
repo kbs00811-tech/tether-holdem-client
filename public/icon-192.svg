@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 192 192">
+  <rect width="192" height="192" rx="38" fill="#0B1018"/>
+  <circle cx="96" cy="96" r="80" fill="none" stroke="#26A17B" stroke-width="2" opacity="0.3"/>
+  <text x="96" y="85" text-anchor="middle" font-family="Arial Black" font-size="50" font-weight="900" fill="#26A17B">₮</text>
+  <path d="M96 95 C96 95 78 115 78 126 C78 134 87 138 96 131 C105 138 114 134 114 126 C114 115 96 95 96 95Z" fill="#FF6B35"/>
+  <rect x="92" y="130" width="8" height="12" rx="2" fill="#FF6B35"/>
+  <text x="96" y="170" text-anchor="middle" font-family="Arial Black" font-size="14" font-weight="900" fill="white" letter-spacing="4">POKER</text>
+</svg>

@@ -1,22 +1,40 @@
-import { Link, useLocation } from "react-router";
-import { Wallet, Bell, Menu, X, Settings } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router";
+import { Wallet, Bell, Menu, X, Settings, User, History, LogOut, Trophy } from "lucide-react";
 import { Sheet, SheetContent, SheetTrigger } from "./ui/sheet";
-import { useState } from "react";
-import { motion } from "motion/react";
+import { useState, useEffect, useRef } from "react";
+import { motion, AnimatePresence } from "motion/react";
 import { useGameStore } from "../stores/gameStore";
 import { useSocket } from "../hooks/useSocket";
 import { SettingsModal } from "./SettingsModal";
 import { useSettingsStore, AVATAR_IMAGES } from "../stores/settingsStore";
 import { formatMoney, getSymbol } from "../utils/currency";
+import { useEmbedMode } from "../hooks/useEmbedMode";
 
 export function Header() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { send } = useSocket();
   const connected = useGameStore(s => s.connected);
-  const balance = 12450.5;
+  const { user: embedUser } = useEmbedMode();
+  // Embed 모드에서는 호스트가 전달한 balance 사용, standalone 에서는 기본값
+  const balance = embedUser?.balance ?? 0;
   const [showPromo, setShowPromo] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
   const currentAvatar = useSettingsStore(s => s.avatar);
+  const profileMenuRef = useRef<HTMLDivElement>(null);
+
+  // 바깥 클릭 시 드롭다운 닫기
+  useEffect(() => {
+    if (!showProfileMenu) return;
+    const close = (e: MouseEvent) => {
+      if (profileMenuRef.current && !profileMenuRef.current.contains(e.target as Node)) {
+        setShowProfileMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [showProfileMenu]);
 
   const navItems = [
     { label: "Lobby", path: "/", exact: true },
@@ -135,15 +153,65 @@ export function Header() {
                   style={{ boxShadow: "0 0 4px rgba(239,68,68,0.5)" }} />
               </button>
 
-              {/* Avatar */}
-              <button onClick={() => setShowSettings(true)}
-                className="hidden sm:flex w-9 h-9 rounded-full items-center justify-center overflow-hidden"
-                style={{
-                  boxShadow: "0 0 0 2px rgba(255,107,53,0.15)",
-                }}>
-                <img src={AVATAR_IMAGES[currentAvatar] ?? AVATAR_IMAGES[0]}
-                  alt="avatar" className="w-full h-full object-cover" />
-              </button>
+              {/* Avatar with dropdown */}
+              <div className="relative hidden sm:block" ref={profileMenuRef}>
+                <button onClick={() => setShowProfileMenu(v => !v)}
+                  className="flex w-9 h-9 rounded-full items-center justify-center overflow-hidden"
+                  style={{
+                    boxShadow: "0 0 0 2px rgba(255,107,53,0.15)",
+                  }}>
+                  <img src={AVATAR_IMAGES[currentAvatar] ?? AVATAR_IMAGES[0]}
+                    alt="avatar" className="w-full h-full object-cover" />
+                </button>
+                <AnimatePresence>
+                  {showProfileMenu && (
+                    <motion.div
+                      initial={{ opacity: 0, y: -8, scale: 0.98 }}
+                      animate={{ opacity: 1, y: 0, scale: 1 }}
+                      exit={{ opacity: 0, y: -8, scale: 0.98 }}
+                      className="absolute right-0 top-11 w-52 rounded-xl overflow-hidden z-50"
+                      style={{
+                        background: "rgba(14,17,25,0.98)",
+                        border: "1px solid rgba(255,255,255,0.06)",
+                        boxShadow: "0 12px 40px rgba(0,0,0,0.5)",
+                        backdropFilter: "blur(16px)",
+                      }}>
+                      {/* 유저 정보 헤더 */}
+                      <div className="px-4 py-3 border-b border-white/5">
+                        <div className="flex items-center gap-2.5">
+                          <img src={AVATAR_IMAGES[currentAvatar] ?? AVATAR_IMAGES[0]}
+                            alt="avatar" className="w-10 h-10 rounded-full object-cover" />
+                          <div className="flex-1 min-w-0">
+                            <div className="text-sm font-bold text-white truncate">
+                              {embedUser?.nickname || 'Player'}
+                            </div>
+                            <div className="text-[10px] text-[#FF6B35] font-mono">
+                              {getSymbol()}{formatMoney(balance / 100)}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                      {/* 메뉴 */}
+                      <div className="p-1">
+                        {[
+                          { icon: User, label: 'My Profile', onClick: () => { navigate('/profile'); setShowProfileMenu(false); } },
+                          { icon: History, label: 'Bet History', onClick: () => { navigate('/profile?tab=history'); setShowProfileMenu(false); } },
+                          { icon: Trophy, label: 'Tournaments', onClick: () => { navigate('/tournaments'); setShowProfileMenu(false); } },
+                          { icon: Wallet, label: 'Cashier', onClick: () => { navigate('/cashier'); setShowProfileMenu(false); } },
+                          { icon: Settings, label: 'Settings', onClick: () => { setShowSettings(true); setShowProfileMenu(false); } },
+                        ].map(item => (
+                          <button key={item.label}
+                            onClick={item.onClick}
+                            className="w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs font-semibold text-[#8899AB] hover:text-white hover:bg-white/[0.04] transition-colors">
+                            <item.icon className="h-3.5 w-3.5" />
+                            {item.label}
+                          </button>
+                        ))}
+                      </div>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
 
               {/* Mobile menu */}
               <Sheet>

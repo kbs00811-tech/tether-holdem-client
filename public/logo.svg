@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 200" fill="none">
+  <!-- Background circle -->
+  <circle cx="100" cy="100" r="95" fill="#0B1018" stroke="#26A17B" stroke-width="3"/>
+  <!-- Tether symbol -->
+  <text x="100" y="82" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="60" font-weight="900" fill="#26A17B">₮</text>
+  <!-- Spade suit -->
+  <path d="M100 105 C100 105 78 125 78 138 C78 148 88 153 100 145 C112 153 122 148 122 138 C122 125 100 105 100 105Z" fill="#FF6B35"/>
+  <rect x="96" y="143" width="8" height="14" rx="2" fill="#FF6B35"/>
+  <!-- POKER text -->
+  <text x="100" y="185" text-anchor="middle" font-family="Arial Black, sans-serif" font-size="18" font-weight="900" fill="white" letter-spacing="6">POKER</text>
+</svg>

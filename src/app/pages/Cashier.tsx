@@ -5,8 +5,8 @@ import { motion } from "motion/react";
 const TETHER_BET_CASHIER_URL = "http://localhost:5173/cashier"; // 프로덕션: https://tether.bet/cashier
 
 export default function Cashier() {
-  const balance = 12450.50;
-  const inPlay = 8200.00;
+  const balance = 10000000;
+  const inPlay = 500000;
   const available = balance - inPlay;
 
   const recentActivity = [
@@ -20,7 +20,7 @@ export default function Cashier() {
     <div className="min-h-screen">
       {/* Hero */}
       <section className="relative mx-3 sm:mx-5 mt-3 rounded-2xl overflow-hidden" style={{ height: "clamp(120px, 18vh, 180px)" }}>
-        <img src="/src/assets/banners/hero_bonus.png" alt="Cashier" className="absolute inset-0 w-full h-full object-cover" />
+        <img src="/banners/hero_bonus.png" alt="Cashier" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0" style={{
           background: "linear-gradient(110deg, rgba(5,8,12,0.97) 0%, rgba(5,8,12,0.85) 40%, rgba(5,8,12,0.3) 70%, transparent 100%)",
         }} />

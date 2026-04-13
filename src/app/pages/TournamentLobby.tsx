@@ -219,7 +219,7 @@ export default function TournamentLobby() {
 
       {/* ═══ Hero Banner ═══ */}
       <section className="relative mx-3 sm:mx-5 mt-3 rounded-2xl overflow-hidden" style={{ height: "clamp(200px, 28vh, 280px)" }}>
-        <img src="/src/assets/banners/hero_tournament.png" alt="Tournament" className="absolute inset-0 w-full h-full object-cover" />
+        <img src="/banners/hero_tournament.png" alt="Tournament" className="absolute inset-0 w-full h-full object-cover" />
         <div className="absolute inset-0" style={{
           background: "linear-gradient(110deg, rgba(5,8,12,0.97) 0%, rgba(5,8,12,0.8) 35%, rgba(5,8,12,0.3) 60%, transparent 100%), linear-gradient(0deg, rgba(5,8,12,0.7) 0%, transparent 40%)",
         }} />

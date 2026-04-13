@@ -8,22 +8,99 @@
       <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
       <meta name="theme-color" content="#0B0E14" />
       <meta name="mobile-web-app-capable" content="yes" />
-      <title>TETHER.BET Poker</title>
+
+      <title>TETHER.BET — Premium Crypto Hold'em Poker</title>
+      <meta name="description" content="Play Texas Hold'em with USDT. GGPoker-level AI, 24/7 action, crypto-native poker platform." />
+
+      <!-- Favicon + App Icons -->
+      <link rel="icon" type="image/png" href="/brand/favicon.png" />
+      <link rel="shortcut icon" type="image/png" href="/brand/favicon.png" />
+      <link rel="apple-touch-icon" sizes="180x180" href="/brand/apple-touch-icon.png" />
+      <link rel="icon" type="image/png" sizes="192x192" href="/brand/icon-192.png" />
+      <link rel="icon" type="image/png" sizes="512x512" href="/brand/icon-512.png" />
       <link rel="manifest" href="/manifest.json" />
+
+      <!-- Open Graph (Facebook, KakaoTalk, LinkedIn) -->
+      <meta property="og:type" content="website" />
+      <meta property="og:site_name" content="TETHER.BET Holdem" />
+      <meta property="og:title" content="TETHER.BET — Premium Crypto Hold'em Poker" />
+      <meta property="og:description" content="Play Texas Hold'em with USDT. GGPoker-level AI, 24/7 action, crypto-native." />
+      <meta property="og:image" content="/brand/og-banner.png" />
+      <meta property="og:image:width" content="1200" />
+      <meta property="og:image:height" content="630" />
+
+      <!-- Twitter Card -->
+      <meta name="twitter:card" content="summary_large_image" />
+      <meta name="twitter:title" content="TETHER.BET Holdem" />
+      <meta name="twitter:description" content="Premium Crypto Texas Hold'em. USDT payouts, 24/7." />
+      <meta name="twitter:image" content="/brand/og-banner.png" />
+
       <style>
-        html, body { height: 100%; margin: 0; touch-action: manipulation; }
+        html, body { height: 100%; margin: 0; touch-action: manipulation; background: #0B0E14; }
         #root { min-height: 100%; }
+
+        /* Splash screen before React mounts */
+        .boot-splash {
+          position: fixed; inset: 0; z-index: 9999;
+          display: flex; flex-direction: column; align-items: center; justify-content: center;
+          background: radial-gradient(ellipse at 50% 40%, #0C1620 0%, #080E16 40%, #050A10 100%);
+          transition: opacity 0.4s ease;
+        }
+        .boot-splash.hidden { opacity: 0; pointer-events: none; }
+        .boot-splash img {
+          width: 120px; height: 120px;
+          filter: drop-shadow(0 8px 40px rgba(38, 161, 123, 0.35));
+          animation: boot-pulse 1.6s ease-in-out infinite;
+        }
+        .boot-splash .boot-brand {
+          margin-top: 24px;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          font-size: 20px; font-weight: 800;
+          letter-spacing: 0.15em;
+          background: linear-gradient(135deg, #E5B800, #26A17B);
+          -webkit-background-clip: text;
+          -webkit-text-fill-color: transparent;
+        }
+        .boot-splash .boot-tag {
+          margin-top: 6px;
+          font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+          font-size: 10px; font-weight: 600;
+          letter-spacing: 0.3em;
+          color: rgba(255,255,255,0.3);
+          text-transform: uppercase;
+        }
+        @keyframes boot-pulse {
+          0%, 100% { transform: scale(1); opacity: 0.85; }
+          50% { transform: scale(1.08); opacity: 1; }
+        }
       </style>
     </head>
 
     <body>
+      <!-- Boot splash (removed by React after mount) -->
+      <div id="boot-splash" class="boot-splash">
+        <img src="/brand/favicon.png" alt="TETHER.BET" />
+        <div class="boot-brand">TETHER.BET</div>
+        <div class="boot-tag">Hold'em Poker</div>
+      </div>
+
       <div id="root">
-        <!-- React mounts here. Extra wrapper prevents extension DOM conflicts. -->
         <div id="app-inner"></div>
       </div>
+
       <script>
+        // Remove splash after React mounts
+        window.addEventListener('DOMContentLoaded', () => {
+          setTimeout(() => {
+            const s = document.getElementById('boot-splash');
+            if (s) {
+              s.classList.add('hidden');
+              setTimeout(() => s.remove(), 500);
+            }
+          }, 800);
+        });
+
         // Guard against browser extensions injecting/removing DOM nodes
-        // that conflict with React's virtual DOM reconciliation
         const origRemoveChild = Node.prototype.removeChild;
         Node.prototype.removeChild = function(child) {
           if (child.parentNode !== this) {
@@ -44,4 +121,3 @@
       <script type="module" src="/src/main.tsx"></script>
     </body>
   </html>
-  

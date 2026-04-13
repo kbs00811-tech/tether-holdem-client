@@ -1,16 +1,21 @@
 /**
- * TETHER.BET Holdem - Settings Store (persisted to localStorage)
+ * TETHER.BET Holdem - Settings Store (persisted to localStorage + server sync)
+ *
+ * 아바타 변경 시 자동으로 B2C 서버에 저장 (다른 기기 로그인 시 동기화).
+ * 서버 호출 실패 시에도 로컬은 정상 동작.
  */
 
 import { create } from 'zustand';
+import { updateProfile, getProfile, canUseServerStats } from '../utils/profileApi';
 
 interface SettingsState {
-  avatar: number;           // 0-19
+  avatar: number;           // 0-49
   cardSkin: number;         // 1=Classic, 2=4-Color, 3=Neon
   tableFelt: number;        // 1=Emerald, 2=Navy, 3=Crimson, 4=Purple
   soundEnabled: boolean;
   musicEnabled: boolean;
   cardAnimations: boolean;
+  syncedFromServer: boolean;
 
   setAvatar: (id: number) => void;
   setCardSkin: (id: number) => void;
@@ -18,6 +23,7 @@ interface SettingsState {
   setSoundEnabled: (v: boolean) => void;
   setMusicEnabled: (v: boolean) => void;
   setCardAnimations: (v: boolean) => void;
+  loadFromServer: () => Promise<void>;
 }
 
 // Load from localStorage
@@ -39,44 +45,112 @@ function saveSettings(state: Partial<SettingsState>) {
 
 const saved = loadSettings();
 
-export const useSettingsStore = create<SettingsState>((set) => ({
+// 서버 동기화 헬퍼 (fire-and-forget, 실패해도 조용히 무시)
+function syncAvatarToServer(avatarId: number) {
+  if (!canUseServerStats()) return;
+  updateProfile({ avatar_id: avatarId }).catch(() => {});
+}
+
+export const useSettingsStore = create<SettingsState>((set, get) => ({
   avatar: saved.avatar ?? 3,
   cardSkin: saved.cardSkin ?? 1,
   tableFelt: saved.tableFelt ?? 1,
   soundEnabled: saved.soundEnabled ?? true,
   musicEnabled: saved.musicEnabled ?? true,
   cardAnimations: saved.cardAnimations ?? true,
+  syncedFromServer: false,
 
-  setAvatar: (id) => set(s => { const n = { ...s, avatar: id }; saveSettings(n); return n; }),
+  setAvatar: (id) => set(s => {
+    const n = { ...s, avatar: id };
+    saveSettings(n);
+    syncAvatarToServer(id);
+    return n;
+  }),
   setCardSkin: (id) => set(s => { const n = { ...s, cardSkin: id }; saveSettings(n); return n; }),
   setTableFelt: (id) => set(s => { const n = { ...s, tableFelt: id }; saveSettings(n); return n; }),
   setSoundEnabled: (v) => set(s => { const n = { ...s, soundEnabled: v }; saveSettings(n); return n; }),
   setMusicEnabled: (v) => set(s => { const n = { ...s, musicEnabled: v }; saveSettings(n); return n; }),
   setCardAnimations: (v) => set(s => { const n = { ...s, cardAnimations: v }; saveSettings(n); return n; }),
+
+  loadFromServer: async () => {
+    if (!canUseServerStats() || get().syncedFromServer) return;
+    try {
+      const profile = await getProfile();
+      set(s => {
+        const next = {
+          ...s,
+          avatar: typeof profile.avatar_id === 'number' ? profile.avatar_id : s.avatar,
+          syncedFromServer: true,
+        };
+        saveSettings(next);
+        return next;
+      });
+    } catch (e) {
+      console.warn('[settings] Failed to load from server:', e);
+    }
+  },
 }));
 
-// Avatar image paths
+// 부팅 시 서버에서 로드 (iframe에 token이 있을 때만)
+if (typeof window !== 'undefined') {
+  // 약간 지연시켜 초기 렌더 후 로드
+  setTimeout(() => {
+    useSettingsStore.getState().loadFromServer();
+  }, 1000);
+}
+
+// Avatar image paths — 50개 (중복 제거 후)
 export const AVATAR_IMAGES = [
-  "/src/assets/avatars/01_bull.png",
-  "/src/assets/avatars/02_fox.png",
-  "/src/assets/avatars/03_penguin.png",
-  "/src/assets/avatars/04_ninja.png",
-  "/src/assets/avatars/05_shark.png",
-  "/src/assets/avatars/06_hacker.png",
-  "/src/assets/avatars/07_phoenix.png",
-  "/src/assets/avatars/08_wolf.png",
-  "/src/assets/avatars/09_astronaut.png",
-  "/src/assets/avatars/10_eagle.png",
-  "/src/assets/avatars/11_latina.png",
-  "/src/assets/avatars/12_asian_man.png",
-  "/src/assets/avatars/13_euro_woman.png",
-  "/src/assets/avatars/14_euro_man.png",
-  "/src/assets/avatars/15_brazilian.png",
-  "/src/assets/avatars/16_middle_east.png",
-  "/src/assets/avatars/17_russian.png",
-  "/src/assets/avatars/18_korean.png",
-  "/src/assets/avatars/19_nordic.png",
-  "/src/assets/avatars/20_asian_woman.png",
+  "/avatars/01_hacker_led.png",
+  "/avatars/02_arctic_wolf.png",
+  "/avatars/03_eagle_platinum.png",
+  "/avatars/04_eagle_golden.png",
+  "/avatars/05_latina_gold.png",
+  "/avatars/06_penguin_king.png",
+  "/avatars/07_astronaut_galaxy.png",
+  "/avatars/08_bitcoin_bull.png",
+  "/avatars/09_brazilian.png",
+  "/avatars/10_asian_man.png",
+  "/avatars/11_euro_man.png",
+  "/avatars/12_middle_east.png",
+  "/avatars/13_diamond_shark.png",
+  "/avatars/14_shark_anthro.png",
+  "/avatars/15_cyber_ninja.png",
+  "/avatars/16_phoenix_mythical.png",
+  "/avatars/17_phoenix_flame.png",
+  "/avatars/18_nordic.png",
+  "/avatars/19_eth_fox.png",
+  "/avatars/20_russian.png",
+  "/avatars/21_euro_woman.png",
+  "/avatars/22_korean.png",
+  "/avatars/23_angel.png",
+  "/avatars/24_usdt_holder.png",
+  "/avatars/25_astronaut_cosmic.png",
+  "/avatars/26_queen.png",
+  "/avatars/27_star_player.png",
+  "/avatars/28_diamond_hands.png",
+  "/avatars/29_joker.png",
+  "/avatars/30_fox_tricky.png",
+  "/avatars/31_vampire.png",
+  "/avatars/32_tiger.png",
+  "/avatars/33_robot.png",
+  "/avatars/34_panda.png",
+  "/avatars/35_owl.png",
+  "/avatars/36_asian_woman.png",
+  "/avatars/37_cobra.png",
+  "/avatars/38_magician.png",
+  "/avatars/39_ninja_shadow.png",
+  "/avatars/40_bear.png",
+  "/avatars/41_king.png",
+  "/avatars/42_bitcoin_bro.png",
+  "/avatars/43_ace_high.png",
+  "/avatars/44_pirate.png",
+  "/avatars/45_fire_stack.png",
+  "/avatars/46_devil.png",
+  "/avatars/47_dragon.png",
+  "/avatars/48_cowboy.png",
+  "/avatars/49_samurai.png",
+  "/avatars/50_wolf_alpha.png",
 ];
 
 export const AVATAR_NAMES = [
