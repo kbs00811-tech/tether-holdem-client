@@ -413,14 +413,25 @@ export default function GameTable() {
     if (isSeated) setLocalPlayers({});
   }, [heroSeat, seated]);
 
-  // ★ 서버 에러 처리 — SIT_FAILED 등은 toast + 로컬 롤백
+  // ★ 서버 에러 처리 — 에러 코드별 분기
   const lastError = useGameStore(s => s.lastError);
   useEffect(() => {
     if (!lastError) return;
-    if (['SIT_FAILED', 'INSUFFICIENT_BALANCE', 'DEDUCT_FAILED'].includes(lastError.code)) {
+    // SIT_DOWN 실패 계열 — 착석 롤백
+    if (['SIT_FAILED', 'DEDUCT_FAILED'].includes(lastError.code)) {
       setLocalPlayers({});
       setSeated(false);
       toast.error(lastError.message || lastError.code);
+    } else if (lastError.code === 'INSUFFICIENT_BALANCE') {
+      // 버그 #2: B2C 지갑 잔액 부족 — 착석/top-up 구분 안 되므로 메시지로 안내
+      setLocalPlayers({});
+      setSeated(false);
+      toast.error('💸 지갑 잔액이 부족합니다. PeerX 지갑에서 충전하세요.', { duration: 4000 });
+    } else if (lastError.code === 'TOPUP_FAILED') {
+      // 버그 #2: 핸드 진행 중이거나 최대 스택 초과 — 착석 상태 유지
+      toast.error('⏱️ 핸드 종료 후 다시 시도하세요 (또는 최대 스택 초과)', { duration: 3500 });
+    } else if (lastError.code === 'INVALID_AMOUNT') {
+      toast.error('잘못된 금액입니다');
     } else if (lastError.code === 'RECONNECTED') {
       toast.success(lastError.message, { duration: 5000, icon: '🔄' });
     }
@@ -761,6 +772,23 @@ export default function GameTable() {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-2.5">
+          {/* ★ WATCHING 배지 — 관전 모드(미착석) 표시 */}
+          {!seated && (
+            <motion.div
+              animate={{ opacity: [0.7, 1, 0.7] }}
+              transition={{ duration: 2, repeat: Infinity }}
+              className="px-2 py-1 rounded-lg flex items-center gap-1.5"
+              style={{
+                background: "rgba(52,211,153,0.12)",
+                border: "1px solid rgba(52,211,153,0.35)",
+                boxShadow: "0 0 12px rgba(52,211,153,0.2)",
+              }}>
+              <span style={{ fontSize: 11 }}>👁</span>
+              <span className="text-[10px] font-black tracking-wider" style={{ color: "#34D399", letterSpacing: "0.08em" }}>
+                WATCHING
+              </span>
+            </motion.div>
+          )}
           {/* Stack — 데스크탑만 */}
           {seated && (
             <div className="px-2 py-1 rounded-lg hidden md:flex items-center gap-1.5"
@@ -1591,54 +1619,49 @@ export default function GameTable() {
           </div>
         </div>
 
-        {/* 착석 안 했으면 큰 Take a Seat 버튼 표시 (자동으로 빈 자리 찾아서 앉기) */}
+        {/* ★ 관전 모드 하단 소형 배너 — 중앙 게임 시야 방해 안 함.
+            좌석은 PlayerSlot 빈 자리의 "SIT HERE" 버튼으로 클릭 가능.
+            Quick Sit 버튼은 빈 자리 자동 탐색 fallback */}
         {!seated && (
-          <div className="absolute inset-0 z-20 flex flex-col items-center justify-center pointer-events-none">
-            <motion.button
-              initial={{ opacity: 0, scale: 0.9 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              onClick={() => {
-                // 빈 자리 찾아서 자동 착석
-                const occupied = new Set(serverPlayers.map(p => p.seat));
-                let emptySeat = -1;
-                for (let i = 0; i < maxSeats; i++) {
-                  if (!occupied.has(i)) { emptySeat = i; break; }
-                }
-                if (emptySeat === -1) {
-                  toast.error('테이블이 꽉 찼습니다');
-                  return;
-                }
-                handleSitClick(emptySeat);
-              }}
-              className="pointer-events-auto px-8 py-4 rounded-2xl font-black text-white shadow-2xl"
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="absolute left-1/2 -translate-x-1/2 z-20 pointer-events-none"
+            style={{ bottom: 8 }}>
+            <div className="pointer-events-auto flex items-center gap-2 px-3 py-1.5 rounded-full"
               style={{
-                background: "linear-gradient(135deg, #FF6B35, #E85D2C)",
-                border: "2px solid rgba(255,255,255,0.15)",
-                fontSize: 18,
-                letterSpacing: "0.05em",
-              }}
-              animate={{
-                opacity: 1,
-                scale: [1, 1.03, 1],
-                boxShadow: [
-                  "0 8px 30px rgba(255,107,53,0.5), 0 0 60px rgba(255,107,53,0.2)",
-                  "0 8px 40px rgba(255,107,53,0.7), 0 0 80px rgba(255,107,53,0.35)",
-                  "0 8px 30px rgba(255,107,53,0.5), 0 0 60px rgba(255,107,53,0.2)",
-                ],
-              }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}>
-              🎴 Take a Seat
-            </motion.button>
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ delay: 0.3 }}
-              className="mt-3 text-[11px] text-[#8899AB] font-semibold text-center"
-              style={{ textShadow: "0 2px 8px rgba(0,0,0,0.8)" }}>
-              클릭해서 게임에 참여하세요
-            </motion.div>
-          </div>
+                background: "rgba(10,16,24,0.88)",
+                backdropFilter: "blur(10px)",
+                border: "1px solid rgba(52,211,153,0.35)",
+                boxShadow: "0 4px 20px rgba(0,0,0,0.5)",
+              }}>
+              <span style={{ fontSize: 11 }}>👁</span>
+              <span className="text-[10px] text-[#8899AB] font-semibold whitespace-nowrap">
+                관전 중 · 빈 자리 클릭해서 착석
+              </span>
+              <button
+                onClick={() => {
+                  const occupied = new Set(serverPlayers.map(p => p.seat));
+                  let emptySeat = -1;
+                  for (let i = 0; i < maxSeats; i++) {
+                    if (!occupied.has(i)) { emptySeat = i; break; }
+                  }
+                  if (emptySeat === -1) {
+                    toast.error('테이블이 꽉 찼습니다');
+                    return;
+                  }
+                  handleSitClick(emptySeat);
+                }}
+                className="ml-1 px-2 py-0.5 rounded-full text-[10px] font-black text-white"
+                style={{
+                  background: "linear-gradient(135deg, #10B981, #059669)",
+                  boxShadow: "0 2px 8px rgba(16,185,129,0.4)",
+                }}>
+                ⚡ Quick Sit
+              </button>
+            </div>
+          </motion.div>
         )}
       </div>
 
@@ -2720,7 +2743,9 @@ function TopUpForm({ currentStack, send, onDone }: {
   send: (msg: any) => void;
   onDone: () => void;
 }) {
-  const [amount, setAmount] = useState(50000); // 기본 50,000원 (cents: 5,000,000)
+  // ★ 서버는 cents 단위 기대 (Math.floor(topUpAmount / 100) = KRW)
+  // 5,000,000 cents = 50,000원 — 주석과 실제값 일치 (이전: useState(50000) = 500원 버그)
+  const [amount, setAmount] = useState(5000000);
   const presets = [
     { label: '₩50K',  value: 5000000 },
     { label: '₩100K', value: 10000000 },
@@ -2730,12 +2755,12 @@ function TopUpForm({ currentStack, send, onDone }: {
   ];
 
   const handleSubmit = () => {
-    if (amount <= 0) {
-      toast.error('Enter a valid amount');
+    if (amount < 5000000) {
+      toast.error('최소 ₩50,000 이상 입력하세요');
       return;
     }
     send({ type: 'TOP_UP', amount });
-    toast.success(`Top Up requested: ₩${(amount / 100).toLocaleString()}`);
+    toast.success(`Top Up 요청: ₩${(amount / 100).toLocaleString()}`);
     onDone();
   };
 

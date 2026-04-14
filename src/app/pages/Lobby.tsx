@@ -1,10 +1,9 @@
-import { formatMoney, getSymbol } from "../utils/currency";
+import { formatMoney } from "../utils/currency";
 import { Link, useNavigate } from "react-router";
 import { Users, Filter, Plus, Trophy, Activity, Crown, Flame, Zap, Star, Clock, DollarSign, Play, LayoutGrid, List, User } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
-import { BuyInModal } from "../components/BuyInModal";
 import { CreateRoomModal, RoomConfig } from "../components/CreateRoomModal";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { ImageWithFallback } from "../components/figma/ImageWithFallback";
 import { motion, AnimatePresence } from "motion/react";
@@ -54,8 +53,6 @@ export default function Lobby() {
   const { send, connected } = useSocket();
   const serverRooms = useGameStore(s => s.rooms);
 
-  const [selectedRoom, setSelectedRoom] = useState<PokerRoom | null>(null);
-  const [showBuyIn, setShowBuyIn] = useState(false);
   const [showCreateRoom, setShowCreateRoom] = useState(false);
   const [activeCategory, setActiveCategory] = useState("No Limit");
   const [showProfilePanel, setShowProfilePanel] = useState(false);
@@ -92,10 +89,6 @@ export default function Lobby() {
   useEffect(() => {
     if (!isMobile) localStorage.setItem('lobby_view_mode', viewModeRaw);
   }, [viewModeRaw, isMobile]);
-  // 실제 B2C 잔액 사용 (embedUser.balance는 won 단위)
-  // BuyInModal은 won 단위로 받으므로 그대로 전달
-  const currentBalance = embedUser?.balance ?? 0;
-
   // 서버에서 방 목록 가져오기 (5초마다 갱신)
   useEffect(() => {
     if (connected) {
@@ -129,18 +122,14 @@ export default function Lobby() {
     return () => clearInterval(t);
   }, []);
 
+  // ★ 방 클릭 시 즉시 관전 모드로 입장 — BuyInModal 제거.
+  // 착석은 GameTable 내부에서 빈 좌석 클릭 시 처리.
   const handleJoinTable = (roomId: string) => {
     const room = rooms.find((r) => r.id === roomId);
-    if (room) { setSelectedRoom(room); setShowBuyIn(true); }
+    if (!room) return;
+    navigate(`/table/${roomId}`);
+    toast(`👁 ${room.name} 관전 입장`, { duration: 1500 });
   };
-
-  const handleBuyIn = useCallback((amount: number) => {
-    if (selectedRoom) {
-      // 바이인 후 테이블 페이지로 이동
-      navigate(`/table/${selectedRoom.id}`);
-      toast.success(`${formatMoney(amount)} Buy-in complete`);
-    }
-  }, [selectedRoom, navigate]);
 
   const handleCreateRoom = (config: RoomConfig) => {
     // 서버에 방 생성 요청 (서버 연결 시)
@@ -607,11 +596,6 @@ export default function Lobby() {
         </div>
       </section>
 
-      {selectedRoom && (
-        <BuyInModal open={showBuyIn} onOpenChange={setShowBuyIn}
-          minBuyIn={selectedRoom.minBuyIn} maxBuyIn={selectedRoom.maxBuyIn}
-          currentBalance={currentBalance} tableName={selectedRoom.name} onJoinTable={handleBuyIn} />
-      )}
       <CreateRoomModal open={showCreateRoom} onClose={() => setShowCreateRoom(false)} onCreateRoom={handleCreateRoom} />
 
       {/* ═══════ 내 정보 패널 ═══════ */}
