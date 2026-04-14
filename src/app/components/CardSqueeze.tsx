@@ -19,6 +19,8 @@ export function CardSqueeze({ card1, card2 }: CardSqueezeProps) {
   const draggingRef = useRef(false);
   const startRef = useRef({ x: 0, y: 0, time: 0 });
   const lastSoundRef = useRef(0);
+  // ★ 반응형 카드 크기 — 대형 데스크탑(>=1280)은 xl(112x157), 그 외는 lg(72x101)
+  const cardSize: "lg" | "xl" = typeof window !== 'undefined' && window.innerWidth >= 1280 ? "xl" : "lg";
 
   useEffect(() => {
     const updateFromDelta = (clientX: number, clientY: number) => {
@@ -90,11 +92,11 @@ export function CardSqueeze({ card1, card2 }: CardSqueezeProps) {
         transition={{ type: "spring", stiffness: 300, damping: 20 }}>
         <motion.div initial={{ rotateY: 180 }} animate={{ rotateY: 0 }}
           transition={{ duration: 0.5, type: "spring" }}>
-          <PokerCard suit={card1.suit} rank={card1.rank} size="lg" highlight />
+          <PokerCard suit={card1.suit} rank={card1.rank} size={cardSize} highlight />
         </motion.div>
         <motion.div initial={{ rotateY: 180 }} animate={{ rotateY: 0 }}
           transition={{ duration: 0.5, delay: 0.12, type: "spring" }}>
-          <PokerCard suit={card2.suit} rank={card2.rank} size="lg" highlight />
+          <PokerCard suit={card2.suit} rank={card2.rank} size={cardSize} highlight />
         </motion.div>
       </motion.div>
     );
@@ -145,7 +147,7 @@ export function CardSqueeze({ card1, card2 }: CardSqueezeProps) {
             transformOrigin: "bottom center",
             transition: progress === 0 ? "transform 0.3s ease" : "none",
           }}>
-            <PokerCard suit="spades" rank="A" faceDown size="lg" />
+            <PokerCard suit="spades" rank="A" faceDown size={cardSize} />
           </div>
           {progress > 3 && (
             <div style={{
@@ -154,7 +156,7 @@ export function CardSqueeze({ card1, card2 }: CardSqueezeProps) {
               overflow: "hidden", borderRadius: "0 0 6px 6px",
             }}>
               <div style={{ position: "absolute", bottom: 0, left: 0, right: 0 }}>
-                <PokerCard suit={card1.suit} rank={card1.rank} size="lg" />
+                <PokerCard suit={card1.suit} rank={card1.rank} size={cardSize} />
               </div>
             </div>
           )}
@@ -172,7 +174,7 @@ export function CardSqueeze({ card1, card2 }: CardSqueezeProps) {
             transformOrigin: "bottom center",
             transition: progress === 0 ? "transform 0.3s ease" : "none",
           }}>
-            <PokerCard suit="spades" rank="A" faceDown size="lg" />
+            <PokerCard suit="spades" rank="A" faceDown size={cardSize} />
           </div>
           {progress > 8 && (
             <div style={{
@@ -181,7 +183,7 @@ export function CardSqueeze({ card1, card2 }: CardSqueezeProps) {
               overflow: "hidden", borderRadius: "0 0 6px 6px",
             }}>
               <div style={{ position: "absolute", bottom: 0, left: 0, right: 0 }}>
-                <PokerCard suit={card2.suit} rank={card2.rank} size="lg" />
+                <PokerCard suit={card2.suit} rank={card2.rank} size={cardSize} />
               </div>
             </div>
           )}

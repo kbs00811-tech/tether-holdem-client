@@ -684,12 +684,12 @@ export default function GameTable() {
   //        [1]     [5]         8 / 4 o'clock
   //             [0]           6 o'clock (hero)
   const HERO_LAYOUT_6: [number, number][] = [
-    [50,  92],    // 0: hero — bottom center
-    [-5,  75],    // 1: bottom-left (hero's left → next cw)
+    [50,  82],    // 0: hero — bottom center (아바타/카드 여유 공간 확보)
+    [-5,  70],    // 1: bottom-left (hero's left → next cw)
     [-5,  22],    // 2: upper-left
     [50,  -5],    // 3: top center
     [105, 22],    // 4: upper-right
-    [105, 75],    // 5: bottom-right
+    [105, 70],    // 5: bottom-right
   ];
 
   const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
@@ -698,27 +698,27 @@ export default function GameTable() {
   // 9-Max: 9 seats at 40° intervals, clockwise from hero (bottom center)
   // Portrait (모바일): 세로형 — 양옆 여유 좁게, 상/하 여유는 유지
   const HERO_LAYOUT_9_PORTRAIT: [number, number][] = [
-    [50,  92],    // 0: hero — bottom center
-    [15,  90],    // 1: bottom-left
-    [-8,  58],    // 2: left
+    [50,  82],    // 0: hero — bottom center (아바타+카드 여유)
+    [15,  82],    // 1: bottom-left
+    [-8,  55],    // 2: left
     [0,   22],    // 3: upper-left
     [30,  0],     // 4: top-left
     [70,  0],     // 5: top-right
     [100, 22],    // 6: upper-right
-    [108, 58],    // 7: right
-    [85,  90],    // 8: bottom-right
+    [108, 55],    // 7: right
+    [85,  82],    // 8: bottom-right
   ];
   // Landscape (데스크탑): 가로형 — 양옆 넓게, 상하는 컴팩트
   const HERO_LAYOUT_9_LANDSCAPE: [number, number][] = [
-    [50,  92],    // 0: hero — bottom center
-    [10,  90],    // 1: bottom-left
-    [-12, 60],    // 2: left
+    [50,  82],    // 0: hero — bottom center (카드 놓을 공간 아래 확보)
+    [10,  80],    // 1: bottom-left
+    [-12, 56],    // 2: left
     [-6,  22],    // 3: upper-left
     [28,  -2],    // 4: top-left
     [72,  -2],    // 5: top-right
     [106, 22],    // 6: upper-right
-    [114, 60],    // 7: right
-    [92,  90],    // 8: bottom-right
+    [114, 56],    // 7: right
+    [92,  80],    // 8: bottom-right
   ];
   const HERO_LAYOUT_9 = isDesktop ? HERO_LAYOUT_9_LANDSCAPE : HERO_LAYOUT_9_PORTRAIT;
 
