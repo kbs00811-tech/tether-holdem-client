@@ -286,39 +286,34 @@ export default function GameTable() {
 
   // 방 목록
   const rooms = useGameStore(s => s.rooms);
-  const [joinAttempted, setJoinAttempted] = useState(false);
 
-  // 접속 시 방 목록 요청 + 자동 입장 — 단일 useEffect
+  // ★ 방 이동 로직 — tableId 변경 시마다 재실행 (컴포넌트 재사용 대응)
+  // 이전 버그: [connected] 만 의존 → React Router가 컴포넌트 재사용 시 재실행 안 돼 방 이동 실패
   useEffect(() => {
-    if (!connected || joinAttempted) return;
+    if (!connected || !tableId) return;
 
-    console.log('[GAME] Connected! Requesting rooms then auto-join...');
+    const alreadyJoined = useGameStore.getState().currentRoomId;
+    if (alreadyJoined === tableId) {
+      console.log(`[GAME] Already in target room: ${alreadyJoined}`);
+      return;
+    }
+
+    console.log(`[GAME] Room transition: ${alreadyJoined ?? 'none'} → ${tableId}`);
     send({ type: 'GET_ROOMS' });
 
-    // GET_ROOMS 응답을 기다린 후 첫 번째 방에 입장
-    // 폴링: 500ms마다 rooms 확인, 최대 5초
+    // GET_ROOMS 응답을 기다린 후 JOIN_ROOM — 폴링 500ms x 최대 5초
     let attempts = 0;
     const timer = setInterval(() => {
       attempts++;
       const currentRooms = useGameStore.getState().rooms;
-      const alreadyJoined = useGameStore.getState().currentRoomId;
-
-      // ★ 같은 방에 이미 있으면 skip (다른 방으로 이동 시엔 새로 JOIN)
-      if (alreadyJoined && alreadyJoined === tableId) {
-        console.log(`[GAME] Already in target room: ${alreadyJoined}`);
-        clearInterval(timer);
-        return;
-      }
 
       if (currentRooms.length > 0) {
-        // ★ URL의 tableId와 정확히 매칭되는 방만 입장 (fallback 제거)
         const target = currentRooms.find(r => r.id === tableId);
         if (target) {
-          console.log(`[GAME] Joining room: ${target.id} (${target.name}) (previous: ${alreadyJoined ?? 'none'})`);
+          console.log(`[GAME] Joining room: ${target.id} (${target.name})`);
           send({ type: 'JOIN_ROOM', roomId: target.id, buyIn: 0 });
-          setJoinAttempted(true);
         } else {
-          console.warn(`[GAME] Room ${tableId} not found in rooms list — staying in lobby view`);
+          console.warn(`[GAME] Room ${tableId} not found`);
           toast.error('Room not found');
         }
         clearInterval(timer);
@@ -329,7 +324,16 @@ export default function GameTable() {
     }, 500);
 
     return () => clearInterval(timer);
-  }, [connected]);
+  }, [connected, tableId, send]);
+
+  // ★ GameTable unmount 시 서버에 LEAVE_ROOM — orphan 방지
+  // (라우팅으로 완전 이탈한 경우에만 작동. 방 이동은 JOIN_ROOM 서버 로직에서 처리)
+  useEffect(() => {
+    return () => {
+      // unmount — 연결이 살아있으면 leave 요청
+      try { send({ type: 'LEAVE_ROOM' }); } catch {}
+    };
+  }, []);
 
   // ★ 자동 착석 제거 — 유저가 빈 자리 직접 클릭해서 앉아야 함 (관전 모드 진입 가능)
   // 이전: 입장 후 자동으로 빈 자리에 앉아서 의도치 않은 게임 시작

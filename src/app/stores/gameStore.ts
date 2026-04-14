@@ -108,12 +108,20 @@ export const useGameStore = create<GameStore>((set, get) => ({
 
   setConnected: (v) => set({ connected: v }),
 
+  // ★ resetRoom — 방 이탈 시 모든 인-게임 state 초기화.
+  // ROOM_LEFT 뿐 아니라 ROOM_JOINED (새 방 이동)에서도 사용해서 stale state 누수 방지.
+  // 유지: myPlayerId (WS 세션 식별), rooms (로비 목록), chatMessages (채팅 히스토리)
   resetRoom: () => set({
-    currentRoomId: null, gameState: null, myCards: [], isDealing: false,
-    isMyTurn: false, turnInfo: null, winners: null,
-    showResult: false, equities: null,
+    currentRoomId: null, gameState: null,
+    myCards: [], isDealing: false,
+    isMyTurn: false, turnInfo: null,
+    winners: null, showResult: false, equities: null,
+    lastActions: {}, allInBanner: null, dramaticMoment: null,
+    emptySeats: [], runItBoards: null,
     shownCards: {}, rabbitCards: [],
-    showMuckPrompt: false, runItTwiceRequest: false, insuranceOffer: null,
+    showMuckPrompt: false, runItTwiceRequest: false,
+    insuranceOffer: null, cashOutOffer: null,
+    isSittingOut: false,
   }),
 
   handleServerMessage: (msg) => {
@@ -136,7 +144,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
         break;
       case 'ROOM_JOINED':
         console.log(`[GAME] Joined room: ${msg.roomId}`);
-        set({ currentRoomId: msg.roomId, gameState: msg.state, winners: null, showResult: false });
+        // ★ 방 이동 시 모든 이전 방 state 완전 초기화 (게임 멈춤 버그 근본 수정)
+        // resetRoom() 호출 후 새 방 state 적용 — stale myCards/turnInfo/isDealing 등 누수 방지
+        get().resetRoom();
+        set({ currentRoomId: msg.roomId, gameState: msg.state });
         break;
       case 'ROOM_LEFT':
         get().resetRoom();
