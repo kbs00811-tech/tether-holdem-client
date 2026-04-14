@@ -413,20 +413,8 @@ export default function GameTable() {
     if (isSeated) setLocalPlayers({});
   }, [heroSeat, seated]);
 
-  // ★ WAIT_BB 자동 처리 — 착석 직후 WAIT_BB 상태면 1.5초 뒤 자동 Post BB
-  // 유저가 Post BB 버튼 누르는 걸 모르거나 미루는 문제 방지 (게임 진행 안 됨 버그)
-  const autoPostBBFiredRef = useRef(false);
-  useEffect(() => {
-    if (!seated) { autoPostBBFiredRef.current = false; return; }
-    if (!isWaitingForBB) return;
-    if (autoPostBBFiredRef.current) return;
-    autoPostBBFiredRef.current = true;
-    const t = setTimeout(() => {
-      send({ type: 'POST_BB' } as any);
-      toast('💰 다음 핸드부터 참여합니다 (Auto Post BB)', { duration: 3000 });
-    }, 1500);
-    return () => clearTimeout(t);
-  }, [seated, isWaitingForBB, send]);
+  // ★ [ROLLBACK 04d1756] Auto Post BB 제거 — 치명 버그 원인 의심으로 수동 Post BB 복원
+  // 사용자는 action panel의 "Post BB & Join Next Hand" 버튼을 직접 눌러야 함
 
   // ★ 서버 에러 처리 — 에러 코드별 분기
   const lastError = useGameStore(s => s.lastError);
@@ -600,7 +588,8 @@ export default function GameTable() {
       },
     }));
 
-    send({ type: 'SIT_DOWN', seat: targetSeat, buyIn: Math.round(amount * 100) });
+    // ★ avatarId 포함 전송 — 서버 sidown 이 랜덤 할당 대신 이 값 사용
+    send({ type: 'SIT_DOWN', seat: targetSeat, buyIn: Math.round(amount * 100), avatarId: currentAvatarIdx } as any);
     // ★ setSeated 는 useEffect로 자동 — 서버 PLAYER_JOINED 도착 시 heroSeat 갱신되며 동기화
     setShowBuyInModal(false);
     toast.success(`Bought in for ${getSymbol()}${amount.toLocaleString()}`);
