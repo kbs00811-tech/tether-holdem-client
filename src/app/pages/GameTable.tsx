@@ -303,8 +303,9 @@ export default function GameTable() {
       const currentRooms = useGameStore.getState().rooms;
       const alreadyJoined = useGameStore.getState().currentRoomId;
 
-      if (alreadyJoined) {
-        console.log(`[GAME] Already in room: ${alreadyJoined}`);
+      // ★ 같은 방에 이미 있으면 skip (다른 방으로 이동 시엔 새로 JOIN)
+      if (alreadyJoined && alreadyJoined === tableId) {
+        console.log(`[GAME] Already in target room: ${alreadyJoined}`);
         clearInterval(timer);
         return;
       }
@@ -313,7 +314,7 @@ export default function GameTable() {
         // ★ URL의 tableId와 정확히 매칭되는 방만 입장 (fallback 제거)
         const target = currentRooms.find(r => r.id === tableId);
         if (target) {
-          console.log(`[GAME] Joining room: ${target.id} (${target.name})`);
+          console.log(`[GAME] Joining room: ${target.id} (${target.name}) (previous: ${alreadyJoined ?? 'none'})`);
           send({ type: 'JOIN_ROOM', roomId: target.id, buyIn: 0 });
           setJoinAttempted(true);
         } else {
