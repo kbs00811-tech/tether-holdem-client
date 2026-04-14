@@ -658,65 +658,62 @@ export default function GameTable() {
   //   [5]            [3]
   //         [4]       ← hero
   //
-  // 6-Max: 6 seats evenly on oval (60° apart)
-  //        [0]           top
-  //   [5]       [1]      upper
-  //   [4]       [2]      lower
-  //        [3]           bottom (hero)
-  const LAYOUT_6: [number, number][] = [
-    [50,  -5],    // 0: top center
-    [108, 30],    // 1: right upper
-    [108, 70],    // 2: right lower
-    [50,  105],   // 3: bottom center (hero)
-    [-8,  70],    // 4: left lower
-    [-8,  30],    // 5: left upper
+  // ===== HERO-CENTRIC LAYOUT =====
+  // 모든 레이아웃은 index 0 = hero(하단 중앙), 시계방향 순서.
+  // 서버 seat i 는 아래 seatPositionsData 계산식에서 heroSeat 기준 회전돼
+  // 실제 visual index (i - heroSeat + N) % N 으로 매핑된다.
+
+  // 6-Max: 6 seats at 60° intervals, clockwise from hero (bottom)
+  //             [3]           12 o'clock (top)
+  //        [2]     [4]        10 / 2 o'clock
+  //        [1]     [5]         8 / 4 o'clock
+  //             [0]           6 o'clock (hero)
+  const HERO_LAYOUT_6: [number, number][] = [
+    [50,  92],    // 0: hero — bottom center
+    [-5,  75],    // 1: bottom-left (hero's left → next cw)
+    [-5,  22],    // 2: upper-left
+    [50,  -5],    // 3: top center
+    [105, 22],    // 4: upper-right
+    [105, 75],    // 5: bottom-right
   ];
 
-  // 8-Max: 8 seats evenly on oval (45° apart)
-  //     [7]   [0]   [1]       top row — equal spacing
-  //   [6]               [2]   mid row
-  //   [5]               [3]   mid row
-  //           [4]              bottom (hero)
-  //
-  // Vertical: 4 rows at -5%, 31%, 69%, 105% (equal 37% gaps)
-  // Top row 3 seats: 20%, 50%, 80% (equal 30% gaps)
   const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
 
-  // 9-Max 좌석 배치 (하단 2석 + 상단 3석 + 양옆 4석)
-  //     [7]   [0]   [1]       상단 3석
-  //   [6]               [2]   중상단
-  //   [5]               [3]   중하단
-  //      [8]        [4]        하단 2석 (HERO 영역)
-  //
-  // Mobile: portrait (세로) — 하단 좌석 위로 올려 카드 공간 확보
-  // ★ 하단 2자리(4,8) y=92→86, x 외곽 이동(72→82, 28→18) — CardSqueeze 영역과 겹침 방지
-  const LAYOUT_9_PORTRAIT: [number, number][] = [
-    [50,  -6],    // 0: 상단 중앙
-    [88,  -2],    // 1: 상단 우측
-    [110,  32],   // 2: 우측 상단
-    [110,  68],   // 3: 우측 하단
-    [82,   86],   // 4: 하단 우측
-    [-8,   68],   // 5: 좌측 하단
-    [-8,   32],   // 6: 좌측 상단
-    [12,  -2],    // 7: 상단 좌측
-    [18,   86],   // 8: 하단 좌측
+  // 9-Max: 9 seats at 40° intervals, clockwise from hero (bottom center)
+  // Portrait (모바일): 세로형 — 양옆 여유 좁게, 상/하 여유는 유지
+  const HERO_LAYOUT_9_PORTRAIT: [number, number][] = [
+    [50,  92],    // 0: hero — bottom center
+    [15,  90],    // 1: bottom-left
+    [-8,  58],    // 2: left
+    [0,   22],    // 3: upper-left
+    [30,  0],     // 4: top-left
+    [70,  0],     // 5: top-right
+    [100, 22],    // 6: upper-right
+    [108, 58],    // 7: right
+    [85,  90],    // 8: bottom-right
   ];
-  // Desktop: landscape — 하단 2자리(4,8) y=90→84, x 외곽 이동(70→78, 30→22)
-  // CardSqueeze(bottom:240/280) 위로 올리고 좌석을 바깥쪽으로 배치해 완전 분리
-  const LAYOUT_9_LANDSCAPE: [number, number][] = [
-    [50,  -8],    // 0: 상단 중앙
-    [82,  -6],    // 1: 상단 우측
-    [112,  34],   // 2: 우측 상단
-    [112,  68],   // 3: 우측 하단
-    [78,   84],   // 4: 하단 우측
-    [-12,  68],   // 5: 좌측 하단
-    [-12,  34],   // 6: 좌측 상단
-    [18,  -6],    // 7: 상단 좌측
-    [22,   84],   // 8: 하단 좌측
+  // Landscape (데스크탑): 가로형 — 양옆 넓게, 상하는 컴팩트
+  const HERO_LAYOUT_9_LANDSCAPE: [number, number][] = [
+    [50,  92],    // 0: hero — bottom center
+    [10,  90],    // 1: bottom-left
+    [-12, 60],    // 2: left
+    [-6,  22],    // 3: upper-left
+    [28,  -2],    // 4: top-left
+    [72,  -2],    // 5: top-right
+    [106, 22],    // 6: upper-right
+    [114, 60],    // 7: right
+    [92,  90],    // 8: bottom-right
   ];
-  const LAYOUT_9 = isDesktop ? LAYOUT_9_LANDSCAPE : LAYOUT_9_PORTRAIT;
+  const HERO_LAYOUT_9 = isDesktop ? HERO_LAYOUT_9_LANDSCAPE : HERO_LAYOUT_9_PORTRAIT;
 
-  const seatPositionsData = maxSeats === 6 ? LAYOUT_6 : LAYOUT_9;
+  // ===== 회전 매핑 =====
+  // base 레이아웃(index 0 = hero 위치)을 heroSeat 기준으로 회전.
+  // 서버 seat i → visual index (i - heroSeat + N) % N → base[d]
+  // heroSeat < 0 (관전 중) 이면 base 그대로 반환.
+  const baseLayout = maxSeats === 6 ? HERO_LAYOUT_6 : HERO_LAYOUT_9;
+  const seatPositionsData: [number, number][] = heroSeat < 0
+    ? baseLayout
+    : Array.from({ length: maxSeats }, (_, i) => baseLayout[(i - heroSeat + maxSeats) % maxSeats]!);
   // No separate seatPositions/betChipPos objects needed here —
   // they'll be placed inside the rim div below
 
@@ -1751,11 +1748,11 @@ export default function GameTable() {
         )}
       </AnimatePresence>
 
-      {/* ====== HERO CARDS — 고정 위치 스퀴즈 (하단 좌석 4/8 위로 올림) ====== */}
+      {/* ====== HERO CARDS — hero 좌석(항상 하단 중앙) 바로 앞에 표시 ====== */}
       {myHoleCards.length >= 2 && (
         <div style={{
           position: "fixed",
-          bottom: isMyTurn ? 280 : 240,
+          bottom: isMyTurn ? 200 : 170,
           left: "50%",
           transform: "translateX(-50%)",
           zIndex: 90,
