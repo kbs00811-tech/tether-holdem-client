@@ -144,10 +144,23 @@ export const useGameStore = create<GameStore>((set, get) => ({
         break;
       case 'ROOM_JOINED':
         console.log(`[GAME] Joined room: ${msg.roomId}`);
-        // ★ 방 이동 시 모든 이전 방 state 완전 초기화 (게임 멈춤 버그 근본 수정)
-        // resetRoom() 호출 후 새 방 state 적용 — stale myCards/turnInfo/isDealing 등 누수 방지
-        get().resetRoom();
-        set({ currentRoomId: msg.roomId, gameState: msg.state });
+        // ★ 방 이동 시 모든 이전 방 state를 원자적으로 초기화 + 새 state 설정
+        // 단일 set() 호출로 intermediate state (currentRoomId:null) 노출 방지
+        set({
+          // 새 방 state
+          currentRoomId: msg.roomId,
+          gameState: msg.state,
+          // 이전 방 stale state 일괄 clear
+          myCards: [], isDealing: false,
+          isMyTurn: false, turnInfo: null,
+          winners: null, showResult: false, equities: null,
+          lastActions: {}, allInBanner: null, dramaticMoment: null,
+          emptySeats: [], runItBoards: null,
+          shownCards: {}, rabbitCards: [],
+          showMuckPrompt: false, runItTwiceRequest: false,
+          insuranceOffer: null, cashOutOffer: null,
+          isSittingOut: false,
+        });
         break;
       case 'ROOM_LEFT':
         get().resetRoom();
