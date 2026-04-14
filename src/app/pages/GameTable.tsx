@@ -438,25 +438,25 @@ export default function GameTable() {
   const [flyingChips, setFlyingChips] = useState<Array<{ fromSeat: number; action: string; amount: number; key: number }>>([]);
   // 승리 시 칩이 승자에게 날아가는 애니메이션
   const [winChips, setWinChips] = useState<Array<{ toSeat: number; amount: number; key: number }>>([]);
-  // 팟 중앙 칩 스택 (누적)
+  // 팟 중앙 칩 스택 (누적) — POT 뱃지 위쪽(36%/42%)에 쌓임
   const [potChipStacks, setPotChipStacks] = useState<Array<{ color: string; x: number; y: number; rot: number }>>([]);
 
   const triggerChipFly = useCallback((fromSeat: number, action: string, amount: number) => {
     const chip = { fromSeat, action, amount, key: Date.now() + Math.random() };
     setFlyingChips(prev => [...prev, chip]);
-    // 팟 중앙에 칩 쌓기 — 칩 도착 후
+    // 칩 도착 후 팟 중앙에 누적 (flyingChips 와 동일한 개수/위치)
     setTimeout(() => {
-      const chipCount = action === 'allin' ? 6 : action === 'raise' ? 4 : 2;
+      const chipCount = action === 'allin' ? 5 : action === 'raise' ? 3 : 2;
       const chipColors = ['#26A17B', '#E5B800', '#8B5CF6', '#FF6B35', '#EF4444', '#34D399'];
       const newStacks = Array.from({ length: chipCount }, (_, i) => ({
         color: chipColors[(potChipStacks.length + i) % chipColors.length],
-        x: (Math.random() - 0.5) * 30,
-        y: (Math.random() - 0.5) * 16 - i * 2,
+        x: (Math.random() - 0.5) * 24,
+        y: (Math.random() - 0.5) * 10 - i * 1.5,
         rot: Math.random() * 360,
       }));
-      setPotChipStacks(prev => [...prev, ...newStacks].slice(-24)); // 최대 24개 칩
+      setPotChipStacks(prev => [...prev, ...newStacks].slice(-20));
     }, 700);
-    setTimeout(() => setFlyingChips(prev => prev.filter(c => c.key !== chip.key)), 1500);
+    setTimeout(() => setFlyingChips(prev => prev.filter(c => c.key !== chip.key)), 900);
   }, [potChipStacks.length]);
 
   // 승리 시 칩 수거 애니메이션
@@ -1351,11 +1351,12 @@ export default function GameTable() {
             )}
 
             {/* ===== CHIP FLY ANIMATION (베팅 시 좌석→중앙) — PokerChip 사용 =====
-                 ★ 칩 크기 축소 (48 → 28) + 착지점 POT 뱃지 위쪽 (44%) — POT 텍스트 가림 방지 */}
+                 ★ 착지점을 POT 뱃지(52%/56%) 보다 훨씬 위(36%/42%) — 완전히 분리
+                 ★ 사라짐 시점 단축 (opacity 구간 축소) */}
             <AnimatePresence>
               {flyingChips.map(chip => {
                 const seatPos = seatPositionsData[chip.fromSeat] ?? [50, 100];
-                const chipCount = chip.action === 'allin' ? 6 : chip.action === 'raise' ? 4 : 2;
+                const chipCount = chip.action === 'allin' ? 5 : chip.action === 'raise' ? 3 : 2;
                 const chipColor = getChipColorByValue(chip.amount);
                 return Array.from({ length: chipCount }).map((_, ci) => (
                   <motion.div key={`fly-${chip.key}-${ci}`}
@@ -1368,34 +1369,34 @@ export default function GameTable() {
                       opacity: 1,
                     }}
                     animate={{
-                      left: `${50 + (Math.random() - 0.5) * 8}%`,
-                      top: `${(isDesktop ? 44 : 48) + (Math.random() - 0.5) * 4}%`,
+                      left: `${50 + (Math.random() - 0.5) * 6}%`,
+                      top: `${(isDesktop ? 36 : 42) + (Math.random() - 0.5) * 3}%`,
                       scale: 1,
-                      opacity: [1, 1, 0.85],
+                      opacity: [1, 1, 0],
                       rotate: ci * 60,
                     }}
-                    exit={{ opacity: 0, scale: 0.5 }}
+                    exit={{ opacity: 0, scale: 0.4 }}
                     transition={{
-                      duration: 0.8 + ci * 0.06,
-                      delay: ci * 0.06,
+                      duration: 0.7 + ci * 0.04,
+                      delay: ci * 0.05,
                       ease: [0.22, 0.68, 0.36, 1],
+                      times: [0, 0.6, 1],
                     }}
                   >
-                    <PokerChip size={isDesktop ? 28 : 20} color={chipColor} />
+                    <PokerChip size={isDesktop ? 22 : 16} color={chipColor} />
                   </motion.div>
                 ));
               })}
             </AnimatePresence>
 
-            {/* ===== 중앙 팟 칩 스택 (칩이 쌓이는 비주얼) — PokerChip 사용 =====
-                 ★ POT 뱃지와 겹치지 않도록 뱃지 "위쪽"에 배치
-                 ★ 칩 사이즈 축소 (42 → 28/22) — 사용자 요청
-                 래퍼는 1x1 포인트, 내부 칩은 center 기준 상대 offset */}
+            {/* ===== 중앙 팟 칩 스택 (flyingChips 와 동일 위치에 누적) =====
+                 ★ POT 뱃지(52%/56%) 위쪽 36%/42% — 뱃지와 완전 분리
+                 ★ 칩 size 22/16 — flyingChips 와 동일 */}
             {potChipStacks.length > 0 && (
               <div className="absolute z-[8] pointer-events-none"
                 style={{
                   left: '50%',
-                  top: isDesktop ? '44%' : '48%',   // 팟 뱃지 위쪽 (뱃지는 52%/56%)
+                  top: isDesktop ? '36%' : '42%',
                   width: 0, height: 0,
                 }}>
                 {potChipStacks.map((chip, i) => {
@@ -1416,7 +1417,7 @@ export default function GameTable() {
                         transform: 'translate(-50%, -50%)',
                       }}
                     >
-                      <PokerChip size={isDesktop ? 28 : 22} color={chipColorName} />
+                      <PokerChip size={isDesktop ? 22 : 16} color={chipColorName} />
                     </motion.div>
                   );
                 })}
@@ -1436,7 +1437,7 @@ export default function GameTable() {
                     style={{ position: 'absolute', transform: 'translate(-50%, -50%)' }}
                     initial={{
                       left: `${50 + (Math.random() - 0.5) * 10}%`,
-                      top: `${(isDesktop ? 44 : 48) + (Math.random() - 0.5) * 6}%`,
+                      top: `${(isDesktop ? 36 : 42) + (Math.random() - 0.5) * 4}%`,
                       scale: 1,
                       opacity: 1,
                     }}
