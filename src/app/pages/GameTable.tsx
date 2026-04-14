@@ -689,28 +689,30 @@ export default function GameTable() {
   //      [8]        [4]        하단 2석 (HERO 영역)
   //
   // Mobile: portrait (세로) — 하단 좌석 위로 올려 카드 공간 확보
+  // ★ 하단 2자리(4,8) y=92→86, x 외곽 이동(72→82, 28→18) — CardSqueeze 영역과 겹침 방지
   const LAYOUT_9_PORTRAIT: [number, number][] = [
     [50,  -6],    // 0: 상단 중앙
     [88,  -2],    // 1: 상단 우측
     [110,  32],   // 2: 우측 상단
     [110,  68],   // 3: 우측 하단
-    [72,   92],   // 4: 하단 우측 (108→92)
+    [82,   86],   // 4: 하단 우측
     [-8,   68],   // 5: 좌측 하단
     [-8,   32],   // 6: 좌측 상단
     [12,  -2],    // 7: 상단 좌측
-    [28,   92],   // 8: 하단 좌측 (108→92)
+    [18,   86],   // 8: 하단 좌측
   ];
-  // Desktop: landscape — 하단 여유 확보 (버그8 수정: 95% → 90% 안쪽으로 이동해서 림 경계와 겹치지 않게)
+  // Desktop: landscape — 하단 2자리(4,8) y=90→84, x 외곽 이동(70→78, 30→22)
+  // CardSqueeze(bottom:240/280) 위로 올리고 좌석을 바깥쪽으로 배치해 완전 분리
   const LAYOUT_9_LANDSCAPE: [number, number][] = [
     [50,  -8],    // 0: 상단 중앙
     [82,  -6],    // 1: 상단 우측
     [112,  34],   // 2: 우측 상단
     [112,  68],   // 3: 우측 하단
-    [70,   90],   // 4: 하단 우측
+    [78,   84],   // 4: 하단 우측
     [-12,  68],   // 5: 좌측 하단
     [-12,  34],   // 6: 좌측 상단
     [18,  -6],    // 7: 상단 좌측
-    [30,   90],   // 8: 하단 좌측
+    [22,   84],   // 8: 하단 좌측
   ];
   const LAYOUT_9 = isDesktop ? LAYOUT_9_LANDSCAPE : LAYOUT_9_PORTRAIT;
 
@@ -1261,9 +1263,9 @@ export default function GameTable() {
 
             {/* 딜링 애니메이션은 하단 forceDealAnim 한 벌만 사용 — 중복 제거 */}
 
-            {/* ===== COMMUNITY CARDS ===== */}
+            {/* ===== COMMUNITY CARDS — 상단으로 이동(22/24%) POT/chip 영역과 분리 ===== */}
             <div className="absolute left-1/2 -translate-x-1/2 z-10"
-              style={{ top: isDesktop ? "30%" : "29%" }}>
+              style={{ top: isDesktop ? "22%" : "24%" }}>
               <div className="flex items-center justify-center" style={{ gap: isDesktop ? 6 : 3 }}>
                 <AnimatePresence>
                   {communityCards.map((card, i) => (
@@ -1300,11 +1302,11 @@ export default function GameTable() {
               </div>
             </div>
 
-            {/* ===== POT — 카드 아래에 표시 (모바일에서 더 아래로) ===== */}
+            {/* ===== POT — chip 영역과 통합(47/49%), z-20 으로 chip 위에 표시 ===== */}
             {pot > 0 && (
               <motion.div
-                className="absolute left-1/2 -translate-x-1/2 z-10"
-                style={{ top: isDesktop ? "52%" : "56%" }}
+                className="absolute left-1/2 -translate-x-1/2 z-20"
+                style={{ top: isDesktop ? "47%" : "49%" }}
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 key={pot}
@@ -1350,9 +1352,7 @@ export default function GameTable() {
               </motion.div>
             )}
 
-            {/* ===== CHIP FLY ANIMATION (베팅 시 좌석→중앙) — PokerChip 사용 =====
-                 ★ 착지점을 POT 뱃지(52%/56%) 보다 훨씬 위(36%/42%) — 완전히 분리
-                 ★ 사라짐 시점 단축 (opacity 구간 축소) */}
+            {/* ===== CHIP FLY ANIMATION — 착지점 POT과 동일(47/49%) z-30 위에 POT z-20 겹침 */}
             <AnimatePresence>
               {flyingChips.map(chip => {
                 const seatPos = seatPositionsData[chip.fromSeat] ?? [50, 100];
@@ -1360,7 +1360,7 @@ export default function GameTable() {
                 const chipColor = getChipColorByValue(chip.amount);
                 return Array.from({ length: chipCount }).map((_, ci) => (
                   <motion.div key={`fly-${chip.key}-${ci}`}
-                    className="z-30 pointer-events-none"
+                    className="z-[15] pointer-events-none"
                     style={{ position: 'absolute', transform: 'translate(-50%, -50%)' }}
                     initial={{
                       left: `${seatPos[0]}%`,
@@ -1370,7 +1370,7 @@ export default function GameTable() {
                     }}
                     animate={{
                       left: `${50 + (Math.random() - 0.5) * 6}%`,
-                      top: `${(isDesktop ? 36 : 42) + (Math.random() - 0.5) * 3}%`,
+                      top: `${(isDesktop ? 47 : 49) + (Math.random() - 0.5) * 3}%`,
                       scale: 1,
                       opacity: [1, 1, 0],
                       rotate: ci * 60,
@@ -1389,14 +1389,13 @@ export default function GameTable() {
               })}
             </AnimatePresence>
 
-            {/* ===== 중앙 팟 칩 스택 (flyingChips 와 동일 위치에 누적) =====
-                 ★ POT 뱃지(52%/56%) 위쪽 36%/42% — 뱃지와 완전 분리
-                 ★ 칩 size 22/16 — flyingChips 와 동일 */}
+            {/* ===== 중앙 팟 칩 스택 — POT 뱃지와 동일 위치(47/49%) 뒤에 쌓임
+                 z 순서: 칩스택[8] < flyingChips[15] < POT[20] < winChips[40] */}
             {potChipStacks.length > 0 && (
               <div className="absolute z-[8] pointer-events-none"
                 style={{
                   left: '50%',
-                  top: isDesktop ? '36%' : '42%',
+                  top: isDesktop ? '47%' : '49%',
                   width: 0, height: 0,
                 }}>
                 {potChipStacks.map((chip, i) => {
@@ -1437,7 +1436,7 @@ export default function GameTable() {
                     style={{ position: 'absolute', transform: 'translate(-50%, -50%)' }}
                     initial={{
                       left: `${50 + (Math.random() - 0.5) * 10}%`,
-                      top: `${(isDesktop ? 36 : 42) + (Math.random() - 0.5) * 4}%`,
+                      top: `${(isDesktop ? 47 : 49) + (Math.random() - 0.5) * 4}%`,
                       scale: 1,
                       opacity: 1,
                     }}
@@ -1752,11 +1751,11 @@ export default function GameTable() {
         )}
       </AnimatePresence>
 
-      {/* ====== HERO CARDS — 고정 위치 스퀴즈 ====== */}
+      {/* ====== HERO CARDS — 고정 위치 스퀴즈 (하단 좌석 4/8 위로 올림) ====== */}
       {myHoleCards.length >= 2 && (
         <div style={{
           position: "fixed",
-          bottom: isMyTurn ? 220 : 180,
+          bottom: isMyTurn ? 280 : 240,
           left: "50%",
           transform: "translateX(-50%)",
           zIndex: 90,
