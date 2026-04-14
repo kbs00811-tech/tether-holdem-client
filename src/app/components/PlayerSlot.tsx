@@ -54,8 +54,11 @@ const avatarGlyphs = ["₿", "Ξ", "₮", "◆", "忍", "</>", "♦", "♛", "�
 export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, turnDeadline, turnTotalMs = 30000, isHero, position, onSitDown, hideCards, onTopUp, onEmoji, onSitOut, recentAction }: PlayerSlotProps) {
   const navigate = useNavigate();
   const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
+  const isLargeDesktop = typeof window !== 'undefined' && window.innerWidth >= 1280;
+  const isXLDesktop = typeof window !== 'undefined' && window.innerWidth >= 1600;
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 480;
-  const avatarSize = isDesktop ? 68 : isMobile ? 42 : 52;
+  // ★ 데스크탑 해상도별 avatar 크기: 68(md) / 84(xl, ≥1280) / 96(2xl, ≥1600)
+  const avatarSize = isXLDesktop ? 96 : isLargeDesktop ? 84 : isDesktop ? 68 : isMobile ? 42 : 52;
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
 
   // ===== 라이브 카운트다운 (버그1 수정) =====

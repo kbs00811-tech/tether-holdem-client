@@ -689,6 +689,7 @@ export default function GameTable() {
   ];
 
   const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
+  const isLargeDesktop = typeof window !== 'undefined' && window.innerWidth >= 1280;
 
   // 9-Max: 9 seats at 40° intervals, clockwise from hero (bottom center)
   // Portrait (모바일): 세로형 — 양옆 여유 좁게, 상/하 여유는 유지
@@ -1100,18 +1101,18 @@ export default function GameTable() {
 
         <div className="absolute inset-0 flex items-center justify-center px-1 sm:px-4"
           style={{ perspective: "800px" }}>
-          {/* Mobile: portrait 9:14, Desktop: landscape */}
+          {/* Mobile: portrait 9:14, Desktop: landscape — 데스크탑 해상도별 확장 */}
           <div className={`relative w-full h-full
             ${isDesktop
-              ? 'max-w-[1100px] xl:max-w-[1280px] max-h-[520px] lg:max-h-[580px] xl:max-h-[620px]'
+              ? 'max-w-[1280px] xl:max-w-[1500px] 2xl:max-w-[1720px] max-h-[640px] lg:max-h-[720px] xl:max-h-[820px] 2xl:max-h-[900px]'
               : 'max-h-[560px]'
             }`}
             style={{
               // 모바일: viewport 기반 동적 너비 (min 92vw, max 380px)
               maxWidth: isDesktop ? undefined : "min(96vw, 380px)",
-              aspectRatio: isDesktop ? "16/8" : "10/14",
+              aspectRatio: isDesktop ? "16/8.5" : "10/14",
               transform: isDesktop
-                ? "rotateX(16deg) translateY(-1%) scale(0.95)"
+                ? "rotateX(14deg) translateY(-1%)"
                 : "rotateX(8deg) translateY(0%) scale(0.99)",
               transformOrigin: "center 60%",
               transformStyle: "preserve-3d",
@@ -1291,7 +1292,7 @@ export default function GameTable() {
             {/* ===== COMMUNITY CARDS — 상단으로 이동(22/24%) POT/chip 영역과 분리 ===== */}
             <div className="absolute left-1/2 -translate-x-1/2 z-10"
               style={{ top: isDesktop ? "22%" : "24%" }}>
-              <div className="flex items-center justify-center" style={{ gap: isDesktop ? 6 : 3 }}>
+              <div className="flex items-center justify-center" style={{ gap: isLargeDesktop ? 10 : isDesktop ? 6 : 3 }}>
                 <AnimatePresence>
                   {communityCards.map((card, i) => (
                     <motion.div key={`comm-${card.suit}-${card.rank}-${i}`}
@@ -1309,7 +1310,7 @@ export default function GameTable() {
                       }}
                       className="shrink-0">
                       <div className="relative">
-                        <PokerCard suit={card.suit} rank={card.rank} size={isDesktop ? "lg" : "sm"} />
+                        <PokerCard suit={card.suit} rank={card.rank} size={isLargeDesktop ? "xl" : isDesktop ? "lg" : "sm"} />
                         <div className="absolute -bottom-1 left-1 right-1 h-2 rounded-full"
                           style={{ background: "rgba(0,0,0,0.3)", filter: "blur(3px)" }} />
                       </div>
@@ -1319,7 +1320,9 @@ export default function GameTable() {
                 {/* Empty card slots */}
                 {Array.from({ length: Math.max(0, 5 - communityCards.length) }).map((_, i) => (
                   <div key={`empty-${i}`} className="shrink-0" style={{
-                    width: isDesktop ? 72 : 40, height: isDesktop ? 101 : 56, borderRadius: 6,
+                    width: isLargeDesktop ? 112 : isDesktop ? 72 : 40,
+                    height: isLargeDesktop ? 157 : isDesktop ? 101 : 56,
+                    borderRadius: 6,
                     border: "1px dashed rgba(255,255,255,0.04)",
                     background: "rgba(255,255,255,0.01)",
                   }} />
@@ -1789,10 +1792,10 @@ export default function GameTable() {
         </div>
       )}
 
-      {/* ====== ACTION PANEL — mobile-optimized ====== */}
+      {/* ====== ACTION PANEL — responsive (데스크탑에서 max-w-4xl 까지 확장) ====== */}
       <div className="shrink-0 z-30 action-panel safe-bottom"
         style={{ background: "rgba(5,8,12,0.95)", backdropFilter: "blur(20px)", borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-        <div className="px-2 sm:px-3 md:px-4 pt-1.5 pb-1.5 sm:pt-2 sm:pb-2 max-w-lg mx-auto">
+        <div className="px-2 sm:px-3 md:px-4 pt-1.5 pb-1.5 sm:pt-2 sm:pb-2 max-w-lg md:max-w-2xl lg:max-w-3xl xl:max-w-4xl mx-auto">
 
           {isMyTurn ? (
             <>
