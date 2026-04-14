@@ -413,6 +413,21 @@ export default function GameTable() {
     if (isSeated) setLocalPlayers({});
   }, [heroSeat, seated]);
 
+  // ★ WAIT_BB 자동 처리 — 착석 직후 WAIT_BB 상태면 1.5초 뒤 자동 Post BB
+  // 유저가 Post BB 버튼 누르는 걸 모르거나 미루는 문제 방지 (게임 진행 안 됨 버그)
+  const autoPostBBFiredRef = useRef(false);
+  useEffect(() => {
+    if (!seated) { autoPostBBFiredRef.current = false; return; }
+    if (!isWaitingForBB) return;
+    if (autoPostBBFiredRef.current) return;
+    autoPostBBFiredRef.current = true;
+    const t = setTimeout(() => {
+      send({ type: 'POST_BB' } as any);
+      toast('💰 다음 핸드부터 참여합니다 (Auto Post BB)', { duration: 3000 });
+    }, 1500);
+    return () => clearTimeout(t);
+  }, [seated, isWaitingForBB, send]);
+
   // ★ 서버 에러 처리 — 에러 코드별 분기
   const lastError = useGameStore(s => s.lastError);
   useEffect(() => {
@@ -1774,11 +1789,12 @@ export default function GameTable() {
         )}
       </AnimatePresence>
 
-      {/* ====== HERO CARDS — hero 좌석(항상 하단 중앙) 바로 앞에 표시 ====== */}
+      {/* ====== HERO CARDS — 액션 패널 바로 위 공간에 배치 (겹침 방지) ======
+           데스크탑(xl 카드 ~157px) 에서도 안 겹치도록 bottom 여유 충분히 확보 */}
       {myHoleCards.length >= 2 && (
         <div style={{
           position: "fixed",
-          bottom: isMyTurn ? 200 : 170,
+          bottom: isMyTurn ? 300 : 260,
           left: "50%",
           transform: "translateX(-50%)",
           zIndex: 90,
