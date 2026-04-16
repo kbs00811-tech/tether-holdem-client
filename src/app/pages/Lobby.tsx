@@ -40,12 +40,12 @@ const mockRooms: PokerRoom[] = [
 ];
 
 const holdemCategories = [
-  { icon: Flame, label: "All", color: "#FF6B35", tables: 48, active: true },
-  { icon: DollarSign, label: "Beginner", color: "#34D399", tables: 12 },
-  { icon: Zap, label: "Standard", color: "#60A5FA", tables: 15 },
-  { icon: Crown, label: "High Roller", color: "#E5B800", tables: 6 },
-  { icon: Users, label: "Heads-Up", color: "#22D3EE", tables: 8 },
-  { icon: Trophy, label: "Tournament", color: "#A78BFA", tables: 10 },
+  { icon: Flame, label: "All", color: "#FF6B35" },
+  { icon: DollarSign, label: "Beginner", color: "#34D399" },
+  { icon: Zap, label: "Standard", color: "#60A5FA" },
+  { icon: Crown, label: "High Roller", color: "#E5B800" },
+  { icon: Users, label: "Heads-Up", color: "#22D3EE" },
+  { icon: Trophy, label: "Tournament", color: "#A78BFA" },
 ];
 
 export default function Lobby() {
@@ -54,7 +54,7 @@ export default function Lobby() {
   const serverRooms = useGameStore(s => s.rooms);
 
   const [showCreateRoom, setShowCreateRoom] = useState(false);
-  const [activeCategory, setActiveCategory] = useState("No Limit");
+  const [activeCategory, setActiveCategory] = useState("All");
   const [showProfilePanel, setShowProfilePanel] = useState(false);
   // 실제 접속자 수 — 모든 방의 playerCount 합산 (AI 봇 포함)
   const onlineCount = serverRooms.reduce((sum, r) => sum + (r.playerCount || 0), 0);
@@ -134,7 +134,7 @@ export default function Lobby() {
   }, [navigate]);
 
   // 서버 방 목록 → 로컬 형식 변환 (서버 연결 시 서버 데이터 사용, 아니면 mock)
-  const rooms: PokerRoom[] = serverRooms.length > 0
+  const allRooms: PokerRoom[] = serverRooms.length > 0
     ? serverRooms.map(r => ({
         id: r.id,
         name: r.name,
@@ -143,11 +143,22 @@ export default function Lobby() {
         currentPlayers: r.playerCount,
         maxPlayers: r.maxPlayers,
         minBuyIn: r.minBuyIn / 100,
-        maxBuyIn: (r.minBuyIn * 2) / 100, // 서버에서 maxBuyIn 추가 필요
+        maxBuyIn: (r.minBuyIn * 2) / 100,
         status: r.phase === "WAITING" ? "waiting" as const : "playing" as const,
         variant: "NL",
       }))
     : mockRooms;
+
+  // 카테고리 필터
+  const rooms = allRooms.filter(r => {
+    if (activeCategory === 'All') return true;
+    if (activeCategory === 'Beginner') return r.name.includes('Beginner');
+    if (activeCategory === 'Standard') return r.name.includes('Standard');
+    if (activeCategory === 'High Roller') return r.name.includes('High') || r.name.includes('VIP');
+    if (activeCategory === 'Heads-Up') return r.maxPlayers === 2 || r.name.includes('HU');
+    if (activeCategory === 'Tournament') return false; // 토너먼트는 별도 섹션
+    return true;
+  });
 
   // Simulate live counter
   useEffect(() => {
@@ -373,7 +384,8 @@ export default function Lobby() {
         </div>
       </section>
 
-      {/* ═══════ ROOM LIST ═══════ */}
+      {/* ═══════ ROOM LIST (Tournament 제외) ═══════ */}
+      {activeCategory !== 'Tournament' && (
       <section className="mx-3 sm:mx-5 mt-6 mb-6">
         <div className="flex items-center justify-between mb-4">
           <div>
@@ -597,6 +609,11 @@ export default function Lobby() {
         </div>
         )}
 
+      </section>
+      )}
+
+      {/* ═══════ TOURNAMENT SECTION ═══════ */}
+      <section className="mx-3 sm:mx-5 mt-6 mb-6">
         {/* ═══════ TOURNAMENT CTA ═══════ */}
         <div className="mt-8 rounded-2xl p-6 relative overflow-hidden"
           style={{
