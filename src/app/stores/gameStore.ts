@@ -201,7 +201,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
         // 놓칠 수 있으므로 GAME_STATE 에 내장된 dealingStartAt/dealingDurationMs 로부터
         // dealingInfo 를 재구성한다.
         const st: any = msg.state;
-        const updates: any = { gameState: msg.state, isMyTurn: false, winners: null, showResult: false, equities: null };
+        // V18.1: showResult 활성(핸드 결과 표시 중) 이면 winners/showResult 보존
+        //   → HAND_RESULT 직후 도착하는 GAME_STATE 가 승자 표시를 덮어쓰는 race condition 방지
+        const isShowingResult = get().showResult;
+        const updates: any = {
+          gameState: msg.state,
+          isMyTurn: false,
+          equities: null,
+          ...(isShowingResult ? {} : { winners: null, showResult: false }),
+        };
         const cur = get().dealingInfo;
         const phaseStr = String(st?.phase || '').toUpperCase();
         if (

@@ -1274,7 +1274,7 @@ export default function GameTable() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[65] flex items-center justify-center bg-black/80 backdrop-blur-md p-3"
+            className="fixed inset-0 z-[95] flex items-center justify-center bg-black/80 backdrop-blur-md p-3"
             onClick={() => setShowInviteModal(false)}
           >
             <motion.div
@@ -1400,7 +1400,7 @@ export default function GameTable() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-md p-3"
+            className="fixed inset-0 z-[95] flex items-center justify-center bg-black/80 backdrop-blur-md p-3"
             onClick={() => setReplayHand(null)}
           >
             <motion.div
@@ -2979,7 +2979,7 @@ export default function GameTable() {
       <AnimatePresence>
         {showLeaveConfirm && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+            className="fixed inset-0 z-[95] flex items-center justify-center bg-black/60 backdrop-blur-sm">
             <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }}
               className="rounded-2xl p-6 text-center max-w-[320px]"
               style={{ background: "#141820", border: "1px solid rgba(255,255,255,0.06)" }}>

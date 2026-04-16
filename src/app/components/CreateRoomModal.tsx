@@ -85,8 +85,8 @@ export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModal
     <Dialog open={open} onOpenChange={onClose}>
       {/* V12: 모바일 dvh 사용 — iOS 주소바 포함 해결 + footer 절대 안 가려짐 */}
       <DialogContent
-        className="max-w-[440px] w-[calc(100vw-16px)] max-h-[85vh] p-0 overflow-hidden border-0 flex flex-col"
-        style={{ maxHeight: 'min(85vh, 85dvh)' }}
+        className="max-w-[440px] w-[calc(100vw-16px)] p-0 overflow-hidden border-0 flex flex-col"
+        style={{ maxHeight: 'min(80vh, 80dvh, calc(100dvh - 2rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)))' }}
         hideClose
       >
         {/* Header */}
@@ -108,8 +108,8 @@ export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModal
           </div>
         </div>
 
-        {/* Body — 모바일은 스크롤 */}
-        <div className="px-5 sm:px-6 py-4 sm:py-5 space-y-4 sm:space-y-5 overflow-y-auto flex-1" style={{ background: "#0F1520" }}>
+        {/* Body — 모바일은 스크롤 (min-h-0 필수: flex 자식 overflow 활성화) */}
+        <div className="px-4 sm:px-6 py-3 sm:py-5 space-y-3 sm:space-y-5 overflow-y-auto flex-1 min-h-0" style={{ background: "#0F1520" }}>
 
           {/* Table Name */}
           <div>
@@ -243,7 +243,7 @@ export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModal
         </div>
 
         {/* Footer */}
-        <div className="flex gap-2 sm:gap-3 px-5 sm:px-6 py-4 sm:py-5 pb-5 shrink-0 border-t border-white/[0.05]" style={{ background: "#0F1520" }}>
+        <div className="flex gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-5 pb-4 sm:pb-5 shrink-0 border-t border-white/[0.05]" style={{ background: "#0F1520" }}>
           <button onClick={onClose}
             className="flex-1 py-2.5 rounded-lg text-[13px] font-semibold text-[#6B7A90]
               bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:text-white transition-all">
