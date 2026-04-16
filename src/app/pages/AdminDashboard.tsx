@@ -14,7 +14,7 @@ import {
 import { AVATAR_IMAGES, AVATAR_NAMES } from "../stores/settingsStore";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
-import { useSocket } from "../hooks/useSocket";
+import { useSocket, addSocketListener, removeSocketListener } from "../hooks/useSocket";
 import { useGameStore } from "../stores/gameStore";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 
@@ -138,6 +138,13 @@ export default function AdminDashboard() {
   // Phase 1: 실시간 데이터
   const [activeTab, setActiveTab] = useState<string>('overview');
   const [rtpTarget, setRtpTarget] = useState(95);
+  // RTP 실시간 데이터 (서버 연동)
+  const [rtpDashboard, setRtpDashboard] = useState<any>(null);
+  const [rtpConfig, setRtpConfig] = useState<any>(null);
+  const [rtpPlayers, setRtpPlayers] = useState<any[]>([]);
+  const [rtpPlayerDetail, setRtpPlayerDetail] = useState<any>(null);
+  const [rtpOverrideId, setRtpOverrideId] = useState("");
+  const [rtpOverrideValue, setRtpOverrideValue] = useState(95);
   const [revenueData] = useState(generateRevenueData);
   const [dailyRevenue] = useState(generateDailyRevenue);
   const [revenuePeriod, setRevenuePeriod] = useState<"today" | "week" | "month">("today");
@@ -188,6 +195,27 @@ export default function AdminDashboard() {
       return () => clearInterval(t);
     }
   }, [connected, authenticated]);
+
+  // RTP 데이터 수신 리스너
+  useEffect(() => {
+    const handler = (msg: any) => {
+      if (msg.type === 'ADMIN_RTP_DASHBOARD') setRtpDashboard(msg.data);
+      if (msg.type === 'ADMIN_RTP_CONFIG') setRtpConfig(msg.data);
+      if (msg.type === 'ADMIN_RTP_PLAYERS') setRtpPlayers(msg.data || []);
+      if (msg.type === 'ADMIN_RTP_PLAYER') setRtpPlayerDetail(msg.data);
+    };
+    addSocketListener(handler);
+    return () => removeSocketListener(handler);
+  }, []);
+
+  // RTP 탭 진입 시 데이터 로드
+  useEffect(() => {
+    if (activeTab === 'rtp' && connected && authenticated) {
+      send({ type: 'ADMIN_RTP_DASHBOARD' } as any);
+      send({ type: 'ADMIN_RTP_CONFIG' } as any);
+      send({ type: 'ADMIN_RTP_PLAYERS' } as any);
+    }
+  }, [activeTab, connected, authenticated]);
 
   const totalPlayers = rooms.reduce((s, r) => s + r.playerCount, 0);
   const activeRooms = rooms.filter(r => r.playerCount > 0).length;
@@ -1217,35 +1245,181 @@ export default function AdminDashboard() {
             RTP Tab
             ═══════════════════════════════════════════════ */}
         {activeTab === 'rtp' && (
-          <Panel>
-            <SectionHeader title="RTP Control (House Edge)" icon={TrendingUp} color="#FFD700" />
-            <div className="mb-6">
-              <label className="text-[10px] text-[#4A5A70] uppercase tracking-wider block mb-2">Target RTP (%)</label>
-              <div className="flex items-center gap-4">
-                <input type="range" min={80} max={99} value={rtpTarget} onChange={e => setRtpTarget(Number(e.target.value))}
-                  className="flex-1 h-2 rounded-full appearance-none bg-[#1A2235]
-                    [&::-webkit-slider-thumb]:w-6 [&::-webkit-slider-thumb]:h-6 [&::-webkit-slider-thumb]:rounded-full
-                    [&::-webkit-slider-thumb]:bg-[#FFD700] [&::-webkit-slider-thumb]:appearance-none" />
-                <span className="font-mono text-2xl font-black text-[#FFD700] w-20 text-right">{rtpTarget}%</span>
+          <div className="space-y-4">
+            {/* 실시간 대시보드 */}
+            <Panel>
+              <SectionHeader title="RTP Dashboard (Live)" icon={TrendingUp} color="#FFD700" />
+              <div className="flex items-center justify-between mb-3">
+                <button onClick={() => { send({ type: 'ADMIN_RTP_DASHBOARD' } as any); send({ type: 'ADMIN_RTP_PLAYERS' } as any); }}
+                  className="text-[10px] text-[#FFD700] flex items-center gap-1">
+                  <RefreshCw className="h-3 w-3" /> Refresh
+                </button>
               </div>
-              <div className="flex justify-between text-[9px] text-[#3A4A5A] mt-1"><span>80% (High Edge)</span><span>99% (Low Edge)</span></div>
-            </div>
-            <div className="grid grid-cols-2 gap-3 mb-6">
-              <div className="p-3 rounded-lg" style={{ background: "rgba(255,255,255,0.02)" }}>
-                <div className="text-[10px] text-[#4A5A70]">House Edge</div>
-                <div className="font-mono text-lg font-bold text-[#FF6B35]">{100 - rtpTarget}%</div>
+              {rtpDashboard ? (
+                <div className="space-y-3">
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div className="p-3 rounded-lg" style={{ background: "rgba(255,215,0,0.06)", border: "1px solid rgba(255,215,0,0.15)" }}>
+                      <div className="text-[9px] text-[#4A5A70] uppercase">Avg RTP</div>
+                      <div className="font-mono text-xl font-black text-[#FFD700]">{rtpDashboard.avgRTP?.toFixed(1) ?? '-'}%</div>
+                    </div>
+                    <div className="p-3 rounded-lg" style={{ background: "rgba(52,211,153,0.06)", border: "1px solid rgba(52,211,153,0.15)" }}>
+                      <div className="text-[9px] text-[#4A5A70] uppercase">Players</div>
+                      <div className="font-mono text-xl font-black text-[#34D399]">{rtpDashboard.totalPlayers ?? 0}</div>
+                    </div>
+                    <div className="p-3 rounded-lg" style={{ background: "rgba(255,107,53,0.06)", border: "1px solid rgba(255,107,53,0.15)" }}>
+                      <div className="text-[9px] text-[#4A5A70] uppercase">House Edge</div>
+                      <div className="font-mono text-xl font-black text-[#FF6B35]">{(100 - (rtpDashboard.avgRTP ?? 100)).toFixed(1)}%</div>
+                    </div>
+                    <div className="p-3 rounded-lg" style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.15)" }}>
+                      <div className="text-[9px] text-[#4A5A70] uppercase">Alerts</div>
+                      <div className="font-mono text-xl font-black text-[#A78BFA]">{rtpDashboard.activeAlerts?.length ?? 0}</div>
+                    </div>
+                  </div>
+                  {/* 세그먼트 분포 */}
+                  {rtpDashboard.segmentCounts && (
+                    <div className="flex gap-2 flex-wrap">
+                      {Object.entries(rtpDashboard.segmentCounts).map(([seg, count]) => (
+                        <div key={seg} className="px-2.5 py-1.5 rounded-lg text-[10px] font-bold"
+                          style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", color: "#8899AB" }}>
+                          {seg}: <span className="text-white">{count as number}</span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  {/* 경고 */}
+                  {rtpDashboard.activeAlerts?.length > 0 && (
+                    <div className="space-y-1">
+                      {rtpDashboard.activeAlerts.map((alert: string, i: number) => (
+                        <div key={i} className="px-3 py-2 rounded-lg text-[10px] text-[#EF4444]"
+                          style={{ background: "rgba(239,68,68,0.06)", border: "1px solid rgba(239,68,68,0.15)" }}>
+                          {alert}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="text-center py-6 text-[#4A5A70] text-xs">Loading...</div>
+              )}
+            </Panel>
+
+            {/* 세그먼트별 RTP 설정 */}
+            <Panel>
+              <SectionHeader title="Segment RTP Settings" icon={TrendingUp} color="#34D399" />
+              {rtpConfig?.segments ? (
+                <div className="space-y-2">
+                  {Object.entries(rtpConfig.segments).map(([seg, cfg]: [string, any]) => (
+                    <div key={seg} className="flex items-center justify-between p-3 rounded-lg"
+                      style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)" }}>
+                      <div>
+                        <div className="text-xs font-bold text-white capitalize">{seg}</div>
+                        <div className="text-[9px] text-[#4A5A70]">min {cfg.minRTP}% / max {cfg.maxRTP}%</div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input type="number" min={60} max={150} value={cfg.targetRTP}
+                          onChange={e => {
+                            const v = Number(e.target.value);
+                            setRtpConfig((prev: any) => ({
+                              ...prev,
+                              segments: { ...prev.segments, [seg]: { ...cfg, targetRTP: v } },
+                            }));
+                          }}
+                          className="w-16 px-2 py-1 rounded text-xs font-mono font-bold text-center bg-[#0B1018] border border-[#1A2235] text-[#FFD700]" />
+                        <span className="text-[10px] text-[#4A5A70]">%</span>
+                        <button onClick={() => {
+                            send({ type: 'ADMIN_RTP_UPDATE_SEGMENT', segment: seg, targetRTP: cfg.targetRTP, minRTP: cfg.minRTP, maxRTP: cfg.maxRTP } as any);
+                            toast.success(`${seg} RTP → ${cfg.targetRTP}%`);
+                          }}
+                          className="px-2 py-1 rounded text-[9px] font-bold text-[#34D399]"
+                          style={{ background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.2)" }}>
+                          Apply
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-4 text-[#4A5A70] text-xs">Loading config...</div>
+              )}
+            </Panel>
+
+            {/* 유저별 RTP + 오버라이드 */}
+            <Panel>
+              <SectionHeader title="Player RTP Override" icon={TrendingUp} color="#A78BFA" />
+              <div className="flex gap-2 mb-3">
+                <input value={rtpOverrideId} onChange={e => setRtpOverrideId(e.target.value)}
+                  placeholder="Player ID" className="flex-1 px-3 py-2 rounded-lg text-xs bg-[#0B1018] border border-[#1A2235] text-white" />
+                <input type="number" min={60} max={150} value={rtpOverrideValue}
+                  onChange={e => setRtpOverrideValue(Number(e.target.value))}
+                  className="w-20 px-2 py-2 rounded-lg text-xs font-mono bg-[#0B1018] border border-[#1A2235] text-[#FFD700] text-center" />
+                <button onClick={() => {
+                    if (!rtpOverrideId) { toast.error('Player ID 입력'); return; }
+                    send({ type: 'ADMIN_RTP_OVERRIDE', playerId: rtpOverrideId, targetRTP: rtpOverrideValue } as any);
+                    toast.success(`${rtpOverrideId} → RTP ${rtpOverrideValue}%`);
+                  }}
+                  className="px-3 py-2 rounded-lg text-[10px] font-bold text-white"
+                  style={{ background: "linear-gradient(135deg, #A78BFA, #7C3AED)" }}>
+                  Override
+                </button>
+                <button onClick={() => {
+                    if (!rtpOverrideId) return;
+                    send({ type: 'ADMIN_RTP_PLAYER', playerId: rtpOverrideId } as any);
+                  }}
+                  className="px-3 py-2 rounded-lg text-[10px] font-bold text-[#60A5FA]"
+                  style={{ background: "rgba(96,165,250,0.1)" }}>
+                  Detail
+                </button>
               </div>
-              <div className="p-3 rounded-lg" style={{ background: "rgba(255,255,255,0.02)" }}>
-                <div className="text-[10px] text-[#4A5A70]">Per {getSymbol()}100K wagered</div>
-                <div className="font-mono text-lg font-bold text-[#34D399]">{getSymbol()}{((100 - rtpTarget) * 1000).toLocaleString()} profit</div>
-              </div>
-            </div>
-            <button onClick={() => { send({ type: 'SET_RTP', rtp: rtpTarget } as any); toast.success(`RTP set to ${rtpTarget}%`); }}
-              className="w-full py-3 rounded-lg text-sm font-bold text-white"
-              style={{ background: "linear-gradient(135deg, #FFD700, #E5B800)" }}>
-              Apply RTP Setting
-            </button>
-          </Panel>
+              {/* 플레이어 상세 */}
+              {rtpPlayerDetail && (
+                <div className="p-3 rounded-lg mb-3" style={{ background: "rgba(139,92,246,0.06)", border: "1px solid rgba(139,92,246,0.15)" }}>
+                  <div className="grid grid-cols-3 gap-2 text-[10px]">
+                    <div><span className="text-[#4A5A70]">ID:</span> <span className="text-white font-mono">{rtpPlayerDetail.playerId}</span></div>
+                    <div><span className="text-[#4A5A70]">Segment:</span> <span className="text-[#A78BFA] font-bold">{rtpPlayerDetail.segment}</span></div>
+                    <div><span className="text-[#4A5A70]">Hands:</span> <span className="text-white font-mono">{rtpPlayerDetail.handsPlayed}</span></div>
+                    <div><span className="text-[#4A5A70]">Current RTP:</span> <span className="text-[#FFD700] font-bold">{rtpPlayerDetail.currentRTP?.toFixed(1)}%</span></div>
+                    <div><span className="text-[#4A5A70]">Target:</span> <span className="text-[#34D399] font-bold">{rtpPlayerDetail.targetRTP}%</span></div>
+                    <div><span className="text-[#4A5A70]">Adjustment:</span> <span className="text-white font-mono">{rtpPlayerDetail.adjustmentScore?.toFixed(2)}</span></div>
+                    <div><span className="text-[#4A5A70]">Losses streak:</span> <span className="text-[#EF4444] font-mono">{rtpPlayerDetail.consecutiveLosses}</span></div>
+                    <div><span className="text-[#4A5A70]">Wagered:</span> <span className="text-white font-mono">{getSymbol()}{((rtpPlayerDetail.totalWagered || 0) / 100).toLocaleString()}</span></div>
+                    <div><span className="text-[#4A5A70]">Returned:</span> <span className="text-white font-mono">{getSymbol()}{((rtpPlayerDetail.totalReturned || 0) / 100).toLocaleString()}</span></div>
+                  </div>
+                </div>
+              )}
+              {/* 전체 유저 리스트 */}
+              {rtpPlayers.length > 0 && (
+                <div className="overflow-x-auto">
+                  <table className="w-full text-[10px]">
+                    <thead>
+                      <tr className="text-[#4A5A70] border-b border-white/5">
+                        <th className="text-left py-2 px-2">Player</th>
+                        <th className="text-center py-2">Seg</th>
+                        <th className="text-right py-2">RTP</th>
+                        <th className="text-right py-2">Target</th>
+                        <th className="text-right py-2">Hands</th>
+                        <th className="text-right py-2 px-2">Adj</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {rtpPlayers.map((p: any) => (
+                        <tr key={p.playerId} className="border-b border-white/[0.02] hover:bg-white/[0.02] cursor-pointer"
+                          onClick={() => { setRtpOverrideId(p.playerId); send({ type: 'ADMIN_RTP_PLAYER', playerId: p.playerId } as any); }}>
+                          <td className="py-1.5 px-2 font-mono text-white">{p.playerId.slice(0, 12)}...</td>
+                          <td className="text-center"><span className="px-1.5 py-0.5 rounded text-[8px] font-bold"
+                            style={{ background: p.segment === 'vip' ? 'rgba(167,139,250,0.15)' : p.segment === 'onboarding' ? 'rgba(52,211,153,0.15)' : 'rgba(255,255,255,0.04)', color: p.segment === 'vip' ? '#A78BFA' : p.segment === 'onboarding' ? '#34D399' : '#6B7A90' }}>
+                            {p.segment}</span></td>
+                          <td className="text-right font-mono font-bold" style={{ color: p.currentRTP > 100 ? '#34D399' : p.currentRTP < 85 ? '#EF4444' : '#FFD700' }}>{p.currentRTP}%</td>
+                          <td className="text-right font-mono text-[#4A5A70]">{p.targetRTP}%</td>
+                          <td className="text-right font-mono text-[#8899AB]">{p.handsPlayed}</td>
+                          <td className="text-right font-mono px-2" style={{ color: p.adjustmentScore > 0.3 ? '#34D399' : p.adjustmentScore < -0.3 ? '#EF4444' : '#8899AB' }}>{p.adjustmentScore}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </Panel>
+          </div>
         )}
 
         {/* ═══════════════════════════════════════════════

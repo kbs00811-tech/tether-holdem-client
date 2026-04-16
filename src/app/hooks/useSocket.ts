@@ -41,6 +41,10 @@ let ws: WebSocket | null = null;
 let wsReady = false;
 let reconnectTimer: number | null = null;
 let messageHandler: ((msg: ServerMessage) => void) | null = null;
+// V18 RTP: 추가 메시지 리스너 (어드민 등에서 서버 응답 수신용)
+const extraListeners = new Set<(msg: any) => void>();
+export function addSocketListener(fn: (msg: any) => void) { extraListeners.add(fn); }
+export function removeSocketListener(fn: (msg: any) => void) { extraListeners.delete(fn); }
 
 function ensureConnection() {
   if (ws && (ws.readyState === WebSocket.OPEN || ws.readyState === WebSocket.CONNECTING)) return;
@@ -58,6 +62,8 @@ function ensureConnection() {
       try {
         const msg: ServerMessage = JSON.parse(event.data);
         if (messageHandler) messageHandler(msg);
+        // 추가 리스너에게도 전달 (어드민 RTP 등)
+        for (const fn of extraListeners) { try { fn(msg); } catch {} }
       } catch (e) {
         console.error('[WS] Parse error:', e);
       }
