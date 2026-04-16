@@ -274,6 +274,10 @@ export type ServerMessage =
   | { type: 'ROOM_LEFT' }
   | { type: 'GAME_STATE'; state: GameState }
   | { type: 'DEAL_CARDS'; cards: Card[]; seat: number }
+  // V3 P1: DEALING_START — 서버가 broadcast, 클라는 정확한 타이밍에 애니메이션 시작
+  | { type: 'DEALING_START'; startAt: number; durationMs: number; serverTime: number; handNumber: number }
+  // V3 P2A: STREET_END — street 전환 직전 chip→pot 수집 애니 트리거
+  | { type: 'STREET_END'; fromPhase: GamePhase; toPhase: GamePhase; pot: number; serverTime: number }
   | { type: 'COMMUNITY_CARDS'; cards: Card[]; phase: GamePhase }
   | { type: 'PLAYER_ACTION'; playerId: string; action: BettingAction; amount: number }
   | { type: 'YOUR_TURN'; timeoutMs: number; minBet: number; maxBet: number; callAmount: number }

@@ -9,12 +9,16 @@ import { create } from 'zustand';
 import { updateProfile, getProfile, canUseServerStats } from '../utils/profileApi';
 
 interface SettingsState {
-  avatar: number;           // 0-49
+  avatar: number;           // 0-55
   cardSkin: number;         // 1=Classic, 2=4-Color, 3=Neon
   tableFelt: number;        // 1=Emerald, 2=Navy, 3=Crimson, 4=Purple
   soundEnabled: boolean;
   musicEnabled: boolean;
   cardAnimations: boolean;
+  // V3 P2B2: Run It Twice/Thrice 선호 설정
+  runItMode: 'off' | 'twice' | 'thrice';
+  // V3 P2C1: 커스텀 닉네임 (한글/영어 2~16자) — 빈 문자열이면 서버 기본값 사용
+  nickname: string;
   syncedFromServer: boolean;
 
   setAvatar: (id: number) => void;
@@ -23,6 +27,8 @@ interface SettingsState {
   setSoundEnabled: (v: boolean) => void;
   setMusicEnabled: (v: boolean) => void;
   setCardAnimations: (v: boolean) => void;
+  setRunItMode: (m: 'off' | 'twice' | 'thrice') => void;
+  setNickname: (n: string) => void;
   loadFromServer: () => Promise<void>;
 }
 
@@ -39,16 +45,40 @@ function saveSettings(state: Partial<SettingsState>) {
     localStorage.setItem('holdem-settings', JSON.stringify({
       avatar: state.avatar, cardSkin: state.cardSkin, tableFelt: state.tableFelt,
       soundEnabled: state.soundEnabled, musicEnabled: state.musicEnabled, cardAnimations: state.cardAnimations,
+      runItMode: state.runItMode,
+      nickname: state.nickname,
     }));
   } catch {}
 }
 
+// V3 P2C1: 닉네임을 홀덤 WS 에 즉시 전파
+function syncNicknameToHoldemWs(nickname: string) {
+  import('../hooks/useSocket').then(mod => {
+    try { mod.wsSend({ type: 'UPDATE_NICKNAME', nickname } as any); } catch {}
+  }).catch(() => {});
+}
+
+// V3 P2B2: Run It Twice/Thrice 모드를 홀덤 WS 서버에 즉시 전파
+function syncRunItModeToHoldemWs(mode: 'off' | 'twice' | 'thrice') {
+  import('../hooks/useSocket').then(mod => {
+    try { mod.wsSend({ type: 'SET_RUN_IT_MODE', mode } as any); } catch {}
+  }).catch(() => {});
+}
+
 const saved = loadSettings();
 
-// 서버 동기화 헬퍼 (fire-and-forget, 실패해도 조용히 무시)
+// B2C 프로필 동기화 (fire-and-forget)
 function syncAvatarToServer(avatarId: number) {
   if (!canUseServerStats()) return;
   updateProfile({ avatar_id: avatarId }).catch(() => {});
+}
+
+// 홀덤 WS 서버에 즉시 전파 — 착석 중이면 player.avatarId 갱신 + 같은 방 broadcast
+// 동적 import로 순환 의존성 회피
+function syncAvatarToHoldemWs(avatarId: number) {
+  import('../hooks/useSocket').then(mod => {
+    try { mod.wsSend({ type: 'UPDATE_AVATAR', avatarId } as any); } catch {}
+  }).catch(() => {});
 }
 
 export const useSettingsStore = create<SettingsState>((set, get) => ({
@@ -58,12 +88,15 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   soundEnabled: saved.soundEnabled ?? true,
   musicEnabled: saved.musicEnabled ?? true,
   cardAnimations: saved.cardAnimations ?? true,
+  runItMode: (saved as any).runItMode ?? 'off',
+  nickname: (saved as any).nickname ?? '',
   syncedFromServer: false,
 
   setAvatar: (id) => set(s => {
     const n = { ...s, avatar: id };
     saveSettings(n);
     syncAvatarToServer(id);
+    syncAvatarToHoldemWs(id);  // 홀덤 게임룸 즉시 반영
     return n;
   }),
   setCardSkin: (id) => set(s => { const n = { ...s, cardSkin: id }; saveSettings(n); return n; }),
@@ -71,15 +104,52 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   setSoundEnabled: (v) => set(s => { const n = { ...s, soundEnabled: v }; saveSettings(n); return n; }),
   setMusicEnabled: (v) => set(s => { const n = { ...s, musicEnabled: v }; saveSettings(n); return n; }),
   setCardAnimations: (v) => set(s => { const n = { ...s, cardAnimations: v }; saveSettings(n); return n; }),
+  setRunItMode: (m) => set(s => {
+    const n = { ...s, runItMode: m };
+    saveSettings(n);
+    syncRunItModeToHoldemWs(m);
+    return n;
+  }),
+  setNickname: (nn) => set(s => {
+    // V3 P2C1: 클라 유효성 검증 (한글/영어/숫자 2~16자) — 서버에서 재검증
+    const trimmed = (nn || '').trim();
+    if (trimmed.length < 2 || trimmed.length > 16) return s;
+    if (!/^[가-힣a-zA-Z0-9 ._-]+$/.test(trimmed)) return s;
+    const next = { ...s, nickname: trimmed };
+    saveSettings(next);
+    syncNicknameToHoldemWs(trimmed);
+    return next;
+  }),
 
   loadFromServer: async () => {
     if (!canUseServerStats() || get().syncedFromServer) return;
     try {
       const profile = await getProfile();
       set(s => {
+        // V3 P2E BUGFIX: localStorage 에 사용자가 저장한 아바타가 있으면 서버 값으로 덮어쓰지 않음
+        //   이전 버그: 사용자가 아바타 변경 후 새로고침하면 서버의 옛 값이 localStorage 를 덮어써 리셋됨
+        //   수정: 로컬 우선(last-write-wins 사용자 기준) + 서버와 불일치 시 로컬을 서버로 푸시 (pull-then-push 대신 push-only sync)
+        const rawLocal = loadSettings() as any;
+        const localHasAvatar = typeof rawLocal.avatar === 'number';
+        const serverAvatar = typeof profile.avatar_id === 'number' ? profile.avatar_id : null;
+
+        let finalAvatar = s.avatar;
+        if (localHasAvatar) {
+          // 로컬이 진실의 원천 — 서버 값 무시
+          finalAvatar = s.avatar;
+          // 서버와 다르면 로컬 → 서버 재푸시 (동기화 복구)
+          if (serverAvatar !== null && serverAvatar !== s.avatar) {
+            console.log(`[settings] Avatar drift detected: local=${s.avatar} vs server=${serverAvatar}. Pushing local to server.`);
+            syncAvatarToServer(s.avatar);
+          }
+        } else if (serverAvatar !== null) {
+          // 로컬 값 없음 (첫 로그인) → 서버 값 채택
+          finalAvatar = serverAvatar;
+        }
+
         const next = {
           ...s,
-          avatar: typeof profile.avatar_id === 'number' ? profile.avatar_id : s.avatar,
+          avatar: finalAvatar,
           syncedFromServer: true,
         };
         saveSettings(next);
@@ -99,58 +169,67 @@ if (typeof window !== 'undefined') {
   }, 1000);
 }
 
-// Avatar image paths — 50개 (중복 제거 후)
+// Avatar image paths — 56개 (카테고리별 정렬: 인물 → 동물 → 크립토/판타지)
 export const AVATAR_IMAGES = [
+  // 인물 (28)
   "/avatars/01_hacker_led.png",
-  "/avatars/02_arctic_wolf.png",
-  "/avatars/03_eagle_platinum.png",
-  "/avatars/04_eagle_golden.png",
   "/avatars/05_latina_gold.png",
-  "/avatars/06_penguin_king.png",
-  "/avatars/07_astronaut_galaxy.png",
-  "/avatars/08_bitcoin_bull.png",
   "/avatars/09_brazilian.png",
   "/avatars/10_asian_man.png",
   "/avatars/11_euro_man.png",
   "/avatars/12_middle_east.png",
-  "/avatars/13_diamond_shark.png",
-  "/avatars/14_shark_anthro.png",
   "/avatars/15_cyber_ninja.png",
-  "/avatars/16_phoenix_mythical.png",
-  "/avatars/17_phoenix_flame.png",
   "/avatars/18_nordic.png",
-  "/avatars/19_eth_fox.png",
   "/avatars/20_russian.png",
   "/avatars/21_euro_woman.png",
   "/avatars/22_korean.png",
+  "/avatars/26_queen.png",
+  "/avatars/27_star_player.png",
+  "/avatars/29_joker.png",
+  "/avatars/36_asian_woman.png",
+  "/avatars/38_magician.png",
+  "/avatars/39_ninja_shadow.png",
+  "/avatars/41_king.png",
+  "/avatars/43_ace_high.png",
+  "/avatars/44_pirate.png",
+  "/avatars/48_cowboy.png",
+  "/avatars/49_samurai.png",
+  "/avatars/51_italian_mafia.png",
+  "/avatars/52_latina_fierce.png",
+  "/avatars/53_latina_hoops.png",
+  "/avatars/54_african_queen.png",
+  "/avatars/55_korean_pro.png",
+  "/avatars/56_asian_confident.png",
+  // 동물 (14)
+  "/avatars/02_arctic_wolf.png",
+  "/avatars/03_eagle_platinum.png",
+  "/avatars/04_eagle_golden.png",
+  "/avatars/06_penguin_king.png",
+  "/avatars/13_diamond_shark.png",
+  "/avatars/14_shark_anthro.png",
+  "/avatars/19_eth_fox.png",
+  "/avatars/30_fox_tricky.png",
+  "/avatars/32_tiger.png",
+  "/avatars/34_panda.png",
+  "/avatars/35_owl.png",
+  "/avatars/37_cobra.png",
+  "/avatars/40_bear.png",
+  "/avatars/50_wolf_alpha.png",
+  // 크립토/판타지 (14)
+  "/avatars/07_astronaut_galaxy.png",
+  "/avatars/08_bitcoin_bull.png",
+  "/avatars/16_phoenix_mythical.png",
+  "/avatars/17_phoenix_flame.png",
   "/avatars/23_angel.png",
   "/avatars/24_usdt_holder.png",
   "/avatars/25_astronaut_cosmic.png",
-  "/avatars/26_queen.png",
-  "/avatars/27_star_player.png",
   "/avatars/28_diamond_hands.png",
-  "/avatars/29_joker.png",
-  "/avatars/30_fox_tricky.png",
   "/avatars/31_vampire.png",
-  "/avatars/32_tiger.png",
   "/avatars/33_robot.png",
-  "/avatars/34_panda.png",
-  "/avatars/35_owl.png",
-  "/avatars/36_asian_woman.png",
-  "/avatars/37_cobra.png",
-  "/avatars/38_magician.png",
-  "/avatars/39_ninja_shadow.png",
-  "/avatars/40_bear.png",
-  "/avatars/41_king.png",
   "/avatars/42_bitcoin_bro.png",
-  "/avatars/43_ace_high.png",
-  "/avatars/44_pirate.png",
   "/avatars/45_fire_stack.png",
   "/avatars/46_devil.png",
   "/avatars/47_dragon.png",
-  "/avatars/48_cowboy.png",
-  "/avatars/49_samurai.png",
-  "/avatars/50_wolf_alpha.png",
 ];
 
 export const AVATAR_NAMES = [

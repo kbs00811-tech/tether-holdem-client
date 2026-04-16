@@ -106,7 +106,13 @@ function DialogContent({
         data-slot="dialog-content"
         aria-describedby={undefined}
         className={cn(
-          "bg-[#1C2538] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 grid w-full max-w-[calc(100%-2rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border border-[#2A3650] p-6 shadow-2xl duration-200 sm:max-w-lg",
+          // 모바일 최적화:
+          // - max-h: 100dvh 에서 상하 padding(2rem) + iOS safe-area 차감
+          // - flex flex-col: header/body/footer 3단 구조 지원
+          // - overflow-hidden on container → children에서 body만 스크롤
+          "bg-[#1C2538] data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-95 data-[state=open]:zoom-in-95 fixed top-[50%] left-[50%] z-50 flex flex-col w-full max-w-[calc(100%-1.5rem)] translate-x-[-50%] translate-y-[-50%] gap-4 rounded-lg border border-[#2A3650] p-6 shadow-2xl duration-200 sm:max-w-lg",
+          "max-h-[calc(100dvh-2rem-env(safe-area-inset-top,0px)-env(safe-area-inset-bottom,0px))]",
+          "overflow-y-auto overscroll-contain",
           className,
         )}
         {...props}

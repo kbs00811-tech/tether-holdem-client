@@ -53,8 +53,24 @@ interface GameStore {
   allInBanner: { playerId: string; nickname: string; amount: number; ts: number } | null;
   dramaticMoment: { type: 'bad_beat' | 'cooler'; winnerNickname: string; winnerHand: string; loserNickname: string; loserHand: string; ts: number } | null;
   onExternalPlayerAction: ((seat: number, action: number, amount: number) => void) | null;
+  // V3 P2A: street 전환 직전 chip→pot 수집 애니 콜백
+  onStreetEnd: ((fromPhase: string, toPhase: string, pot: number) => void) | null;
   showResult: boolean;
   serverSeedHash: string | null;
+  // V3 P2E-3: Provably Fair 검증 — 직전 핸드의 서버 시드 공개 (PROVABLY_FAIR_REVEAL)
+  lastFairReveal: { serverSeed: string; serverSeedHash: string; clientSeed: string; nonce: number; handNumber?: number; ts: number } | null;
+  // V3 Task 4 Phase A: 친구 초대 토큰 (CREATE_HEADSUP_INVITE 응답)
+  headsupInvite: { token: string; url: string; expiresAt: number; createdAt: number } | null;
+  // USE_HEADSUP_INVITE 성공 시 roomId 저장 → 라우터가 감지해서 해당 방 이동
+  pendingInviteJoin: string | null;
+  // V3 Task 4 Phase B: ROOM_CREATED 응답 → Lobby가 감지해 자동 입장
+  pendingRoomCreated: { roomId: string; isPrivate: boolean } | null;
+  // Private 방 입장 시 사용될 비밀번호 (JOIN_ROOM에 1회 첨부 후 clear)
+  pendingJoinPassword: string | null;
+  // V3 Task 4 Phase C: 방장 Rakeback 상태
+  ownerRakeback: { pending: number; claimed: number; totalEarned: number; percent: number } | null;
+  // V3 Task 4 Phase D: 방 생성 직후 자동 초대 모달 오픈 플래그 (GameTable 이 consume)
+  autoOpenInvite: boolean;
   equities: { playerId: string; equity: number }[] | null;
   chatMessages: { playerId: string; nickname: string; message: string; time: number }[];
   tournaments: any[];
@@ -67,6 +83,11 @@ interface GameStore {
   cashOutOffer: { equity: number; potShare: number; offerAmount: number; feeRate: number; expiresAt: number } | null;
   isSittingOut: boolean;
   isDealing: boolean;                       // 카드 딜링 중
+  // V3 P2E-1: Time Bank 활성 상태 (기본 30초 초과 후 타임뱅크 진입)
+  timeBankActive: { playerId: string; seconds: number; startedAt: number } | null;
+  // V3 P1: 서버 기준 정확한 dealing 시작/종료 시각 (DEALING_START 이벤트 수신 시 set)
+  //        클라는 이 값을 보고 정확한 타이밍에 애니메이션 재생
+  dealingInfo: { startAt: number; durationMs: number; endAt: number; handNumber: number } | null;
 
   setConnected: (v: boolean) => void;
   handleServerMessage: (msg: ServerMessage) => void;
@@ -91,8 +112,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
   allInBanner: null,
   dramaticMoment: null,
   onExternalPlayerAction: null,
+  onStreetEnd: null,
   showResult: false,
   serverSeedHash: null,
+  lastFairReveal: null,
+  headsupInvite: null,
+  pendingInviteJoin: null,
+  pendingRoomCreated: null,
+  pendingJoinPassword: null,
+  ownerRakeback: null,
+  autoOpenInvite: false,
   equities: null,
   chatMessages: [],
   tournaments: [],
@@ -105,6 +134,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
   cashOutOffer: null,
   isSittingOut: false,
   isDealing: false,
+  dealingInfo: null,
+  timeBankActive: null,
 
   setConnected: (v) => set({ connected: v }),
 
@@ -113,7 +144,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   // 유지: myPlayerId (WS 세션 식별), rooms (로비 목록), chatMessages (채팅 히스토리)
   resetRoom: () => set({
     currentRoomId: null, gameState: null,
-    myCards: [], isDealing: false,
+    myCards: [], isDealing: false, dealingInfo: null,
     isMyTurn: false, turnInfo: null,
     winners: null, showResult: false, equities: null,
     lastActions: {}, allInBanner: null, dramaticMoment: null,
@@ -151,7 +182,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
           currentRoomId: msg.roomId,
           gameState: msg.state,
           // 이전 방 stale state 일괄 clear
-          myCards: [], isDealing: false,
+          myCards: [], isDealing: false, dealingInfo: null,
           isMyTurn: false, turnInfo: null,
           winners: null, showResult: false, equities: null,
           lastActions: {}, allInBanner: null, dramaticMoment: null,
@@ -165,27 +196,106 @@ export const useGameStore = create<GameStore>((set, get) => ({
       case 'ROOM_LEFT':
         get().resetRoom();
         break;
-      case 'GAME_STATE':
-        set({ gameState: msg.state, isMyTurn: false, winners: null, showResult: false, equities: null });
+      case 'GAME_STATE': {
+        // V3 P1 Spectator Parity: DEALING phase 중 입장한 클라는 DEALING_START 이벤트를
+        // 놓칠 수 있으므로 GAME_STATE 에 내장된 dealingStartAt/dealingDurationMs 로부터
+        // dealingInfo 를 재구성한다.
+        const st: any = msg.state;
+        const updates: any = { gameState: msg.state, isMyTurn: false, winners: null, showResult: false, equities: null };
+        const cur = get().dealingInfo;
+        const phaseStr = String(st?.phase || '').toUpperCase();
+        if (
+          phaseStr === 'DEALING' &&
+          typeof st.dealingStartAt === 'number' &&
+          typeof st.dealingDurationMs === 'number' &&
+          (!cur || cur.handNumber !== (st.handNumber || 0))
+        ) {
+          const offset = 0; // serverTime 없으므로 클라/서버 시계 근사
+          const startAt = st.dealingStartAt + offset;
+          const durationMs = st.dealingDurationMs;
+          updates.dealingInfo = {
+            startAt,
+            durationMs,
+            endAt: startAt + durationMs,
+            handNumber: st.handNumber || 0,
+          };
+          updates.isDealing = true;
+          const holdMs = Math.max(500, startAt + durationMs - Date.now());
+          setTimeout(() => {
+            const cur2 = get().dealingInfo;
+            if (cur2 && cur2.handNumber === (st.handNumber || 0)) {
+              set({ isDealing: false, dealingInfo: null });
+            }
+          }, holdMs);
+        }
+        set(updates);
         break;
-      case 'DEAL_CARDS':
-        // 딜링 애니메이션 시작 + 카드 즉시 저장
-        // ★ playerId가 함께 오면 myPlayerId 저장 (이후 PLAYER_ACTION 비교용)
+      }
+      case 'DEALING_START' as any: {
+        // V3 P1: 서버가 DEALING phase 진입 시 broadcast — 모든 클라(관전자 포함) 동일 타이밍 애니메이션
+        // V3 P2D BUGFIX: 새 핸드 시작 시 이전 핸드의 shownCards/winners/rabbitCards 모두 clear
+        //   (이전 버그: 관전자 모드에서 이전 핸드의 CARDS_SHOWN 결과가 잔존하여 카드 누설)
+        const m = msg as any;
+        const offset = typeof m.serverTime === 'number' ? (Date.now() - m.serverTime) : 0;
+        const startAt = (m.startAt || Date.now()) + offset;
+        const durationMs = Math.max(1000, Math.min(10000, m.durationMs || 3500));
         set({
           isDealing: true,
+          dealingInfo: {
+            startAt,
+            durationMs,
+            endAt: startAt + durationMs,
+            handNumber: m.handNumber || 0,
+          },
+          // ★ 핵심 수정: 새 핸드에선 이전 핸드 카드 노출 일체 제거
+          shownCards: {},
+          winners: null,
+          showResult: false,
+          equities: null,
+          rabbitCards: [],
+          runItBoards: null,
+        });
+        playSound('cardDeal');
+        speakNewHand();
+        // durationMs 후 자동 종료 (클라 시계 기준)
+        const holdMs = Math.max(500, startAt + durationMs - Date.now());
+        setTimeout(() => {
+          const cur = get().dealingInfo;
+          if (cur && cur.handNumber === (m.handNumber || 0)) {
+            set({ isDealing: false, dealingInfo: null });
+          }
+        }, holdMs);
+        break;
+      }
+      case 'DEAL_CARDS':
+        // V3 P1: DEALING_START가 isDealing/dealingInfo 관리. 여기서는 myCards만 저장.
+        // ★ playerId가 함께 오면 myPlayerId 저장 (이후 PLAYER_ACTION 비교용)
+        set({
           myCards: msg.cards,
           myPlayerId: (msg as any).playerId || get().myPlayerId,
         });
-        playSound('cardDeal');
-        // 1초 후 딜링 애니메이션 종료
-        setTimeout(() => set({ isDealing: false }), 1000);
-        speakNewHand();
+        // DEALING_START가 오지 않은 구버전 서버 폴백
+        if (!get().dealingInfo) {
+          set({ isDealing: true });
+          playSound('cardDeal');
+          setTimeout(() => set({ isDealing: false }), 1000);
+          speakNewHand();
+        }
         // 내 핸드 시작 — statsStore에 기록
         try {
           const handNum = get().gameState?.handNumber || Date.now();
           useStatsStore.getState().onHandStart(handNum);
         } catch {}
         break;
+      case 'STREET_END' as any: {
+        // V3 P2A: 서버가 street 전환 직전 broadcast — 클라는 지금 모든 플레이어 베팅 칩을 팟으로 수집
+        const m = msg as any;
+        try {
+          get().onStreetEnd?.(String(m.fromPhase || ''), String(m.toPhase || ''), m.pot || 0);
+        } catch {}
+        playSound('chipBet');
+        break;
+      }
       case 'COMMUNITY_CARDS':
         set(s => ({
           gameState: s.gameState ? { ...s.gameState, communityCards: msg.cards, phase: msg.phase } : null,
@@ -226,10 +336,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
           },
         });
         playSound('myTurn');
+        // V3 P2E-1: 새 턴 시작 시 이전 timeBank 상태 clear
+        set({ timeBankActive: null });
+        break;
+      }
+      case 'TIME_BANK_STARTED' as any: {
+        // V3 P2E-1: 서버가 기본 30초 만료 후 Time Bank 진입 — 클라 UI 빨간 경고
+        const m = msg as any;
+        set({
+          timeBankActive: {
+            playerId: m.playerId,
+            seconds: m.seconds || 30,
+            startedAt: Date.now(),
+          },
+        });
+        playSound('myTurn');
         break;
       }
       case 'PLAYER_ACTION': {
-        set({ isMyTurn: false });
+        set({ isMyTurn: false, timeBankActive: null });
         // 액션별 사운드
         if (msg.action === 0) playSound('fold');
         else if (msg.action === 1) playSound('check');
@@ -373,6 +498,82 @@ export const useGameStore = create<GameStore>((set, get) => ({
       case 'PROVABLY_FAIR_HASH':
         set({ serverSeedHash: msg.serverSeedHash });
         break;
+      case 'OWNER_RAKEBACK_STATUS' as any: {
+        const m = msg as any;
+        set({
+          ownerRakeback: {
+            pending: m.pending || 0,
+            claimed: m.claimed || 0,
+            totalEarned: m.totalEarned || 0,
+            percent: m.percent || 20,
+          },
+        });
+        break;
+      }
+      case 'OWNER_RAKEBACK_CLAIMED' as any: {
+        const m = msg as any;
+        if (m.success) {
+          set((s) => ({
+            ownerRakeback: s.ownerRakeback
+              ? { ...s.ownerRakeback, pending: 0, claimed: s.ownerRakeback.claimed + (m.amount || 0) * 100 }
+              : null,
+            lastError: { code: 'RAKEBACK_OK', message: `${m.amount?.toLocaleString()}원 지갑에 입금되었습니다`, ts: Date.now() },
+          }));
+        } else {
+          set({ lastError: { code: 'RAKEBACK_FAIL', message: m.error || '청구 실패', ts: Date.now() } });
+        }
+        break;
+      }
+      case 'ROOM_CREATED' as any: {
+        // V3 Task 4 Phase B: 방 생성 완료 → Lobby 가 감지해 해당 방으로 이동 + 초대 모달 열기
+        const m = msg as any;
+        set({
+          pendingRoomCreated: { roomId: m.roomId, isPrivate: !!m.isPrivate },
+        });
+        break;
+      }
+      case 'HEADSUP_INVITE_CREATED' as any: {
+        // V3 Task 4 Phase A: 초대 토큰 생성 응답
+        const m = msg as any;
+        set({
+          headsupInvite: {
+            token: m.token,
+            url: m.url,
+            expiresAt: m.expiresAt,
+            createdAt: Date.now(),
+          },
+        });
+        break;
+      }
+      case 'HEADSUP_INVITE_USED' as any: {
+        // V3 Task 4 Phase A: 초대 사용 응답 — 성공 시 pendingInviteJoin 에 roomId 저장
+        //   Lobby 에서 이를 감지해 해당 방으로 navigate
+        const m = msg as any;
+        if (m.success && m.roomId) {
+          set({
+            pendingInviteJoin: m.roomId,
+            lastError: { code: 'INVITE_OK', message: '초대 방에 입장합니다', ts: Date.now() },
+          });
+        } else {
+          set({ lastError: { code: 'INVITE_FAIL', message: m.error || '초대 사용 실패', ts: Date.now() } });
+        }
+        break;
+      }
+      case 'PROVABLY_FAIR_REVEAL' as any: {
+        // V3 P2E-3: 핸드 종료 시 서버 시드 공개 — 이전 hash 와 비교해 무결성 검증 가능
+        const m = msg as any;
+        set({
+          lastFairReveal: {
+            serverSeed: m.serverSeed,
+            serverSeedHash: m.serverSeedHash,
+            clientSeed: m.clientSeed,
+            nonce: m.nonce,
+            handNumber: m.handNumber,
+            ts: Date.now(),
+          },
+        });
+        break;
+      }
       case 'ALLIN_EQUITY':
         set({ equities: msg.equities });
         break;
@@ -424,13 +625,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
       case 'TOURNAMENT_LIST':
         set({ tournaments: msg.tournaments });
         break;
-      case 'CARDS_SHOWN':
+      case 'CARDS_SHOWN': {
         // 쇼다운: 상대 카드 공개
+        // V3 P2D-FIX: 쇼다운 사운드는 첫 번째 리빌에만 1회 재생 (여러 명 시 중복 방지)
+        const hadShown = Object.keys(get().shownCards).length > 0;
         set(s => ({
           shownCards: { ...s.shownCards, [(msg as any).playerId]: (msg as any).cards },
         }));
-        playSound('showdown');
+        if (!hadShown) playSound('showdown');
         break;
+      }
       case 'RABBIT_HUNT_RESULT':
         set({ rabbitCards: (msg as any).cards ?? [] });
         break;

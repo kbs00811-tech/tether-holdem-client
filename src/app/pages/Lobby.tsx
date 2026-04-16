@@ -98,6 +98,41 @@ export default function Lobby() {
     }
   }, [connected, send]);
 
+  // V3 Task 4 Phase A: URL ?invite=TOKEN 감지 → USE_HEADSUP_INVITE 전송
+  useEffect(() => {
+    if (!connected) return;
+    try {
+      const url = new URL(window.location.href);
+      const token = url.searchParams.get('invite');
+      if (token && token.length === 8) {
+        console.log(`[INVITE] Detected invite token: ${token}`);
+        send({ type: 'USE_HEADSUP_INVITE', token } as any);
+        // URL 에서 invite 쿼리 제거 (새로고침 시 중복 사용 방지)
+        url.searchParams.delete('invite');
+        window.history.replaceState({}, '', url.toString());
+      }
+    } catch {}
+  }, [connected, send]);
+
+  // V3 Task 4 Phase A: 초대 사용 성공 시 해당 방으로 이동
+  // V3 Task 4 Phase B: 방 생성 완료 시 해당 방으로 이동
+  useEffect(() => {
+    const unsubscribe = useGameStore.subscribe((state) => {
+      if (state.pendingInviteJoin) {
+        const roomId = state.pendingInviteJoin;
+        useGameStore.setState({ pendingInviteJoin: null });
+        navigate(`/table/${roomId}`);
+      }
+      if (state.pendingRoomCreated) {
+        const { roomId } = state.pendingRoomCreated;
+        useGameStore.setState({ pendingRoomCreated: null });
+        toast.success('방이 생성되었습니다 · 입장 중...');
+        navigate(`/table/${roomId}`);
+      }
+    });
+    return () => unsubscribe();
+  }, [navigate]);
+
   // 서버 방 목록 → 로컬 형식 변환 (서버 연결 시 서버 데이터 사용, 아니면 mock)
   const rooms: PokerRoom[] = serverRooms.length > 0
     ? serverRooms.map(r => ({
@@ -127,6 +162,16 @@ export default function Lobby() {
   const handleJoinTable = (roomId: string) => {
     const room = rooms.find((r) => r.id === roomId);
     if (!room) return;
+    // V3 Task 4 Phase B: Private 방은 비번 프롬프트 먼저
+    const serverRoom = serverRooms.find(r => r.id === roomId);
+    if (serverRoom && (serverRoom as any).isPrivate) {
+      const pwd = window.prompt(`🔒 "${room.name}" — 비밀번호를 입력하세요`);
+      if (!pwd) {
+        toast.error('비밀번호 취소됨');
+        return;
+      }
+      useGameStore.setState({ pendingJoinPassword: pwd });
+    }
     navigate(`/table/${roomId}`);
     toast(`👁 ${room.name} 관전 입장`, { duration: 1500 });
   };
@@ -135,8 +180,10 @@ export default function Lobby() {
     // 서버에 방 생성 요청 (서버 연결 시)
     if (connected) {
       send({ type: 'CREATE_ROOM' as any, config } as any);
+      // V3 Task 4 Phase D: 방 생성 후 GameTable 에서 자동 초대 모달 오픈
+      useGameStore.setState({ autoOpenInvite: true });
     }
-    toast.success(`"${config.name}" Room created`);
+    toast.success(`"${config.name}" · 친구 초대 준비 중...`);
   };
 
   return (

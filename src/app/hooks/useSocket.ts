@@ -88,6 +88,11 @@ function sendMessage(msg: ClientMessage) {
   }
 }
 
+/** 외부 모듈 (settingsStore 등)에서 호출 가능한 글로벌 send */
+export function wsSend(msg: ClientMessage) {
+  sendMessage(msg);
+}
+
 // ─── React Hook ───
 export function useSocket() {
   const { handleServerMessage } = useGameStore();

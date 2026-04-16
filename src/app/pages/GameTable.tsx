@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useParams, Link, useNavigate } from "react-router";
-import { ArrowLeft, MessageSquare, Volume2, VolumeX, Zap, Users, MoreVertical, Shield, X, Plus } from "lucide-react";
+import { ArrowLeft, MessageSquare, Volume2, VolumeX, Zap, Users, MoreVertical, Shield, X, Plus, Maximize2, Minimize2 } from "lucide-react";
 import { Slider } from "../components/ui/slider";
 import { PlayerSlot } from "../components/PlayerSlot";
 import { PokerCard } from "../components/PokerCard";
@@ -13,6 +13,7 @@ import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
 import { useGameStore } from "../stores/gameStore";
 import { useSocket } from "../hooks/useSocket";
+import { useWakeLock } from "../hooks/useWakeLock";
 import { playSound, setMuted as setSoundMuted, isMuted as isSoundMuted, startBGM, stopBGM, setBGMVolume } from "../hooks/useSound";
 import { useSettingsStore, TABLE_FELTS } from "../stores/settingsStore";
 import { useEmbedMode } from "../hooks/useEmbedMode";
@@ -32,7 +33,7 @@ export default function GameTable() {
   const { send } = useSocket();
   const {
     gameState, myCards, isMyTurn, turnInfo, winners, showResult,
-    currentRoomId, serverSeedHash, equities, connected,
+    currentRoomId, serverSeedHash, equities, connected, lastFairReveal,
     shownCards, rabbitCards, handHistoryRecords,
     showMuckPrompt, insuranceOffer, cashOutOffer, isSittingOut, isDealing,
   } = useGameStore();
@@ -41,6 +42,11 @@ export default function GameTable() {
   const lastActions = useGameStore(s => s.lastActions);
   const allInBanner = useGameStore(s => s.allInBanner);
   const dramaticMoment = useGameStore(s => s.dramaticMoment);
+  const timeBankActive = useGameStore(s => s.timeBankActive);
+  const headsupInvite = useGameStore(s => s.headsupInvite);
+
+  // V3 P2D: 모바일 게임 플레이 중 화면 꺼짐 방지 (방 입장 중에만 활성)
+  useWakeLock(!!useGameStore(s => s.currentRoomId));
   const currentAvatarIdx = useSettingsStore(s => s.avatar);
   const { user: embedUser } = useEmbedMode();
   const realBalance = embedUser?.balance ?? 0;
@@ -55,6 +61,12 @@ export default function GameTable() {
   const [volume, setVolume] = useState(50); // 0-100
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [showHandHistory, setShowHandHistory] = useState(false);
+  const [showInviteModal, setShowInviteModal] = useState(false); // V3 Task 4 Phase A
+  const [showMenu, setShowMenu] = useState(false); // V18: 헤더 More 드롭다운
+  // V3 P2D Part 3: Step-by-step Replay Viewer
+  const [replayHand, setReplayHand] = useState<any | null>(null);
+  const [replayStep, setReplayStep] = useState<number>(0); // 0=PREFLOP 1=FLOP 2=TURN 3=RIVER 4=RESULT
+  const [replayAutoplay, setReplayAutoplay] = useState<boolean>(false);
   const [showEmoji, setShowEmoji] = useState(false);
   const [seated, setSeated] = useState(false);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -311,7 +323,10 @@ export default function GameTable() {
         const target = currentRooms.find(r => r.id === tableId);
         if (target) {
           console.log(`[GAME] Joining room: ${target.id} (${target.name})`);
-          send({ type: 'JOIN_ROOM', roomId: target.id, buyIn: 0 });
+          // V3 Task 4 Phase B: Private 방이면 pendingJoinPassword 사용 (1회)
+          const pwd = useGameStore.getState().pendingJoinPassword;
+          send({ type: 'JOIN_ROOM', roomId: target.id, buyIn: 0, password: pwd ?? undefined } as any);
+          if (pwd) useGameStore.setState({ pendingJoinPassword: null }); // consume
         } else {
           console.warn(`[GAME] Room ${tableId} not found`);
           toast.error('Room not found');
@@ -325,6 +340,49 @@ export default function GameTable() {
 
     return () => clearInterval(timer);
   }, [connected, tableId, send]);
+
+  // V3 P2B2: 방 입장 후 저장된 Run It Twice/Thrice 선호를 서버에 자동 전송
+  // V3 P2C1: 저장된 커스텀 닉네임도 동시 전파
+  // V3 Task 4 Phase D: 방 생성 직후라면 자동으로 초대 모달 + 토큰 생성
+  useEffect(() => {
+    if (!currentRoomId) return;
+    const s = useSettingsStore.getState();
+    try { send({ type: 'SET_RUN_IT_MODE', mode: s.runItMode } as any); } catch {}
+    if (s.nickname && s.nickname.trim().length >= 2) {
+      try { send({ type: 'UPDATE_NICKNAME', nickname: s.nickname.trim() } as any); } catch {}
+    }
+    // 방 생성 직후 자동 초대 플래그 확인 (1회 consume)
+    const autoOpen = useGameStore.getState().autoOpenInvite;
+    if (autoOpen) {
+      useGameStore.setState({ autoOpenInvite: false });
+      // GAME_STATE 가 먼저 들어올 시간 여유 (400ms)
+      setTimeout(() => {
+        try { send({ type: 'CREATE_HEADSUP_INVITE' } as any); } catch {}
+        setShowInviteModal(true);
+      }, 400);
+    }
+  }, [currentRoomId, send]);
+
+  // V3 P2D Part 3: Replay autoplay — step 당 2초 간격으로 진행, RESULT(4)에서 정지
+  useEffect(() => {
+    if (!replayHand || !replayAutoplay) return;
+    if (replayStep >= 4) {
+      setReplayAutoplay(false);
+      return;
+    }
+    const timer = setTimeout(() => {
+      setReplayStep((s) => Math.min(4, s + 1));
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [replayHand, replayAutoplay, replayStep]);
+
+  // Replay 닫힐 때 state 초기화
+  useEffect(() => {
+    if (!replayHand) {
+      setReplayStep(0);
+      setReplayAutoplay(false);
+    }
+  }, [replayHand]);
 
   // ★ GameTable unmount 시 서버에 LEAVE_ROOM — orphan 방지
   // (라우팅으로 완전 이탈한 경우에만 작동. 방 이동은 JOIN_ROOM 서버 로직에서 처리)
@@ -362,13 +420,25 @@ export default function GameTable() {
 
   // 플레이어 매핑: 서버 데이터 우선, 없으면 로컬 데이터
   const serverPlayers = gameState?.players ?? [];
+  // 같은 player id에 대해 항상 동일한 아바타 인덱스를 산출하는 deterministic 해시
+  // (서버가 avatarId를 안 보내거나 reconnect로 player 객체가 새로 생겨도 화면에서 점프 방지)
+  const stableAvatarFromId = (id: string): number => {
+    let h = 0;
+    for (let k = 0; k < id.length; k++) h = ((h << 5) - h + id.charCodeAt(k)) | 0;
+    return Math.abs(h) % 50;
+  };
+
   const players: (any | undefined)[] = Array.from({ length: maxSeats }, (_, i) => {
     // 서버 플레이어 우선
     const p = serverPlayers.find(sp => sp.seat === i);
     if (p) {
       // ★ Hero 자리 매칭 — myPlayerId만 신뢰. handCards 폴백 제거 (server sanitize로 항상 빈 배열)
       const isMySeat = !!(myPlayerIdReactive && p.id === myPlayerIdReactive);
-      const avatarToUse = isMySeat ? currentAvatarIdx : (p.avatarId ?? i);
+      // 본인: settingsStore 우선 (서버 sync 전에는 currentAvatarIdx 사용, sync 후에도 동일 값)
+      // 다른 플레이어: 서버 avatarId가 있으면 그대로, 없으면 player id 해시 (좌석에 무관)
+      const avatarToUse = isMySeat
+        ? currentAvatarIdx
+        : (typeof p.avatarId === 'number' ? p.avatarId : stableAvatarFromId(p.id || `seat-${i}`));
       return {
         name: p.nickname,
         stack: p.stack / 100,
@@ -463,20 +533,27 @@ export default function GameTable() {
   const triggerChipFly = useCallback((fromSeat: number, action: string, amount: number) => {
     const chip = { fromSeat, action, amount, key: Date.now() + Math.random() };
     setFlyingChips(prev => [...prev, chip]);
-    // 칩 도착 후 팟 중앙에 누적 (flyingChips 와 동일한 개수/위치)
+    // V18: GG포커 스타일 — 칩을 펠트 바닥에 평평하게 scatter (쌓지 않음)
+    //   - 개수 축소: allin 6 / raise 3 / call 2 (기존 10/6/4 에서 대폭 감소)
+    //   - y 범위 ±3px (거의 flat, 자연스러운 변화만) — 기존 ±22px 수직 쌓임 제거
+    //   - x 범위 ±65px (가로로 넓게 펼침)
+    //   - 최대 20개 캡 (기존 60개 — 핸드가 길어지면 산처럼 쌓이던 현상 방지)
     setTimeout(() => {
-      const chipCount = action === 'allin' ? 5 : action === 'raise' ? 3 : 2;
+      const chipCount = action === 'allin' ? 6 : action === 'raise' ? 3 : 2;
       const chipColors = ['#26A17B', '#E5B800', '#8B5CF6', '#FF6B35', '#EF4444', '#34D399'];
-      const newStacks = Array.from({ length: chipCount }, (_, i) => ({
-        color: chipColors[(potChipStacks.length + i) % chipColors.length],
-        x: (Math.random() - 0.5) * 24,
-        y: (Math.random() - 0.5) * 10 - i * 1.5,
-        rot: Math.random() * 360,
-      }));
-      setPotChipStacks(prev => [...prev, ...newStacks].slice(-20));
+      setPotChipStacks(prev => {
+        const baseIdx = prev.length;
+        const newStacks = Array.from({ length: chipCount }, (_, i) => ({
+          color: chipColors[(baseIdx + i) % chipColors.length],
+          x: (Math.random() + Math.random() - 1) * 65,  // ±65px — 가로로 펼침
+          y: (Math.random() + Math.random() - 1) * 3,   // ±3px — 거의 flat (바닥 느낌)
+          rot: Math.random() * 360,
+        }));
+        return [...prev, ...newStacks].slice(-20);
+      });
     }, 700);
     setTimeout(() => setFlyingChips(prev => prev.filter(c => c.key !== chip.key)), 900);
-  }, [potChipStacks.length]);
+  }, []);
 
   // 승리 시 칩 수거 애니메이션
   useEffect(() => {
@@ -510,23 +587,47 @@ export default function GameTable() {
           triggerChipFly(seat, tag, amount);
         }
       },
+      // V3 P2A: STREET_END 수신 시 — 모든 currentBet > 0 플레이어의 칩을 팟으로 수집
+      onStreetEnd: (_fromPhase, _toPhase, _pot) => {
+        const st = useGameStore.getState().gameState;
+        if (!st) return;
+        const players = (st as any).players || [];
+        for (const p of players) {
+          if (p && p.currentBet > 0 && p.status !== 'FOLDED') {
+            triggerChipFly(p.seat, 'call', p.currentBet);
+          }
+        }
+      },
     });
     return () => {
-      useGameStore.setState({ onExternalPlayerAction: null });
+      useGameStore.setState({ onExternalPlayerAction: null, onStreetEnd: null });
     };
   }, [triggerChipFly]);
 
-  // myCards가 새로 오면 딜링 비행 강제 트리거
+  // V3 P1: 딜링 애니메이션 트리거 — 서버 DEALING_START 이벤트 기반
+  //   이전 방식(handNumber heuristic)의 오작동을 제거하고, 서버가 정확히
+  //   DEALING phase 진입 시 송신하는 dealingInfo 를 유일 소스로 사용.
+  //   모든 클라(플레이어/관전자)가 동일 타이밍에 애니메이션 재생.
   const [forceDealAnim, setForceDealAnim] = useState(0);
+  const dealingInfo = useGameStore(s => s.dealingInfo);
+  const lastDealHandRef = useRef<number>(0);
   useEffect(() => {
-    if (myCards.length >= 2) {
-      const now = Date.now();
-      setForceDealAnim(now);
-      playSound('cardDeal');
-      // 카드 2바퀴 (9-max 기준): 9×0.04 + 0.15 + 9×0.04 + 0.35 = 1.22s + 여유 = 1.8초
-      setTimeout(() => setForceDealAnim(prev => prev === now ? 0 : prev), 1800);
-    }
-  }, [myCards.length > 0 ? `${myCards[0]?.suit}-${myCards[0]?.rank}-${myCards[1]?.suit}-${myCards[1]?.rank}` : '']);
+    if (!dealingInfo) return;
+    // 같은 핸드에 대해 중복 트리거 방지
+    if (dealingInfo.handNumber === lastDealHandRef.current) return;
+    lastDealHandRef.current = dealingInfo.handNumber;
+
+    // 플레이어 2명 미만이면 딜링 이벤트 있어도 애니 스킵 (이론상 서버가 보내지 않음)
+    if (serverPlayers.length < 2) return;
+
+    const now = Date.now();
+    setForceDealAnim(now);
+    playSound('cardDeal');
+    // 서버가 알려준 정확한 duration 만큼 애니 유지 + 여유 300ms
+    const holdMs = Math.max(1500, (dealingInfo.endAt - Date.now()) + 300);
+    setTimeout(() => setForceDealAnim(prev => prev === now ? 0 : prev), holdMs);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dealingInfo?.handNumber]);
 
   const handleFold = useCallback(() => {
     send({ type: 'BET', action: 0 });
@@ -585,11 +686,11 @@ export default function GameTable() {
 
     console.log(`[GAME] SIT_DOWN seat=${targetSeat} room=${currentRoomId}`);
 
-    // 즉시 로컬에 아바타 표시
+    // 즉시 로컬에 아바타 표시 — 내가 선택한 아바타 사용 (하드코딩 금지)
     setLocalPlayers(prev => ({
       ...prev,
       [targetSeat]: {
-        name: "You", stack: amount, bet: 0, avatar: 3, status: "active", cards: undefined,
+        name: "You", stack: amount, bet: 0, avatar: currentAvatarIdx, status: "active", cards: undefined,
       },
     }));
 
@@ -598,7 +699,7 @@ export default function GameTable() {
     // ★ setSeated 는 useEffect로 자동 — 서버 PLAYER_JOINED 도착 시 heroSeat 갱신되며 동기화
     setShowBuyInModal(false);
     toast.success(`Bought in for ${getSymbol()}${amount.toLocaleString()}`);
-  }, [send, clickedSeat, serverPlayers, maxSeats, currentRoomId]);
+  }, [send, clickedSeat, serverPlayers, maxSeats, currentRoomId, currentAvatarIdx]);
 
   const handleLeave = useCallback(() => {
     if (seated) {
@@ -688,42 +789,48 @@ export default function GameTable() {
   //        [2]     [4]        10 / 2 o'clock
   //        [1]     [5]         8 / 4 o'clock
   //             [0]           6 o'clock (hero)
+  // V3 P2D-FIX: 좌표를 3~97 범위로 clamp — 아바타 크기(~96px) 감안 시 ±10% 여유 확보
   const HERO_LAYOUT_6: [number, number][] = [
-    [50,  82],    // 0: hero — bottom center (아바타/카드 여유 공간 확보)
-    [-5,  70],    // 1: bottom-left (hero's left → next cw)
-    [-5,  22],    // 2: upper-left
-    [50,  -5],    // 3: top center
-    [105, 22],    // 4: upper-right
-    [105, 70],    // 5: bottom-right
+    [50,  82],    // 0: hero
+    [6,   68],    // 1: bottom-left (이전 -5)
+    [6,   22],    // 2: upper-left (이전 -5)
+    [50,  3],     // 3: top center (이전 -5)
+    [94,  22],    // 4: upper-right (이전 105)
+    [94,  68],    // 5: bottom-right (이전 105)
   ];
 
   const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
   const isLargeDesktop = typeof window !== 'undefined' && window.innerWidth >= 1280;
 
   // 9-Max: 9 seats at 40° intervals, clockwise from hero (bottom center)
-  // Portrait (모바일): 세로형 — 양옆 여유 좁게, 상/하 여유는 유지
+  // V3 P2D-FIX: 좌우 좌표를 3~97 범위로 clamp (이전 -12~114 → 시트 짤림 버그)
+  // Portrait (모바일)
   const HERO_LAYOUT_9_PORTRAIT: [number, number][] = [
-    [50,  82],    // 0: hero — bottom center (아바타+카드 여유)
-    [15,  82],    // 1: bottom-left
-    [-8,  55],    // 2: left
-    [0,   22],    // 3: upper-left
-    [30,  0],     // 4: top-left
-    [70,  0],     // 5: top-right
-    [100, 22],    // 6: upper-right
-    [108, 55],    // 7: right
-    [85,  82],    // 8: bottom-right
+    [50,  82],    // 0: hero
+    [17,  80],    // 1: bottom-left (이전 15)
+    [4,   55],    // 2: left (이전 -8)
+    [6,   22],    // 3: upper-left (이전 0)
+    [30,  4],     // 4: top-left (이전 0)
+    [70,  4],     // 5: top-right (이전 0)
+    [94,  22],    // 6: upper-right (이전 100)
+    [96,  55],    // 7: right (이전 108)
+    [83,  80],    // 8: bottom-right (이전 85)
   ];
-  // Landscape (데스크탑): 가로형 — 양옆 넓게, 상하는 컴팩트
+  // Landscape (데스크탑) — V3 P2D: 타원 기반 균등 배치 (40도 간격)
+  // 중심 (50, 48), 가로 반지름 44, 세로 반지름 34
+  // Hero 6시(270°) 기준, 시계방향 40° 증가
+  // 좌표는 (cx + rx*cos, cy + ry*sin) — 각도는 12시부터 시계방향
+  // 실제값: 하단 중앙에서 시작 → 우하 → 우상 → 상 → 좌상 → 좌하 순(시계방향)
   const HERO_LAYOUT_9_LANDSCAPE: [number, number][] = [
-    [50,  82],    // 0: hero — bottom center (카드 놓을 공간 아래 확보)
-    [10,  80],    // 1: bottom-left
-    [-12, 56],    // 2: left
-    [-6,  22],    // 3: upper-left
-    [28,  -2],    // 4: top-left
-    [72,  -2],    // 5: top-right
-    [106, 22],    // 6: upper-right
-    [114, 56],    // 7: right
-    [92,  80],    // 8: bottom-right
+    [50,  86],    // 0: hero (6시)
+    [18,  82],    // 1: 7~8시 (hero 좌측 바로 옆)
+    [6,   56],    // 2: 9시 (왼쪽)
+    [12,  26],    // 3: 10~11시
+    [34,  8],     // 4: 11~12시
+    [66,  8],     // 5: 12~1시
+    [88,  26],    // 6: 1~2시
+    [94,  56],    // 7: 3시 (오른쪽)
+    [82,  82],    // 8: 4~5시 (hero 우측 바로 옆)
   ];
   const HERO_LAYOUT_9 = isDesktop ? HERO_LAYOUT_9_LANDSCAPE : HERO_LAYOUT_9_PORTRAIT;
 
@@ -742,26 +849,26 @@ export default function GameTable() {
     <div className={`h-[100dvh] flex flex-col overflow-hidden select-none ${iosFullscreenMode ? 'fixed inset-0 z-[9999]' : ''}`}
       style={{ background: "radial-gradient(ellipse at 50% 40%, #0C1620 0%, #080E16 40%, #050A10 100%)" }}>
 
-      {/* ====== TOP BAR — 모바일/데스크탑 반응형 ====== */}
-      <div className="shrink-0 z-30 px-2 sm:px-4 md:px-6 py-1.5 sm:py-2 md:py-3 flex items-center justify-between"
+      {/* ====== TOP BAR — V3 P2D 모바일 크기 업 + 정렬 개선 ====== */}
+      <div className="shrink-0 z-30 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 flex items-center justify-between"
         style={{ background: "rgba(8,12,20,0.92)", backdropFilter: "blur(20px)", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        <div className="flex items-center gap-1.5 sm:gap-3">
-          <button onClick={handleLeave} className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center"
+        <div className="flex items-center gap-2 sm:gap-3">
+          <button onClick={handleLeave} className="w-9 h-9 sm:w-10 sm:h-10 rounded-lg flex items-center justify-center shrink-0"
             style={{ background: "rgba(255,255,255,0.05)" }}>
-            <ArrowLeft className="h-4 w-4 sm:h-5 sm:w-5 text-[#8899AB]" />
+            <ArrowLeft className="h-5 w-5 text-[#8899AB]" />
           </button>
-          <div className="flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-lg"
+          <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg shrink-0"
             style={{ background: "rgba(255,107,53,0.08)", border: "1px solid rgba(255,107,53,0.15)" }}>
-            <Zap className="h-3 w-3 sm:h-4 sm:w-4 text-[#FF6B35]" />
-            <span className="text-xs sm:text-sm md:text-base text-[#FF6B35] font-mono font-black">{blinds}</span>
+            <Zap className="h-4 w-4 text-[#FF6B35]" />
+            <span className="text-sm sm:text-base text-[#FF6B35] font-mono font-black">{blinds}</span>
           </div>
-          <div className="flex items-center gap-1 px-1.5 sm:px-2 py-1 rounded-lg"
+          <div className="flex items-center gap-1 px-2 py-1.5 rounded-lg shrink-0"
             style={{ background: "rgba(255,255,255,0.04)" }}>
-            <Users className="h-3 w-3 sm:h-4 sm:w-4 text-[#6B7A90]" />
-            <span className="text-[10px] sm:text-xs md:text-sm text-[#8899AB] font-mono font-bold">{playerCount}/{maxSeats}</span>
+            <Users className="h-4 w-4 text-[#6B7A90]" />
+            <span className="text-xs sm:text-sm text-[#8899AB] font-mono font-bold">{playerCount}/{maxSeats}</span>
           </div>
           {handNumber > 0 && (
-            <span className="text-[10px] sm:text-xs text-[#4A5A70] font-mono hidden sm:inline">#{handNumber}</span>
+            <span className="text-[11px] sm:text-xs text-[#4A5A70] font-mono hidden sm:inline">#{handNumber}</span>
           )}
         </div>
 
@@ -782,19 +889,22 @@ export default function GameTable() {
         </div>
 
         <div className="flex items-center gap-2 sm:gap-2.5">
-          {/* ★ WATCHING 배지 — 관전 모드(미착석) 표시 */}
+          {/* ★ WATCHING 배지 — 관전 모드(미착석) 표시
+              V3 P2D: 모바일은 아이콘만, 데스크탑은 텍스트 포함 */}
           {!seated && (
             <motion.div
               animate={{ opacity: [0.7, 1, 0.7] }}
               transition={{ duration: 2, repeat: Infinity }}
-              className="px-2 py-1 rounded-lg flex items-center gap-1.5"
+              className="px-2 py-1.5 rounded-lg flex items-center gap-1.5"
               style={{
                 background: "rgba(52,211,153,0.12)",
                 border: "1px solid rgba(52,211,153,0.35)",
                 boxShadow: "0 0 12px rgba(52,211,153,0.2)",
-              }}>
-              <span style={{ fontSize: 11 }}>👁</span>
-              <span className="text-[10px] font-black tracking-wider" style={{ color: "#34D399", letterSpacing: "0.08em" }}>
+              }}
+              title="관전 모드"
+            >
+              <span style={{ fontSize: 13 }}>👁</span>
+              <span className="hidden sm:inline text-[10px] font-black tracking-wider" style={{ color: "#34D399", letterSpacing: "0.08em" }}>
                 WATCHING
               </span>
             </motion.div>
@@ -809,120 +919,185 @@ export default function GameTable() {
               </span>
             </div>
           )}
-          {/* History — 데스크탑만 */}
-          <button onClick={() => { send({ type: 'GET_HAND_HISTORY', limit: 10 }); setShowHandHistory(true); }}
-            className="hidden sm:block px-2 py-1 rounded-lg text-[10px] font-semibold"
-            style={{ background: "rgba(255,255,255,0.04)", color: "#6B7A90" }}>
-            History
-          </button>
-          {/* Top Up — 헤더 우측 상단 (데스크탑만, 모바일은 베팅 영역 근처에 별도 표시) */}
-          {seated && (
-            <button onClick={() => {
-                const inHand = phase !== "WAITING" && phase !== "RESULT";
-                if (inHand) {
-                  toast('⏱️ 현재 핸드 종료 후 충전 가능합니다', { duration: 2500, icon: '⏳' });
-                }
-                setShowTopUpModal(true);
+          {/* V3 Task 4 Phase A: 친구 초대 — 박동 애니 + 모바일 아이콘 only */}
+          {currentRoomId && (
+            <motion.button
+              onClick={() => {
+                try { send({ type: 'CREATE_HEADSUP_INVITE' } as any); } catch {}
+                setShowInviteModal(true);
               }}
-              className="hidden md:block px-2 py-1 rounded-lg text-[10px] font-bold"
-              style={{ background: "rgba(52,211,153,0.08)", color: "#34D399", border: "1px solid rgba(52,211,153,0.2)" }}>
-              +$ Top Up
-            </button>
-          )}
-          {/* Change Seat — 데스크탑만 */}
-          {seated && (
-            <button onClick={() => {
-                send({ type: 'GET_EMPTY_SEATS' });
-                setShowChangeSeatModal(true);
+              animate={{
+                boxShadow: [
+                  "0 0 0 rgba(34,211,238,0)",
+                  "0 0 14px rgba(34,211,238,0.55)",
+                  "0 0 0 rgba(34,211,238,0)",
+                ],
+                scale: [1, 1.04, 1],
               }}
-              className="hidden sm:block px-2 py-1 rounded-lg text-[10px] font-semibold"
-              style={{ background: "rgba(124,58,237,0.08)", color: "#A78BFA", border: "1px solid rgba(124,58,237,0.2)" }}>
-              🪑 Seat
-            </button>
-          )}
-          {/* Pre-Action */}
-          {seated && (
-            <button onClick={() => setShowPreActionPanel(v => !v)}
-              className="hidden sm:block px-2 py-1 rounded-lg text-[10px] font-bold"
+              transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
+              whileTap={{ scale: 0.94 }}
+              className="px-2 py-1.5 rounded-lg text-[11px] font-black flex items-center gap-1 relative overflow-hidden"
               style={{
-                background: preAction ? "rgba(240,185,11,0.15)" : "rgba(255,255,255,0.04)",
-                color: preAction ? "#F0B90B" : "#6B7A90",
-                border: preAction ? "1px solid rgba(240,185,11,0.3)" : "1px solid transparent",
-              }}>
-              ⚡ Pre
-            </button>
-          )}
-          {/* Wait for BB */}
-          {seated && (
-            <button onClick={() => {
-                const next = !waitForBB;
-                setWaitForBB(next);
-                send({ type: 'WAIT_FOR_BB', enabled: next });
-                toast.success(next ? 'Waiting for BB' : 'Wait for BB off');
+                background: "linear-gradient(135deg, rgba(34,211,238,0.18), rgba(37,99,235,0.18))",
+                border: "1px solid rgba(34,211,238,0.5)",
+                color: "#22D3EE",
               }}
-              className="hidden md:block px-2 py-1 rounded-lg text-[10px] font-bold"
-              style={{
-                background: waitForBB ? "rgba(34,211,238,0.1)" : "rgba(255,255,255,0.04)",
-                color: waitForBB ? "#22D3EE" : "#6B7A90",
-                border: waitForBB ? "1px solid rgba(34,211,238,0.25)" : "1px solid transparent",
-              }}>
-              ⏳ BB
-            </button>
+              title="친구 초대"
+            >
+              <span style={{ fontSize: 13 }}>🎮</span>
+              <span className="hidden sm:inline">초대</span>
+            </motion.button>
           )}
-          {/* Run It Twice/Thrice */}
-          {seated && (
-            <button onClick={() => {
-                const next: 'off' | 'twice' | 'thrice' =
-                  runItMode === 'off' ? 'twice' :
-                  runItMode === 'twice' ? 'thrice' : 'off';
-                setRunItMode(next);
-                send({ type: 'SET_RUN_IT_MODE', mode: next });
-                toast.success(`Run It: ${next.toUpperCase()}`);
-              }}
-              className="hidden md:block px-2 py-1 rounded-lg text-[10px] font-bold"
-              style={{
-                background: runItMode !== 'off' ? "rgba(255,107,53,0.12)" : "rgba(255,255,255,0.04)",
-                color: runItMode !== 'off' ? "#FF6B35" : "#6B7A90",
-                border: runItMode !== 'off' ? "1px solid rgba(255,107,53,0.3)" : "1px solid transparent",
-              }}
-              title="Off → Twice → Thrice">
-              🎲 {runItMode === 'off' ? 'RIT' : runItMode === 'twice' ? '2×' : '3×'}
-            </button>
-          )}
-          {/* 전체화면 토글 */}
+          {/* V18: 전체화면 토글 — 44×44 터치 타깃 (탭 실패 방지) */}
           <button onClick={toggleFullscreen}
-            className="px-1.5 sm:px-2 py-1 rounded-lg text-xs"
-            style={{ background: "rgba(255,255,255,0.04)" }}
+            className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0"
+            style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
             title={isFullscreen ? "전체화면 해제" : "전체화면"}>
-            {isFullscreen ? "⤢" : "⛶"}
+            {isFullscreen
+              ? <Minimize2 className="h-5 w-5 text-[#8899AB]" />
+              : <Maximize2 className="h-5 w-5 text-[#8899AB]" />}
           </button>
-          {/* Emoji */}
-          <button onClick={() => setShowEmoji(!showEmoji)}
-            className="px-1.5 sm:px-2 py-1 rounded-lg text-xs"
-            style={{ background: "rgba(255,255,255,0.04)" }}>
-            😊
-          </button>
-          {/* Sit Out — 모바일 간소화 */}
-          {seated && (
-            <button onClick={() => {
-              if (isSittingOut) {
-                send({ type: 'SIT_IN' });
-                useGameStore.setState({ isSittingOut: false });
-                toast.success('Back in action');
-              } else {
-                send({ type: 'SIT_OUT' });
-                useGameStore.setState({ isSittingOut: true });
-                toast.success('Sitting out');
-              }
-            }}
-              className="px-1.5 sm:px-2 py-1 rounded-lg text-[9px] sm:text-[10px] font-semibold"
+          {/* V18: ⋮ More 드롭다운 — History/TopUp/Seat/Pre/BB/RIT/Emoji/SitOut 통합 */}
+          <div className="relative">
+            <button onClick={() => setShowMenu(v => !v)}
+              className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0"
               style={{
-                background: isSittingOut ? "rgba(239,68,68,0.1)" : "rgba(255,255,255,0.04)",
-                color: isSittingOut ? "#EF4444" : "#6B7A90",
-              }}>
-              {isSittingOut ? "In" : "Out"}
+                background: showMenu ? "rgba(52,211,153,0.1)" : "rgba(255,255,255,0.05)",
+                border: showMenu ? "1px solid rgba(52,211,153,0.3)" : "1px solid rgba(255,255,255,0.08)",
+              }}
+              title="더보기">
+              <MoreVertical className="h-5 w-5" style={{ color: showMenu ? "#34D399" : "#8899AB" }} />
             </button>
-          )}
+            <AnimatePresence>
+              {showMenu && (
+                <>
+                  {/* backdrop: outside click closes */}
+                  <div className="fixed inset-0 z-40" onClick={() => setShowMenu(false)} />
+                  <motion.div
+                    initial={{ opacity: 0, y: -6, scale: 0.96 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    exit={{ opacity: 0, y: -6, scale: 0.96 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute top-12 right-0 z-50 w-56 rounded-xl p-2 flex flex-col gap-1"
+                    style={{
+                      background: "rgba(14,18,26,0.97)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      backdropFilter: "blur(16px)",
+                      boxShadow: "0 12px 40px rgba(0,0,0,0.6)",
+                    }}>
+                    {/* History */}
+                    <button onClick={() => {
+                        send({ type: 'GET_HAND_HISTORY', limit: 10 });
+                        setShowHandHistory(true);
+                        setShowMenu(false);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left text-xs font-semibold hover:bg-white/5"
+                      style={{ color: "#8899AB" }}>
+                      <span className="flex items-center gap-2"><span>📜</span>History</span>
+                      <span className="text-[9px] text-[#4A5A70]">최근 10핸드</span>
+                    </button>
+                    {seated && (
+                      <>
+                        {/* Top Up */}
+                        <button onClick={() => {
+                            const inHand = phase !== "WAITING" && phase !== "RESULT";
+                            if (inHand) {
+                              toast('⏱️ 현재 핸드 종료 후 충전 가능합니다', { duration: 2500, icon: '⏳' });
+                            }
+                            setShowTopUpModal(true);
+                            setShowMenu(false);
+                          }}
+                          className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left text-xs font-bold hover:bg-white/5"
+                          style={{ color: "#34D399" }}>
+                          <span className="flex items-center gap-2"><span>💰</span>Top Up</span>
+                          <span className="text-[9px] text-[#4A5A70]">+$</span>
+                        </button>
+                        {/* Change Seat */}
+                        <button onClick={() => {
+                            send({ type: 'GET_EMPTY_SEATS' });
+                            setShowChangeSeatModal(true);
+                            setShowMenu(false);
+                          }}
+                          className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left text-xs font-semibold hover:bg-white/5"
+                          style={{ color: "#A78BFA" }}>
+                          <span className="flex items-center gap-2"><span>🪑</span>Change Seat</span>
+                        </button>
+                        {/* Pre-Action */}
+                        <button onClick={() => {
+                            setShowPreActionPanel(v => !v);
+                            setShowMenu(false);
+                          }}
+                          className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left text-xs font-bold hover:bg-white/5"
+                          style={{ color: preAction ? "#F0B90B" : "#8899AB" }}>
+                          <span className="flex items-center gap-2"><span>⚡</span>Pre-Action</span>
+                          <span className="text-[9px]" style={{ color: preAction ? "#F0B90B" : "#4A5A70" }}>
+                            {preAction ? preAction.toUpperCase() : 'OFF'}
+                          </span>
+                        </button>
+                        {/* Wait for BB */}
+                        <button onClick={() => {
+                            const next = !waitForBB;
+                            setWaitForBB(next);
+                            send({ type: 'WAIT_FOR_BB', enabled: next });
+                            toast.success(next ? 'Waiting for BB' : 'Wait for BB off');
+                            setShowMenu(false);
+                          }}
+                          className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left text-xs font-bold hover:bg-white/5"
+                          style={{ color: waitForBB ? "#22D3EE" : "#8899AB" }}>
+                          <span className="flex items-center gap-2"><span>⏳</span>Wait for BB</span>
+                          <span className="text-[9px]" style={{ color: waitForBB ? "#22D3EE" : "#4A5A70" }}>
+                            {waitForBB ? 'ON' : 'OFF'}
+                          </span>
+                        </button>
+                        {/* Run It Twice/Thrice */}
+                        <button onClick={() => {
+                            const next: 'off' | 'twice' | 'thrice' =
+                              runItMode === 'off' ? 'twice' :
+                              runItMode === 'twice' ? 'thrice' : 'off';
+                            setRunItMode(next);
+                            send({ type: 'SET_RUN_IT_MODE', mode: next });
+                            toast.success(`Run It: ${next.toUpperCase()}`);
+                          }}
+                          className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left text-xs font-bold hover:bg-white/5"
+                          style={{ color: runItMode !== 'off' ? "#FF6B35" : "#8899AB" }}>
+                          <span className="flex items-center gap-2"><span>🎲</span>Run It</span>
+                          <span className="text-[9px]" style={{ color: runItMode !== 'off' ? "#FF6B35" : "#4A5A70" }}>
+                            {runItMode === 'off' ? 'OFF' : runItMode === 'twice' ? '2×' : '3×'}
+                          </span>
+                        </button>
+                        {/* Sit Out */}
+                        <button onClick={() => {
+                            if (isSittingOut) {
+                              send({ type: 'SIT_IN' });
+                              useGameStore.setState({ isSittingOut: false });
+                              toast.success('Back in action');
+                            } else {
+                              send({ type: 'SIT_OUT' });
+                              useGameStore.setState({ isSittingOut: true });
+                              toast.success('Sitting out');
+                            }
+                            setShowMenu(false);
+                          }}
+                          className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left text-xs font-semibold hover:bg-white/5"
+                          style={{ color: isSittingOut ? "#EF4444" : "#8899AB" }}>
+                          <span className="flex items-center gap-2"><span>🚪</span>{isSittingOut ? 'Sit In' : 'Sit Out'}</span>
+                        </button>
+                      </>
+                    )}
+                    {/* Emoji */}
+                    <button onClick={() => {
+                        setShowEmoji(!showEmoji);
+                        setShowMenu(false);
+                      }}
+                      className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left text-xs font-semibold hover:bg-white/5"
+                      style={{ color: "#8899AB" }}>
+                      <span className="flex items-center gap-2"><span>😊</span>Emoji</span>
+                    </button>
+                  </motion.div>
+                </>
+              )}
+            </AnimatePresence>
+          </div>
           <div className="relative">
             <button onClick={() => {
               const newMuted = !isMuted;
@@ -932,9 +1107,12 @@ export default function GameTable() {
               playSound('click');
             }}
               onContextMenu={(e) => { e.preventDefault(); setShowVolume(!showVolume); }}
-              className="w-9 h-9 rounded-lg flex items-center justify-center"
-              style={{ background: isMuted ? "rgba(239,68,68,0.08)" : "rgba(255,255,255,0.03)" }}>
-              {isMuted ? <VolumeX className="h-4 w-4 text-[#EF4444]" /> : <Volume2 className="h-4 w-4 text-[#4A5A70]" />}
+              className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0"
+              style={{
+                background: isMuted ? "rgba(239,68,68,0.08)" : "rgba(255,255,255,0.05)",
+                border: "1px solid rgba(255,255,255,0.08)",
+              }}>
+              {isMuted ? <VolumeX className="h-5 w-5 text-[#EF4444]" /> : <Volume2 className="h-5 w-5 text-[#8899AB]" />}
             </button>
             {/* Volume slider popup */}
             <AnimatePresence>
@@ -1089,6 +1267,441 @@ export default function GameTable() {
         )}
       </AnimatePresence>
 
+      {/* ═══ V3 Task 4 Phase A: 친구 초대 모달 ═══ */}
+      <AnimatePresence>
+        {showInviteModal && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[65] flex items-center justify-center bg-black/80 backdrop-blur-md p-3"
+            onClick={() => setShowInviteModal(false)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="rounded-2xl w-full max-w-[420px] overflow-hidden"
+              style={{
+                background: "linear-gradient(180deg, #0F1923, #060B14)",
+                border: "1px solid rgba(34,211,238,0.35)",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(34,211,238,0.15)",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="px-5 py-4 border-b border-white/[0.06] flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+                    style={{ background: "rgba(34,211,238,0.18)", border: "1px solid rgba(34,211,238,0.4)" }}>
+                    <span className="text-base">🎮</span>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-white">친구 초대</h3>
+                    <p className="text-[10px] text-[#4A5A70]">같은 테이블로 초대합니다 (관전 포함 최대 8명)</p>
+                  </div>
+                </div>
+                <button onClick={() => setShowInviteModal(false)}
+                  className="w-7 h-7 rounded-lg flex items-center justify-center text-[#6B7A90]">
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Body */}
+              <div className="px-5 py-5">
+                {!headsupInvite ? (
+                  <div className="text-center py-6">
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
+                      className="mx-auto w-8 h-8 rounded-full border-2 border-t-transparent"
+                      style={{ borderColor: "#22D3EE", borderTopColor: "transparent" }}
+                    />
+                    <div className="text-[11px] text-[#6B7A90] mt-3">초대 링크 생성 중...</div>
+                  </div>
+                ) : (
+                  <>
+                    {/* 초대 링크 */}
+                    <div className="mb-3">
+                      <div className="text-[9px] text-[#6B7A90] uppercase tracking-wider mb-1">초대 링크</div>
+                      <div className="flex items-center gap-2 p-2 rounded-lg"
+                        style={{ background: "rgba(0,0,0,0.4)", border: "1px solid rgba(34,211,238,0.2)" }}>
+                        <div className="flex-1 text-[10px] font-mono text-[#8899AB] break-all">
+                          {headsupInvite.url}
+                        </div>
+                        <button
+                          onClick={() => {
+                            try {
+                              navigator.clipboard.writeText(headsupInvite.url);
+                              toast.success('복사됨!');
+                            } catch {}
+                          }}
+                          className="shrink-0 px-2 py-1 rounded text-[9px] font-black"
+                          style={{
+                            background: "rgba(34,211,238,0.2)",
+                            border: "1px solid rgba(34,211,238,0.45)",
+                            color: "#22D3EE",
+                          }}
+                        >
+                          복사
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* 토큰 + 만료 */}
+                    <div className="grid grid-cols-2 gap-2 mb-3">
+                      <div className="p-2 rounded-lg" style={{ background: "rgba(255,255,255,0.03)" }}>
+                        <div className="text-[8px] text-[#4A5A70] uppercase tracking-wider">Token</div>
+                        <div className="text-[13px] font-mono font-black text-[#22D3EE]">{headsupInvite.token}</div>
+                      </div>
+                      <div className="p-2 rounded-lg" style={{ background: "rgba(255,255,255,0.03)" }}>
+                        <div className="text-[8px] text-[#4A5A70] uppercase tracking-wider">만료</div>
+                        <div className="text-[11px] font-mono font-black text-[#FBBF24]">
+                          {(() => {
+                            const remain = Math.max(0, Math.floor((headsupInvite.expiresAt - Date.now()) / 1000));
+                            const m = Math.floor(remain / 60);
+                            const s = remain % 60;
+                            return `${m}:${String(s).padStart(2, '0')}`;
+                          })()}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Telegram share */}
+                    <a
+                      href={`https://t.me/share/url?url=${encodeURIComponent(headsupInvite.url)}&text=${encodeURIComponent('🃏 홀덤 친구 초대 — 같이 한판?')}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="block w-full py-3 rounded-xl text-center text-[12px] font-black mb-2"
+                      style={{
+                        background: "linear-gradient(135deg, #229ED9, #2AABEE)",
+                        color: "#FFFFFF",
+                        boxShadow: "0 4px 16px rgba(34,158,217,0.35)",
+                      }}
+                    >
+                      ✈️ Telegram 으로 공유
+                    </a>
+
+                    <p className="text-[9px] text-[#4A5A70] text-center leading-tight">
+                      💡 하루 1회 생성 · 5분 내 사용 · 최대 8명 입장
+                    </p>
+                  </>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* ═══ V3 P2D Part 3: Hand Replay Viewer — Step-by-step ═══ */}
+      <AnimatePresence>
+        {replayHand && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[60] flex items-center justify-center bg-black/80 backdrop-blur-md p-3"
+            onClick={() => setReplayHand(null)}
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 20 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 20 }}
+              className="rounded-2xl w-full max-w-[720px] max-h-[92vh] flex flex-col overflow-hidden"
+              style={{
+                background: "linear-gradient(180deg, #0F1923, #060B14)",
+                border: "1px solid rgba(255,107,53,0.25)",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(255,107,53,0.1)",
+              }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between px-5 py-3 border-b border-white/[0.06]">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+                    style={{ background: "rgba(255,107,53,0.15)", border: "1px solid rgba(255,107,53,0.3)" }}>
+                    <span className="text-sm">▶</span>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-white">
+                      Hand Replay #{replayHand.handNumber ?? '?'}
+                    </h3>
+                    <p className="text-[10px] text-[#4A5A70]">
+                      Pot: {getSymbol()}{((replayHand.pot ?? 0) / 100).toLocaleString()} ·
+                      {' '}{new Date(replayHand.timestamp).toLocaleString('ko-KR')}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setReplayHand(null)}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-[#6B7A90] hover:bg-white/[0.05]"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Body — Mini table + players + community */}
+              <div className="flex-1 overflow-y-auto px-5 py-4">
+                {(() => {
+                  const players: any[] = Array.isArray(replayHand.players) ? replayHand.players : [];
+                  const board: any[] = Array.isArray(replayHand.board) ? replayHand.board : [];
+                  const winners: any[] = Array.isArray(replayHand.winners) ? replayHand.winners : [];
+                  const winnerIds = new Set(winners.map((w: any) => w.playerId));
+                  // Community card 개수 by step
+                  const boardCount = replayStep === 0 ? 0 : replayStep === 1 ? 3 : replayStep === 2 ? 4 : 5;
+                  const stepLabel = ['PREFLOP', 'FLOP', 'TURN', 'RIVER', 'RESULT'][replayStep];
+                  const rankMap: Record<number, string> = { 1: 'A', 2: '2', 3: '3', 4: '4', 5: '5', 6: '6', 7: '7', 8: '8', 9: '9', 10: '10', 11: 'J', 12: 'Q', 13: 'K' };
+                  const suitSymbols = ['', '♠', '♥', '♦', '♣'];
+                  const suitIsRed = (s: number) => s === 2 || s === 3;
+
+                  // 미니 테이블 좌석 좌표 (6-max 가정, 원형 배치)
+                  const N = Math.max(players.length, 2);
+                  const miniSeatCoord = (idx: number): [number, number] => {
+                    // 하단 중앙부터 시계방향 배치
+                    const angle = (Math.PI * 2 * idx) / N - Math.PI / 2 + Math.PI; // 180° 오프셋
+                    const rx = 42, ry = 34;
+                    const cx = 50, cy = 50;
+                    return [cx + rx * Math.cos(angle), cy + ry * Math.sin(angle)];
+                  };
+
+                  return (
+                    <>
+                      {/* Step label */}
+                      <div className="flex justify-center mb-3">
+                        <span className="px-3 py-1 rounded-full text-[11px] font-black tracking-widest"
+                          style={{
+                            background: "linear-gradient(135deg, rgba(255,107,53,0.25), rgba(232,93,44,0.25))",
+                            border: "1px solid rgba(255,107,53,0.55)",
+                            color: "#FF6B35",
+                          }}>
+                          {stepLabel} ({boardCount}/5)
+                        </span>
+                      </div>
+
+                      {/* Mini table */}
+                      <div className="relative mx-auto"
+                        style={{
+                          width: '100%',
+                          maxWidth: 560,
+                          aspectRatio: '16 / 10',
+                          background: "radial-gradient(ellipse at 50% 50%, #1A6A48 0%, #0E4229 60%, #061E12 100%)",
+                          borderRadius: '50%',
+                          border: "6px solid #3B2318",
+                          boxShadow: "inset 0 0 40px rgba(0,0,0,0.5), 0 12px 30px rgba(0,0,0,0.6)",
+                        }}>
+                        {/* Community cards at center */}
+                        <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex gap-1.5">
+                          {board.slice(0, boardCount).map((c: any, ci: number) => (
+                            <motion.div
+                              key={`rb-${ci}-${c.suit}-${c.rank}`}
+                              initial={{ rotateY: 180, opacity: 0, y: -8 }}
+                              animate={{ rotateY: 0, opacity: 1, y: 0 }}
+                              transition={{ delay: ci * 0.12, duration: 0.4 }}
+                              className="flex flex-col items-center justify-center rounded"
+                              style={{
+                                width: 34, height: 48,
+                                background: "#FFFFFF",
+                                border: "1px solid rgba(0,0,0,0.15)",
+                                boxShadow: "0 3px 8px rgba(0,0,0,0.35)",
+                              }}
+                            >
+                              <span className="text-[12px] font-black leading-none" style={{ color: suitIsRed(c.suit) ? '#DC2626' : '#111' }}>
+                                {rankMap[c.rank] ?? c.rank}
+                              </span>
+                              <span className="text-[11px] leading-none" style={{ color: suitIsRed(c.suit) ? '#DC2626' : '#111' }}>
+                                {suitSymbols[c.suit]}
+                              </span>
+                            </motion.div>
+                          ))}
+                          {/* 남은 empty slot */}
+                          {Array.from({ length: Math.max(0, 5 - boardCount) }).map((_, i) => (
+                            <div key={`eb-${i}`}
+                              style={{
+                                width: 34, height: 48,
+                                borderRadius: 4,
+                                border: "1px dashed rgba(255,255,255,0.08)",
+                              }} />
+                          ))}
+                        </div>
+
+                        {/* Player seats around */}
+                        {players.map((pl: any, pi: number) => {
+                          const [x, y] = miniSeatCoord(pi);
+                          const isFolded = pl.finalAction === 'FOLD';
+                          const isWinner = replayStep >= 4 && winnerIds.has(pl.playerId);
+                          const showCards = Array.isArray(pl.holeCards) && pl.holeCards.length === 2 && !isFolded;
+                          return (
+                            <div key={`rp-${pi}`}
+                              className="absolute"
+                              style={{
+                                left: `${x}%`,
+                                top: `${y}%`,
+                                transform: 'translate(-50%, -50%)',
+                                width: 88,
+                              }}>
+                              {/* Avatar circle */}
+                              <div className="mx-auto relative"
+                                style={{
+                                  width: 46, height: 46,
+                                  borderRadius: '50%',
+                                  background: isWinner
+                                    ? "radial-gradient(circle, rgba(255,215,0,0.45), rgba(255,107,53,0.15))"
+                                    : "radial-gradient(circle at 50% 40%, #2A3648, #0F1620)",
+                                  border: isWinner ? "2px solid rgba(255,215,0,0.8)" : "1.5px solid rgba(255,255,255,0.1)",
+                                  boxShadow: isWinner ? "0 0 16px rgba(255,215,0,0.5)" : "0 4px 12px rgba(0,0,0,0.5)",
+                                  opacity: isFolded ? 0.35 : 1,
+                                  filter: isFolded ? "grayscale(0.7)" : "none",
+                                }}>
+                                <div className="absolute inset-0 flex items-center justify-center text-white text-[14px] font-black">
+                                  {(pl.nickname || '?').charAt(0)}
+                                </div>
+                              </div>
+                              {/* Nickname + action */}
+                              <div className="text-center mt-1">
+                                <div className="text-[9px] font-bold truncate" style={{
+                                  color: isWinner ? '#FFD700' : isFolded ? '#4A5A70' : '#FFFFFF',
+                                }}>
+                                  {pl.nickname || 'Unknown'}
+                                </div>
+                                {pl.finalAction && replayStep >= 4 && (
+                                  <div className="text-[8px] font-black uppercase" style={{
+                                    color: isFolded ? '#EF4444' : isWinner ? '#34D399' : '#8899AB',
+                                  }}>
+                                    {pl.finalAction}
+                                  </div>
+                                )}
+                              </div>
+                              {/* Hole cards */}
+                              {showCards && (
+                                <div className="absolute -top-2 left-1/2 -translate-x-1/2 flex gap-0.5"
+                                  style={{ filter: isFolded ? 'grayscale(1) brightness(0.6)' : 'none' }}>
+                                  {pl.holeCards.map((c: any, ci: number) => (
+                                    <div key={`hc-${pi}-${ci}`}
+                                      className="flex items-center justify-center rounded"
+                                      style={{
+                                        width: 18, height: 24,
+                                        background: "#FFFFFF",
+                                        border: "0.5px solid rgba(0,0,0,0.2)",
+                                      }}>
+                                      <span className="text-[9px] font-black leading-none" style={{ color: suitIsRed(c.suit) ? '#DC2626' : '#111' }}>
+                                        {rankMap[c.rank] ?? c.rank}{suitSymbols[c.suit]}
+                                      </span>
+                                    </div>
+                                  ))}
+                                </div>
+                              )}
+                              {/* Win amount on RESULT step */}
+                              {isWinner && replayStep >= 4 && pl.winAmount > 0 && (
+                                <div className="text-center mt-0.5 text-[9px] font-mono font-black text-[#FFD700]">
+                                  +{getSymbol()}{(pl.winAmount / 100).toLocaleString()}
+                                </div>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Winner description at RESULT step */}
+                      {replayStep >= 4 && winners.length > 0 && winners[0] && (
+                        <motion.div
+                          initial={{ opacity: 0, y: 8 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          className="mt-4 mx-auto max-w-md p-3 rounded-xl text-center"
+                          style={{
+                            background: "linear-gradient(135deg, rgba(255,215,0,0.12), rgba(52,211,153,0.08))",
+                            border: "1px solid rgba(255,215,0,0.35)",
+                          }}
+                        >
+                          <div className="text-[11px] text-[#FFD700] font-black mb-0.5">🏆 WINNER</div>
+                          <div className="text-[14px] font-black text-white">
+                            {winners[0].nickname ?? 'Unknown'}
+                          </div>
+                          {winners[0].handResult?.description && (
+                            <div className="text-[11px] text-[#34D399] font-semibold mt-0.5">
+                              {winners[0].handResult.description}
+                            </div>
+                          )}
+                        </motion.div>
+                      )}
+                    </>
+                  );
+                })()}
+              </div>
+
+              {/* Step Controller */}
+              <div className="px-5 py-3 border-t border-white/[0.06]" style={{ background: "rgba(0,0,0,0.3)" }}>
+                <div className="flex items-center justify-between gap-3">
+                  {/* Prev */}
+                  <button
+                    onClick={() => setReplayStep((s) => Math.max(0, s - 1))}
+                    disabled={replayStep === 0}
+                    className="px-3 py-2 rounded-lg text-[11px] font-bold disabled:opacity-30"
+                    style={{
+                      background: "rgba(255,255,255,0.05)",
+                      border: "1px solid rgba(255,255,255,0.08)",
+                      color: "#8899AB",
+                    }}
+                  >
+                    ◀ 이전
+                  </button>
+
+                  {/* Step dots */}
+                  <div className="flex gap-1.5">
+                    {['PRE', 'FLOP', 'TURN', 'RIVER', 'END'].map((label, idx) => (
+                      <button
+                        key={idx}
+                        onClick={() => setReplayStep(idx)}
+                        className="px-2 py-1 rounded text-[9px] font-black uppercase tracking-wider"
+                        style={{
+                          background: replayStep === idx
+                            ? "linear-gradient(135deg, rgba(255,107,53,0.35), rgba(232,93,44,0.35))"
+                            : "rgba(255,255,255,0.04)",
+                          border: replayStep === idx
+                            ? "1px solid rgba(255,107,53,0.7)"
+                            : "1px solid rgba(255,255,255,0.06)",
+                          color: replayStep === idx ? "#FFB085" : "#6B7A90",
+                        }}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* Autoplay + Next */}
+                  <div className="flex gap-2">
+                    <button
+                      onClick={() => setReplayAutoplay((a) => !a)}
+                      className="px-2.5 py-2 rounded-lg text-[10px] font-black"
+                      style={{
+                        background: replayAutoplay
+                          ? "linear-gradient(135deg, rgba(52,211,153,0.3), rgba(16,185,129,0.3))"
+                          : "rgba(255,255,255,0.05)",
+                        border: `1px solid ${replayAutoplay ? "rgba(52,211,153,0.55)" : "rgba(255,255,255,0.08)"}`,
+                        color: replayAutoplay ? "#34D399" : "#8899AB",
+                      }}
+                    >
+                      {replayAutoplay ? '⏸' : '▶'} 자동
+                    </button>
+                    <button
+                      onClick={() => setReplayStep((s) => Math.min(4, s + 1))}
+                      disabled={replayStep === 4}
+                      className="px-3 py-2 rounded-lg text-[11px] font-bold disabled:opacity-30"
+                      style={{
+                        background: "rgba(255,107,53,0.15)",
+                        border: "1px solid rgba(255,107,53,0.45)",
+                        color: "#FF6B35",
+                      }}
+                    >
+                      다음 ▶
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ====== 나가기 예약 배너 ====== */}
       {leaveReserved && seated && (
         <div className="shrink-0 z-20 px-3 py-1.5 flex items-center justify-between text-[11px] font-bold"
@@ -1161,9 +1774,31 @@ export default function GameTable() {
                   zIndex: i === heroSeat ? 45 : 30,
                 }}>
                   <PlayerSlot position={i} player={player} isHero={i === heroSeat}
+                    isDealingNow={forceDealAnim > 0}
+                    {...(() => {
+                      // V3 P2C: shownCards + isWinner 계산 — 서버 playerId 매핑
+                      const sp = serverPlayers.find(p => p.seat === i);
+                      if (!sp) return {};
+                      const rawShown = shownCards?.[sp.id];
+                      const shown = rawShown && rawShown.length === 2
+                        ? rawShown.map((c: any) => ({
+                            suit: (SUIT_MAP[c.suit] ?? "spades") as any,
+                            rank: (RANK_MAP[c.rank] ?? "A") as any,
+                          }))
+                        : undefined;
+                      const isWinner = !!(winners && showResult && winners.some((w: any) => w.playerId === sp.id));
+                      return { shownCards: shown, isWinner };
+                    })()}
                     isCurrentTurn={gameState?.currentTurnSeat === i}
-                    turnDeadline={gameState?.currentTurnSeat === i ? turnInfo?.deadline : undefined}
-                    turnTotalMs={turnInfo?.timeoutMs ?? 30000}
+                    // V16: 타이머 fix — 내 턴은 turnInfo.deadline (정확), 다른 플레이어 턴은 gameState.turnStartedAt + turnTimeoutMs 계산
+                    turnDeadline={
+                      gameState?.currentTurnSeat === i
+                        ? (i === heroSeat
+                            ? turnInfo?.deadline
+                            : (gameState?.turnStartedAt ? gameState.turnStartedAt + (gameState.turnTimeoutMs || 30000) : undefined))
+                        : undefined
+                    }
+                    turnTotalMs={gameState?.turnTimeoutMs ?? turnInfo?.timeoutMs ?? 30000}
                     recentAction={lastActions[i] ? { action: lastActions[i].action, amount: lastActions[i].amount } : null}
                     onSitDown={() => handleSitClick(i)}
                     onTopUp={() => setShowBuyInModal(true)}
@@ -1326,24 +1961,59 @@ export default function GameTable() {
                     </motion.div>
                   ))}
                 </AnimatePresence>
-                {/* Empty card slots */}
-                {Array.from({ length: Math.max(0, 5 - communityCards.length) }).map((_, i) => (
-                  <div key={`empty-${i}`} className="shrink-0" style={{
-                    width: isLargeDesktop ? 112 : isDesktop ? 72 : 40,
-                    height: isLargeDesktop ? 157 : isDesktop ? 101 : 56,
-                    borderRadius: 6,
-                    border: "1px dashed rgba(255,255,255,0.04)",
-                    background: "rgba(255,255,255,0.01)",
-                  }} />
-                ))}
+                {/* Empty card slots — Rabbit Hunt 카드가 있으면 그 위치에 표시 */}
+                {Array.from({ length: Math.max(0, 5 - communityCards.length) }).map((_, i) => {
+                  const rabbitIdx = communityCards.length + i;
+                  const rabbitCard = rabbitCards[rabbitIdx];
+                  if (rabbitCard) {
+                    const rSuit = (SUIT_MAP[(rabbitCard as any).suit] ?? 'spades') as any;
+                    const rRank = (RANK_MAP[(rabbitCard as any).rank] ?? 'A') as any;
+                    return (
+                      <motion.div key={`rabbit-${i}`}
+                        initial={{ rotateY: 180, opacity: 0, scale: 0.3 }}
+                        animate={{ rotateY: 0, opacity: 1, scale: 1 }}
+                        transition={{ delay: i * 0.25, duration: 0.5, type: 'spring', stiffness: 120 }}
+                        className="shrink-0 relative"
+                      >
+                        <div className="relative" style={{
+                          filter: 'saturate(0.85) brightness(0.92)',
+                          boxShadow: '0 0 16px rgba(255,215,0,0.35), 0 0 28px rgba(255,215,0,0.15)',
+                          borderRadius: 6,
+                        }}>
+                          <PokerCard suit={rSuit} rank={rRank} size={isLargeDesktop ? "xl" : isDesktop ? "lg" : "sm"} />
+                          {/* Rabbit 마커 */}
+                          <div className="absolute -top-2 -right-2 rounded-full flex items-center justify-center"
+                            style={{
+                              width: 20, height: 20,
+                              background: 'linear-gradient(135deg, #FFD700, #F59E0B)',
+                              fontSize: 11,
+                              boxShadow: '0 2px 6px rgba(0,0,0,0.4)',
+                            }}>
+                            🐇
+                          </div>
+                        </div>
+                      </motion.div>
+                    );
+                  }
+                  return (
+                    <div key={`empty-${i}`} className="shrink-0" style={{
+                      width: isLargeDesktop ? 112 : isDesktop ? 72 : 40,
+                      height: isLargeDesktop ? 157 : isDesktop ? 101 : 56,
+                      borderRadius: 6,
+                      border: "1px dashed rgba(255,255,255,0.04)",
+                      background: "rgba(255,255,255,0.01)",
+                    }} />
+                  );
+                })}
               </div>
             </div>
 
-            {/* ===== POT — chip 영역과 통합(47/49%), z-20 으로 chip 위에 표시 ===== */}
+            {/* ===== POT — V12: 사용자 요청 "POT을 팝업 자리로 내려라"
+                 이전 33/35% → 56/58% (equity bar가 있던 자리, 커뮤니티 카드 아래) ===== */}
             {pot > 0 && (
               <motion.div
-                className="absolute left-1/2 -translate-x-1/2 z-20"
-                style={{ top: isDesktop ? "47%" : "49%" }}
+                className="absolute left-1/2 -translate-x-1/2 z-20 flex flex-col items-center gap-1"
+                style={{ top: isDesktop ? "56%" : "58%" }}
                 initial={{ scale: 0.8, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
                 key={pot}
@@ -1375,7 +2045,9 @@ export default function GameTable() {
                       }} />
                     ))}
                   </div>
-                  <span className="text-[10px] text-[#7A6A3A] font-bold uppercase tracking-wider">POT</span>
+                  <span className="text-[10px] text-[#7A6A3A] font-bold uppercase tracking-wider">
+                    {((gameState as any)?.sidePots?.length ?? 0) >= 2 ? "MAIN" : "POT"}
+                  </span>
                   <motion.span
                     key={pot}
                     initial={{ scale: 1.3, color: "#FFD700" }}
@@ -1383,10 +2055,69 @@ export default function GameTable() {
                     className="text-[16px] font-mono font-black"
                     style={{ textShadow: "0 0 10px rgba(229,184,0,0.3)" }}
                   >
-                    {getSymbol()}{(pot / 100).toLocaleString()}
+                    {getSymbol()}{(
+                      (((gameState as any)?.sidePots?.length ?? 0) >= 2
+                        ? ((gameState as any).sidePots[0]?.amount ?? pot)
+                        : pot) / 100
+                    ).toLocaleString()}
                   </motion.span>
                 </motion.div>
+
+                {/* V3 P2B1: Side pot 뱃지 — 2개 이상일 때만 표시 */}
+                {((gameState as any)?.sidePots?.length ?? 0) >= 2 && (
+                  <div className="flex gap-1.5 flex-wrap justify-center">
+                    {((gameState as any).sidePots as any[]).slice(1).map((sp, idx) => (
+                      <motion.div
+                        key={`side-${idx}`}
+                        initial={{ scale: 0.8, opacity: 0, y: -4 }}
+                        animate={{ scale: 1, opacity: 1, y: 0 }}
+                        transition={{ delay: idx * 0.08 }}
+                        className="px-2.5 py-0.5 rounded-full flex items-center gap-1.5"
+                        style={{
+                          background: "linear-gradient(135deg, rgba(20,14,30,0.9), rgba(30,20,40,0.9))",
+                          backdropFilter: "blur(8px)",
+                          border: "1px solid rgba(139,92,246,0.35)",
+                        }}
+                      >
+                        <span className="text-[8px] text-[#8B5CF6] font-bold uppercase tracking-wider">
+                          SIDE{idx + 1}
+                        </span>
+                        <span className="text-[11px] font-mono font-black" style={{ color: "#C4B5FD" }}>
+                          {getSymbol()}{(sp.amount / 100).toLocaleString()}
+                        </span>
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
               </motion.div>
+            )}
+
+            {/* V3 P2D: Rabbit Hunt 요청 버튼 — 핸드 종료 직후 보드 미완성(5 미만) 시 5초 동안 표시 */}
+            {showResult && communityCards.length < 5 && rabbitCards.length === 0 && (
+              <motion.button
+                key="rabbit-btn"
+                initial={{ opacity: 0, scale: 0.7, y: 8 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.7 }}
+                transition={{ duration: 0.3, type: 'spring', stiffness: 240 }}
+                onClick={() => {
+                  try { send({ type: 'RABBIT_HUNT' } as any); } catch {}
+                }}
+                className="absolute left-1/2 -translate-x-1/2 z-30 px-4 py-2 rounded-full flex items-center gap-2"
+                style={{
+                  top: isDesktop ? "58%" : "60%",
+                  background: "linear-gradient(135deg, rgba(255,215,0,0.25), rgba(245,158,11,0.25))",
+                  border: "1.5px solid rgba(255,215,0,0.55)",
+                  backdropFilter: "blur(12px)",
+                  boxShadow: "0 4px 16px rgba(255,215,0,0.25), inset 0 1px 0 rgba(255,255,255,0.1)",
+                }}
+              >
+                <span style={{ fontSize: 16 }}>🐇</span>
+                <span className="text-[11px] font-black tracking-wider" style={{ color: "#FFD700" }}>
+                  RABBIT HUNT
+                </span>
+                <span className="text-[9px] text-[#C0A540]">보기</span>
+              </motion.button>
             )}
 
             {/* ===== CHIP FLY ANIMATION — 착지점 POT과 동일(47/49%) z-30 위에 POT z-20 겹침 */}
@@ -1426,13 +2157,16 @@ export default function GameTable() {
               })}
             </AnimatePresence>
 
-            {/* ===== 중앙 팟 칩 스택 — POT 뱃지와 동일 위치(47/49%) 뒤에 쌓임
-                 z 순서: 칩스택[8] < flyingChips[15] < POT[20] < winChips[40] */}
+            {/* ===== 팟 칩 SCATTER — V18: GG포커 스타일 펠트 바닥 flat scatter
+                 - 위치: POT 배지(56/58%) 바로 위 (50/52%) — 바닥 느낌
+                 - y 범위 ±3px → 거의 평평, 쌓이지 않음
+                 - drop-shadow 고정값 → 입체감 없이 펠트 위 납작하게 깔림
+                 - 칩 크기 축소 (30 → 22 / 18 → 14) 로 POT 금액 가독성 확보 */}
             {potChipStacks.length > 0 && (
-              <div className="absolute z-[8] pointer-events-none"
+              <div className="absolute z-[18] pointer-events-none"
                 style={{
                   left: '50%',
-                  top: isDesktop ? '47%' : '49%',
+                  top: isDesktop ? '50%' : '52%',
                   width: 0, height: 0,
                 }}>
                 {potChipStacks.map((chip, i) => {
@@ -1443,17 +2177,19 @@ export default function GameTable() {
                   const chipColorName = colorMap[chip.color] || 'green';
                   return (
                     <motion.div key={`potchip-${i}`}
-                      initial={{ scale: 0, opacity: 0, y: -12 }}
-                      animate={{ scale: 1, opacity: 1, y: 0 }}
-                      transition={{ type: "spring", stiffness: 250, damping: 18 }}
+                      initial={{ scale: 0, opacity: 0 }}
+                      animate={{ scale: 1, opacity: 0.92 }}
+                      transition={{ type: "spring", stiffness: 260, damping: 20 }}
                       style={{
                         position: 'absolute',
                         left: chip.x,
                         top: chip.y,
-                        transform: 'translate(-50%, -50%)',
+                        transform: `translate(-50%, -50%) rotate(${chip.rot}deg)`,
+                        // V18: 고정 그림자 — "쌓이는" 3D 느낌 제거, 펠트 바닥에 납작히 놓인 느낌
+                        filter: 'drop-shadow(0 1px 1.5px rgba(0,0,0,0.45))',
                       }}
                     >
-                      <PokerChip size={isDesktop ? 22 : 16} color={chipColorName} />
+                      <PokerChip size={isDesktop ? 22 : 14} color={chipColorName} />
                     </motion.div>
                   );
                 })}
@@ -1497,22 +2233,27 @@ export default function GameTable() {
               })}
             </AnimatePresence>
 
-            {/* ===== ALL-IN EQUITY DISPLAY ===== */}
-            {equities && equities.length > 0 && (
-              <div className="absolute top-[56%] left-1/2 -translate-x-1/2 z-10">
+            {/* ===== ALL-IN EQUITY DISPLAY — ALL_IN 런아웃 시점만 표시 =====
+                 V12: 평상시 가림 — 사용자 피드백 "중앙 데이터 팝업 필요 없음"
+                 조건: 실제 ALL_IN 플레이어 2명 이상 + 핸드 진행 중 */}
+            {equities && equities.length >= 2 &&
+             phase !== "WAITING" && phase !== "RESULT" &&
+             serverPlayers.filter(p => p.status === "ALL_IN").length >= 2 && (
+              <div className="absolute top-[72%] left-1/2 -translate-x-1/2 z-10 pointer-events-none">
                 <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
-                  className="flex gap-3 px-4 py-2 rounded-xl"
-                  style={{ background: "rgba(0,0,0,0.85)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,215,0,0.1)" }}>
+                  className="flex gap-2 px-3 py-1.5 rounded-lg"
+                  style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(8px)", border: "1px solid rgba(255,215,0,0.12)" }}>
+                  <span className="text-[8px] text-[#FFD700] font-black uppercase tracking-wider self-center mr-1">ALL-IN</span>
                   {equities.map((eq, i) => {
                     const player = serverPlayers.find(p => p.id === eq.playerId);
                     return (
                       <div key={i} className="text-center">
-                        <div className="text-[9px] text-[#6B7A90] truncate max-w-[60px]">
+                        <div className="text-[8px] text-[#6B7A90] truncate max-w-[50px]">
                           {player?.nickname ?? '???'}
                         </div>
-                        <div className="font-mono text-sm font-black"
+                        <div className="font-mono text-[11px] font-black"
                           style={{ color: eq.equity > 50 ? "#34D399" : eq.equity > 30 ? "#FFD700" : "#EF4444" }}>
-                          {eq.equity.toFixed(1)}%
+                          {eq.equity.toFixed(0)}%
                         </div>
                       </div>
                     );
@@ -1677,13 +2418,16 @@ export default function GameTable() {
         )}
       </div>
 
-      {/* ═══════ DEALING ANIMATION — GG 포커 스타일 2바퀴 ═══════
-          원칙:
-          - 자리당 카드 2장 (1바퀴 → 2바퀴, 진짜 포커처럼)
-          - 1바퀴 모두 도착 후 2바퀴 시작 (delay 분리)
-          - 1장 0.04초 간격 + 1바퀴/2바퀴 사이 0.15초 짧은 휴지
-          - 직선 이동, 회전 최소
-          - 총 시간 ~1.4초 (9-max 기준) */}
+      {/* ═══════ DEALING ANIMATION — GG 포커 스타일 V17 ═══════
+          GG 포커 고유 특성 재현:
+          - 덱은 딜러 버튼 플레이어 앞 (offset 없음)
+          - 시계방향 2 pass, 자리당 카드 정확히 시트 중앙에 착지 (퍼뜨리지 않음)
+          - 카드 2장은 같은 위치에 살짝 rotate 차이로 포개짐 (±4deg)
+          - 직선이 아닌 완만한 arc 궤적 (중간점 y값 살짝 위로)
+          - 도착 시 scale spring 4단계 (0.35 → 0.7 → 1.05 → 0.95) 탁!
+          - 카드 1장당 150ms stagger (GG 실측), round gap 350ms, flight 450ms
+          - 총 시간: 6-max 약 2.8초 / 9-max 약 3.9초
+          - 뒷면 디자인: 세로 다이아몬드 패턴 + TB 워터마크 */}
       <AnimatePresence>
         {forceDealAnim > 0 && (
           <div key={forceDealAnim} style={{ position: "fixed", inset: 0, zIndex: 80, pointerEvents: "none", overflow: "visible" }}>
@@ -1694,54 +2438,106 @@ export default function GameTable() {
               const dealerSeat = serverPlayers.find(p => p.isDealer)?.seat ?? 0;
               const N = activeSeats.length;
 
-              // 2바퀴 = N×2 카드, 라운드 사이 휴지 0.15s 추가
+              // V17: GG 포커 실측 기반 타이밍
+              const CARD_INTERVAL = 0.15;  // 1장당 150ms (GG 측정)
+              const ROUND_GAP = 0.35;      // 라운드 전환 350ms
+              const CARD_DURATION = 0.45;  // flight 450ms
+
               const cards: Array<{ seat: number; round: 0 | 1; idx: number }> = [];
               activeSeats.forEach((seat, i) => cards.push({ seat, round: 0, idx: i }));
               activeSeats.forEach((seat, i) => cards.push({ seat, round: 1, idx: i }));
 
-              return cards.map((card, ci) => {
-                const pos = seatPositionsData[card.seat] ?? [50, 50];
-                const tableLeft = 50, tableTop = 35, tableW = isDesktop ? 60 : 80, tableH = isDesktop ? 40 : 50;
-                // 두 카드 살짝 옆으로 (좌우 분리)
-                const offsetX = card.round === 0 ? -2 : 2;
-                const targetX = tableLeft + (pos[0] - 50) * tableW / 200 + offsetX;
-                const targetY = tableTop + pos[1] * tableH / 100;
-                const dealerPos = seatPositionsData[dealerSeat] ?? [50, 50];
-                const startX = tableLeft + (dealerPos[0] - 50) * tableW / 200;
-                const startY = tableTop;
+              const tableLeft = 50, tableTop = 35, tableW = isDesktop ? 60 : 80, tableH = isDesktop ? 40 : 50;
+              // 딜러 시트 앞 가상 덱 위치 (딜러 시트 좌표에서 테이블 중심 방향으로 당김)
+              const dealerPos = seatPositionsData[dealerSeat] ?? [50, 50];
+              const deckOffsetToCenter = 0.55; // 0=시트, 1=중심 — 딜러 시트와 테이블 중심 사이
+              const startX = tableLeft + (dealerPos[0] - 50) * tableW / 200 * (1 - deckOffsetToCenter);
+              const startY = tableTop + dealerPos[1] * tableH / 100 * (1 - deckOffsetToCenter) + tableTop * deckOffsetToCenter * 0.3;
 
-                // 1바퀴: 0~Nx0.04, 2바퀴: (Nx0.04 + 0.15)~ + Nx0.04
+              return cards.map((card) => {
+                const pos = seatPositionsData[card.seat] ?? [50, 50];
+                // V18: Hero 카드는 CardSqueeze 위치(화면 하단)로 착지
+                //   — seat 좌표(y=100)는 "바닥" 느낌이라 실제 CardSqueeze 위치와 불일치
+                //   → hero 일 때만 target 을 고정 상수로 오버라이드
+                const isHeroCard = card.seat === heroSeat && heroSeat >= 0;
+                const targetX = isHeroCard ? 50 : tableLeft + (pos[0] - 50) * tableW / 200;
+                const targetY = isHeroCard ? (isDesktop ? 72 : 75) : tableTop + pos[1] * tableH / 100;
+
+                // V17: arc — 중간 지점 y값을 살짝 위로 (startY와 targetY 사이 -3%)
+                const midX = (startX + targetX) / 2;
+                const midY = Math.min(startY, targetY) - 3;
+
                 const baseDelay = card.round === 0
-                  ? card.idx * 0.04
-                  : N * 0.04 + 0.15 + card.idx * 0.04;
+                  ? card.idx * CARD_INTERVAL
+                  : N * CARD_INTERVAL + ROUND_GAP + card.idx * CARD_INTERVAL;
+
+                // V17: 2장 rotate 차이 — 1번째 -3deg, 2번째 +4deg (자연스러운 겹침)
+                const landRotate = card.round === 0 ? -3 : 4;
 
                 return (
                   <motion.div key={`fdeal-${card.seat}-${card.round}-${forceDealAnim}`}
-                    style={{ position: "absolute" }}
+                    style={{ position: "absolute", willChange: "transform, left, top, opacity" }}
                     initial={{
                       left: `${startX}%`, top: `${startY}%`,
-                      scale: 0.5, opacity: 0,
+                      scale: 0.35, opacity: 0, rotate: -20,
                     }}
                     animate={{
-                      left: `${targetX}%`, top: `${targetY}%`,
-                      scale: 0.7, opacity: 1,
+                      // V17: arc 궤적 — keyframe 3단계 (시작 → 중간 살짝 위 → 도착)
+                      left: [`${startX}%`, `${midX}%`, `${targetX}%`],
+                      top: [`${startY}%`, `${midY}%`, `${targetY}%`],
+                      // V17: scale spring — 0.35 → 0.7 (비행) → 1.05 (착지 impact) → 0.95 (정착)
+                      scale: [0.35, 0.7, 1.05, 0.95],
+                      opacity: [0, 1, 1, 1],
+                      rotate: [-20, -8, landRotate + 2, landRotate],
                     }}
-                    exit={{ opacity: 0, scale: 0.5 }}
+                    exit={{ opacity: 0, scale: 0.5, transition: { duration: 0.15 } }}
                     transition={{
-                      duration: 0.35,
+                      duration: CARD_DURATION,
                       delay: baseDelay,
-                      ease: "easeOut",
+                      ease: [0.25, 0.46, 0.45, 0.94], // easeOutQuad 변형
+                      times: [0, 0.5, 0.85, 1],
                     }}
                   >
                     <div style={{
-                      width: 28, height: 40, borderRadius: 4,
-                      background: "linear-gradient(150deg, #0E3D26, #1A5E3F, #082418)",
-                      border: "1px solid rgba(255,215,0,0.25)",
-                      boxShadow: "0 3px 8px rgba(0,0,0,0.5)",
+                      width: isLargeDesktop ? 62 : isDesktop ? 52 : 30,
+                      height: isLargeDesktop ? 87 : isDesktop ? 73 : 42,
+                      borderRadius: isDesktop ? 7 : 5,
+                      background: `
+                        linear-gradient(135deg, #0A2E1F 0%, #1B5E3F 40%, #0E3D26 60%, #061C11 100%),
+                        radial-gradient(circle at 50% 50%, rgba(255,215,0,0.12) 0%, transparent 70%)
+                      `,
+                      backgroundBlendMode: "overlay",
+                      border: `${isDesktop ? 2 : 1.5}px solid rgba(255,215,0,0.45)`,
+                      boxShadow: `
+                        0 8px 24px rgba(0,0,0,0.7),
+                        0 2px 6px rgba(0,0,0,0.5),
+                        inset 0 1px 0 rgba(255,255,255,0.12),
+                        inset 0 0 12px rgba(255,215,0,0.08)
+                      `,
                       transform: "translate(-50%, -50%)",
                       display: "flex", alignItems: "center", justifyContent: "center",
+                      position: "relative",
+                      overflow: "hidden",
                     }}>
-                      <span style={{ fontSize: 11, color: "rgba(255,215,0,0.5)", fontWeight: 900 }}>₮</span>
+                      {/* 다이아몬드 패턴 배경 */}
+                      <div style={{
+                        position: "absolute", inset: 2,
+                        borderRadius: isDesktop ? 5 : 3,
+                        border: "1px solid rgba(255,215,0,0.25)",
+                        background: `
+                          repeating-linear-gradient(45deg, transparent 0, transparent 3px, rgba(255,215,0,0.08) 3px, rgba(255,215,0,0.08) 4px),
+                          repeating-linear-gradient(-45deg, transparent 0, transparent 3px, rgba(255,215,0,0.08) 3px, rgba(255,215,0,0.08) 4px)
+                        `,
+                      }} />
+                      {/* TB 워터마크 */}
+                      <span style={{
+                        position: "relative",
+                        fontSize: isLargeDesktop ? 24 : isDesktop ? 20 : 12,
+                        color: "rgba(255,215,0,0.7)",
+                        fontWeight: 900,
+                        textShadow: "0 1px 2px rgba(0,0,0,0.6)",
+                        letterSpacing: "-0.05em",
+                      }}>₮</span>
                     </div>
                   </motion.div>
                 );
@@ -1784,22 +2580,27 @@ export default function GameTable() {
       </AnimatePresence>
 
       {/* ====== HERO CARDS — 액션 패널 바로 위 공간에 배치 (겹침 방지) ======
-           데스크탑(xl 카드 ~157px) 에서도 안 겹치도록 bottom 여유 충분히 확보 */}
-      {myHoleCards.length >= 2 && (
-        <div style={{
+           데스크탑(xl 카드 ~157px) 에서도 안 겹치도록 bottom 여유 충분히 확보
+           V17: 딜링 종료 직후 페이드인+scale 등장 (뚝 나타나는 현상 제거) */}
+      {myHoleCards.length >= 2 && forceDealAnim === 0 && (
+        <motion.div style={{
           position: "fixed",
           bottom: isMyTurn ? 300 : 260,
           left: "50%",
-          transform: "translateX(-50%)",
           zIndex: 90,
           pointerEvents: "auto",
-        }}>
+          willChange: "transform, opacity",
+        }}
+          initial={{ opacity: 0, scale: 0.5, x: "-50%", y: 20 }}
+          animate={{ opacity: 1, scale: 1, x: "-50%", y: 0 }}
+          transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1], delay: 0.05 }}
+        >
           <CardSqueeze
             key={`hero-${myHoleCards[0]?.suit}-${myHoleCards[0]?.rank}-${myHoleCards[1]?.suit}-${myHoleCards[1]?.rank}`}
             card1={{ suit: myHoleCards[0]!.suit as any, rank: myHoleCards[0]!.rank as any }}
             card2={{ suit: myHoleCards[1]!.suit as any, rank: myHoleCards[1]!.rank as any }}
           />
-        </div>
+        </motion.div>
       )}
 
       {/* ====== ACTION PANEL — responsive (데스크탑에서 max-w-4xl 까지 확장) ====== */}
@@ -1809,12 +2610,50 @@ export default function GameTable() {
 
           {isMyTurn ? (
             <>
-              {/* Timer bar — 두껍고 눈에 띄게 */}
+              {/* V3 P2E-1: Time Bank 활성 배지 — 기본 타이머 만료 후 추가 시간 사용 중 */}
+              {timeBankActive && myPlayerIdReactive && timeBankActive.playerId === myPlayerIdReactive && (
+                <motion.div
+                  initial={{ opacity: 0, y: -6, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  className="flex items-center justify-center gap-2 mb-1.5 py-1.5 rounded-full"
+                  style={{
+                    background: "linear-gradient(135deg, rgba(239,68,68,0.25), rgba(220,38,38,0.25))",
+                    border: "1px solid rgba(239,68,68,0.6)",
+                    boxShadow: "0 0 14px rgba(239,68,68,0.35)",
+                  }}
+                >
+                  <motion.span
+                    animate={{ opacity: [1, 0.4, 1] }}
+                    transition={{ duration: 1, repeat: Infinity }}
+                    style={{ fontSize: 12 }}
+                  >⏱</motion.span>
+                  <span className="text-[10px] font-black tracking-widest" style={{ color: "#FCA5A5" }}>
+                    TIME BANK 사용 중 · {timeBankActive.seconds}s
+                  </span>
+                </motion.div>
+              )}
+              {/* Timer bar — 두껍고 눈에 띄게 (Time Bank 활성 시 빨간색) */}
               <motion.div className="rounded-full mb-1.5 overflow-hidden relative" style={{ height: 6, background: "rgba(255,255,255,0.06)" }}>
-                <motion.div initial={{ width: "100%" }} animate={{ width: "0%" }}
-                  transition={{ duration: (turnInfo?.timeoutMs ?? 30000) / 1000, ease: "linear" }}
+                <motion.div
+                  key={timeBankActive ? `tb-${timeBankActive.startedAt}` : `normal-${turnInfo?.deadline}`}
+                  initial={{ width: "100%" }}
+                  animate={{ width: "0%" }}
+                  transition={{
+                    duration: timeBankActive
+                      ? (timeBankActive.seconds || 30)
+                      : (turnInfo?.timeoutMs ?? 30000) / 1000,
+                    ease: "linear",
+                  }}
                   className="h-full rounded-full"
-                  style={{ background: "linear-gradient(90deg, #34D399, #FBBF24, #EF4444)", boxShadow: "0 0 10px rgba(52,211,153,0.4)" }} />
+                  style={{
+                    background: timeBankActive
+                      ? "linear-gradient(90deg, #EF4444, #DC2626, #7F1D1D)"
+                      : "linear-gradient(90deg, #34D399, #FBBF24, #EF4444)",
+                    boxShadow: timeBankActive
+                      ? "0 0 12px rgba(239,68,68,0.6)"
+                      : "0 0 10px rgba(52,211,153,0.4)",
+                  }}
+                />
               </motion.div>
 
               {/* ===== Hand Strength Meter — 승률 실시간 표시 ===== */}
@@ -2117,9 +2956,24 @@ export default function GameTable() {
       </div>
 
       <ChatPanel open={showChat} onOpenChange={setShowChat} />
-      <BuyInModal open={showBuyInModal} onOpenChange={setShowBuyInModal}
-        minBuyIn={50000} maxBuyIn={2000000} currentBalance={realBalance}
-        tableName="NL Hold'em" blinds="50/100" onJoinTable={handleBuyIn} />
+      {/* V12: Buy-in 값을 실제 방 config에서 가져옴 (서버 RoomInfo.minBuyIn 기반) */}
+      {(() => {
+        const currentRoom = rooms.find(r => r.id === currentRoomId);
+        // 서버는 cents 단위, UI는 원 단위
+        const cfgMinCents = currentRoom?.minBuyIn ?? 5000000;  // 기본 50K원
+        const cfgBbCents = currentRoom?.bigBlind ?? 10000;     // 기본 100원 BB
+        const minBuyInKrw = Math.floor(cfgMinCents / 100);
+        // maxBuyIn = 200 BB (GG 표준)
+        const maxBuyInKrw = Math.max(minBuyInKrw * 2, Math.floor(cfgBbCents * 200 / 100));
+        const blindsLabel = currentRoom
+          ? `${Math.floor((currentRoom.smallBlind ?? 0)/100).toLocaleString()}/${Math.floor((currentRoom.bigBlind ?? 0)/100).toLocaleString()}`
+          : "50/100";
+        return (
+          <BuyInModal open={showBuyInModal} onOpenChange={setShowBuyInModal}
+            minBuyIn={minBuyInKrw} maxBuyIn={maxBuyInKrw} currentBalance={realBalance}
+            tableName={currentRoom?.name ?? "NL Hold'em"} blinds={blindsLabel} onJoinTable={handleBuyIn} />
+        );
+      })()}
 
       {/* ===== Leave Confirm Modal ===== */}
       <AnimatePresence>
@@ -2228,7 +3082,7 @@ export default function GameTable() {
                             border: "1px solid rgba(255,255,255,0.04)",
                           }}>
 
-                          {/* Top: Hand # + Time */}
+                          {/* Top: Hand # + Time + Replay 버튼 */}
                           <div className="flex justify-between items-center mb-3">
                             <div className="flex items-center gap-2">
                               <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded"
@@ -2239,8 +3093,27 @@ export default function GameTable() {
                                 {new Date(rec.timestamp).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
                               </span>
                             </div>
-                            <div className="text-[11px] font-mono font-bold text-[#FFD700]">
-                              Pot: {getSymbol()}{((rec.pot ?? 0) / 100).toLocaleString()}
+                            <div className="flex items-center gap-2">
+                              <div className="text-[11px] font-mono font-bold text-[#FFD700]">
+                                Pot: {getSymbol()}{((rec.pot ?? 0) / 100).toLocaleString()}
+                              </div>
+                              {/* V3 P2D Part 3: Replay 버튼 */}
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setReplayHand(rec);
+                                  setReplayStep(0);
+                                  setReplayAutoplay(false);
+                                }}
+                                className="flex items-center gap-1 px-2 py-1 rounded text-[10px] font-black"
+                                style={{
+                                  background: "linear-gradient(135deg, rgba(255,107,53,0.25), rgba(232,93,44,0.25))",
+                                  border: "1px solid rgba(255,107,53,0.55)",
+                                  color: "#FF6B35",
+                                }}
+                              >
+                                ▶ 재생
+                              </button>
                             </div>
                           </div>
 
@@ -2293,6 +3166,77 @@ export default function GameTable() {
                             </div>
                           )}
 
+                          {/* V3 P2D Part2: 플레이어별 홀카드 + 액션 요약 (전체 replay 대체) */}
+                          {Array.isArray(rec.players) && rec.players.length > 0 && (
+                            <div className="mt-3 pt-3 border-t border-white/[0.04]">
+                              <div className="text-[9px] text-[#6B7A90] uppercase tracking-wider mb-2">
+                                플레이어 ({rec.players.length}명)
+                              </div>
+                              <div className="space-y-1.5">
+                                {rec.players.map((pl: any, pi: number) => {
+                                  const rankMap: Record<number, string> = {1:'A',2:'2',3:'3',4:'4',5:'5',6:'6',7:'7',8:'8',9:'9',10:'10',11:'J',12:'Q',13:'K'};
+                                  const suitSymbols = ['', '♠', '♥', '♦', '♣'];
+                                  const isWinPlayer = winner && pl.playerId === winner.playerId;
+                                  const hasCards = Array.isArray(pl.holeCards) && pl.holeCards.length === 2;
+                                  return (
+                                    <div key={pi} className="flex items-center justify-between px-2.5 py-1.5 rounded-lg"
+                                      style={{
+                                        background: isWinPlayer ? "rgba(52,211,153,0.06)" : "rgba(255,255,255,0.015)",
+                                        border: `1px solid ${isWinPlayer ? "rgba(52,211,153,0.18)" : "rgba(255,255,255,0.03)"}`,
+                                      }}>
+                                      <div className="flex items-center gap-2 min-w-0">
+                                        <span className="text-[10px] text-[#4A5A70] font-mono">#{pl.seat + 1}</span>
+                                        <span className="text-[10px] font-semibold truncate" style={{ color: isWinPlayer ? "#34D399" : "#8899AB" }}>
+                                          {pl.nickname || 'Unknown'}
+                                        </span>
+                                        {/* Hole cards */}
+                                        {hasCards && pl.finalAction !== 'FOLD' && (
+                                          <div className="flex gap-0.5">
+                                            {pl.holeCards.map((c: any, ci: number) => {
+                                              const isRed = c.suit === 2 || c.suit === 3;
+                                              return (
+                                                <div key={ci} className="flex items-center justify-center rounded-sm"
+                                                  style={{
+                                                    width: 18, height: 24,
+                                                    background: "#FFFFFF",
+                                                    border: "0.5px solid rgba(0,0,0,0.15)",
+                                                  }}>
+                                                  <span className="text-[9px] font-black leading-none" style={{ color: isRed ? "#DC2626" : "#111" }}>
+                                                    {rankMap[c.rank] ?? c.rank}{suitSymbols[c.suit]}
+                                                  </span>
+                                                </div>
+                                              );
+                                            })}
+                                          </div>
+                                        )}
+                                      </div>
+                                      <div className="flex items-center gap-2 shrink-0">
+                                        {pl.finalAction && (
+                                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded"
+                                            style={{
+                                              background: pl.finalAction === 'FOLD' ? "rgba(239,68,68,0.1)"
+                                                        : pl.finalAction === 'WIN' ? "rgba(52,211,153,0.1)"
+                                                        : "rgba(255,255,255,0.04)",
+                                              color: pl.finalAction === 'FOLD' ? "#EF4444"
+                                                   : pl.finalAction === 'WIN' ? "#34D399"
+                                                   : "#8899AB",
+                                            }}>
+                                            {pl.finalAction}
+                                          </span>
+                                        )}
+                                        {pl.winAmount > 0 && (
+                                          <span className="text-[10px] font-mono font-bold text-[#34D399]">
+                                            +{getSymbol()}{(pl.winAmount / 100).toLocaleString()}
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+
                           {/* Rake */}
                           {rec.rake > 0 && (
                             <div className="mt-2 text-[9px] text-[#4A5A70] text-right">
@@ -2315,6 +3259,53 @@ export default function GameTable() {
                     <div className="text-[11px] text-[#8899AB]">
                       만약 끝까지 갔다면: {rabbitCards.map((c: any) => `${c.rank}${['','♠','♥','♦','♣'][c.suit]}`).join(' ')}
                     </div>
+                  </div>
+                )}
+
+                {/* V3 P2E-3: Provably Fair — 서버 시드 hash + 직전 핸드 seed 공개 */}
+                {(serverSeedHash || lastFairReveal) && (
+                  <div className="mt-4 p-3 rounded-xl"
+                    style={{ background: "rgba(52,211,153,0.05)", border: "1px solid rgba(52,211,153,0.2)" }}>
+                    <div className="text-[10px] text-[#34D399] font-black mb-2 flex items-center gap-1.5">
+                      🔐 Provably Fair — Shuffle Verification
+                    </div>
+                    {serverSeedHash && (
+                      <div className="mb-2">
+                        <div className="text-[9px] text-[#4A5A70] uppercase tracking-wider mb-0.5">현재 핸드 서버 시드 해시 (공개됨)</div>
+                        <div className="text-[9px] font-mono text-[#8899AB] break-all p-2 rounded"
+                          style={{ background: "rgba(0,0,0,0.3)", border: "1px solid rgba(255,255,255,0.04)" }}>
+                          {serverSeedHash}
+                        </div>
+                      </div>
+                    )}
+                    {lastFairReveal && (
+                      <div>
+                        <div className="text-[9px] text-[#4A5A70] uppercase tracking-wider mb-0.5">
+                          직전 핸드 공개 시드 (hash 검증 가능)
+                        </div>
+                        <div className="grid grid-cols-2 gap-1.5 text-[9px]">
+                          <div className="p-1.5 rounded" style={{ background: "rgba(0,0,0,0.25)" }}>
+                            <div className="text-[8px] text-[#4A5A70] mb-0.5">Server Seed</div>
+                            <div className="font-mono text-[#8899AB] break-all">{lastFairReveal.serverSeed.slice(0, 32)}...</div>
+                          </div>
+                          <div className="p-1.5 rounded" style={{ background: "rgba(0,0,0,0.25)" }}>
+                            <div className="text-[8px] text-[#4A5A70] mb-0.5">Client Seed</div>
+                            <div className="font-mono text-[#8899AB] break-all">{lastFairReveal.clientSeed.slice(0, 32)}...</div>
+                          </div>
+                          <div className="p-1.5 rounded" style={{ background: "rgba(0,0,0,0.25)" }}>
+                            <div className="text-[8px] text-[#4A5A70] mb-0.5">Nonce</div>
+                            <div className="font-mono text-[#8899AB]">{lastFairReveal.nonce}</div>
+                          </div>
+                          <div className="p-1.5 rounded" style={{ background: "rgba(0,0,0,0.25)" }}>
+                            <div className="text-[8px] text-[#4A5A70] mb-0.5">Hand #</div>
+                            <div className="font-mono text-[#8899AB]">{lastFairReveal.handNumber ?? '-'}</div>
+                          </div>
+                        </div>
+                        <div className="text-[8px] text-[#4A5A70] mt-1.5 leading-tight">
+                          💡 SHA-256(serverSeed) === 이전 hash 면 서버가 시드를 사전 고정했음이 증명됩니다 (사후 조작 불가)
+                        </div>
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
