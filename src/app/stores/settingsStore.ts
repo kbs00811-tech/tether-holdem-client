@@ -241,8 +241,8 @@ export const AVATAR_NAMES = [
 
 // Card skin color configs
 export const CARD_SKINS = {
-  1: { name: "Classic", spades: "#111111", hearts: "#CC0000", diamonds: "#CC0000", clubs: "#111111" },
-  2: { name: "4-Color", spades: "#111111", hearts: "#CC0000", diamonds: "#1D4ED8", clubs: "#059669" },
+  1: { name: "Classic", spades: "#1B1B3A", hearts: "#CC0000", diamonds: "#CC0000", clubs: "#1B1B3A" },
+  2: { name: "4-Color", spades: "#1B1B3A", hearts: "#CC0000", diamonds: "#1D4ED8", clubs: "#059669" },
   3: { name: "Neon", spades: "#A78BFA", hearts: "#FF6B35", diamonds: "#26A17B", clubs: "#FFD700" },
 };
 
