@@ -2040,7 +2040,7 @@ export default function GameTable() {
                     <motion.div key={`comm-${card.suit}-${card.rank}-${i}`}
                       initial={{ rotateY: 180, opacity: 0, scale: 0.3, y: -30 }}
                       animate={{ rotateY: 0, opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.5, y: -20 }}
+                      exit={{ opacity: 0, scale: 0.15, y: 30, rotate: -10, transition: { duration: 0.35 } }}
                       transition={{
                         delay: i < 3 ? i * 0.25 : 0,
                         duration: 0.6,

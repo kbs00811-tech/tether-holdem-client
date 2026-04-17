@@ -175,12 +175,13 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, turnDeadline
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{
-              // V19: 폴드 시 카드가 테이블 중앙으로 슬라이드 + 축소 + 회전 (머크 파일)
+              // V20: 카드 테이블 중앙으로 슬라이드 (딜러가 걷어가는 느낌)
               opacity: 0,
-              y: 35,
-              scale: 0.2,
-              rotate: 12,
-              transition: { duration: 0.35, ease: [0.4, 0, 0.2, 1] },
+              y: 50,
+              x: 0,
+              scale: 0.15,
+              rotate: 20,
+              transition: { duration: 0.4, ease: [0.4, 0, 0.2, 1] },
             }}
             className="absolute z-0 pointer-events-none"
             style={{
