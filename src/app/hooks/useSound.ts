@@ -103,7 +103,13 @@ function play(file: string, volume: number = 0.5) {
 // ── Web Audio 비프음 생성 (파일 없이 코드로 생성) ──
 let audioCtx: AudioContext | null = null;
 function getAudioCtx(): AudioContext {
-  if (!audioCtx) audioCtx = new ((window as any).AudioContext || (window as any).webkitAudioContext)();
+  if (!audioCtx) {
+    audioCtx = new ((window as any).AudioContext || (window as any).webkitAudioContext)();
+  }
+  // iOS/Chrome: AudioContext는 user gesture 후 resume 필요
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
   return audioCtx;
 }
 

@@ -63,6 +63,9 @@ export default function GameTable() {
   const [showHandHistory, setShowHandHistory] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false); // V3 Task 4 Phase A
   const [showMenu, setShowMenu] = useState(false); // V18: 헤더 More 드롭다운
+  // V19.2: 다른 플레이어 턴 deadline 캡처 (렌더마다 재계산 방지)
+  const [otherTurnDeadline, setOtherTurnDeadline] = useState<number | null>(null);
+  const lastTurnSeatRef = useRef<number | null>(null);
   // V3 P2D Part 3: Step-by-step Replay Viewer
   const [replayHand, setReplayHand] = useState<any | null>(null);
   const [replayStep, setReplayStep] = useState<number>(0); // 0=PREFLOP 1=FLOP 2=TURN 3=RIVER 4=RESULT
@@ -723,6 +726,19 @@ export default function GameTable() {
     (window as any).__forceLeave = forceLeave;
     return () => { delete (window as any).__forceLeave; };
   }, [forceLeave]);
+
+  // V19.2: 다른 플레이어 턴 deadline 캡처 — currentTurnSeat 변경 시 1회만
+  useEffect(() => {
+    const seat = gameState?.currentTurnSeat ?? null;
+    if (seat !== lastTurnSeatRef.current) {
+      lastTurnSeatRef.current = seat;
+      if (seat !== null && seat !== heroSeat) {
+        setOtherTurnDeadline(Date.now() + (gameState?.turnTimeoutMs || 30000));
+      } else {
+        setOtherTurnDeadline(null);
+      }
+    }
+  }, [gameState?.currentTurnSeat, heroSeat, gameState?.turnTimeoutMs]);
 
   // V19: 내 턴 알림 사운드 (딩동!)
   useEffect(() => {
@@ -1837,21 +1853,12 @@ export default function GameTable() {
                       return { shownCards: shown, isWinner };
                     })()}
                     isCurrentTurn={gameState?.currentTurnSeat === i}
-                    // V19: 타이머 정확도 수정 — 서버 turnStartedAt을 클라 시계로 보정
-                    //   서버 시각 ≠ 클라 시각이면 타이머 부정확 → 오프셋 보정
+                    // V19.2: 타이머 — hero=서버 deadline, 타인=턴 시작 시 캡처된 deadline
                     turnDeadline={
                       gameState?.currentTurnSeat === i
-                        ? (i === heroSeat && turnInfo?.deadline
-                            ? turnInfo.deadline
-                            : (() => {
-                                const srvStart = gameState?.turnStartedAt;
-                                const timeout = gameState?.turnTimeoutMs || 30000;
-                                if (!srvStart) return undefined;
-                                // 서버-클라 오프셋 보정: turnInfo.serverTime 이 있으면 사용
-                                const srvTime = turnInfo?.serverTime;
-                                const offset = srvTime ? (Date.now() - srvTime) : 0;
-                                return srvStart + timeout + offset;
-                              })())
+                        ? (i === heroSeat
+                            ? turnInfo?.deadline
+                            : otherTurnDeadline ?? undefined)
                         : undefined
                     }
                     turnTotalMs={gameState?.turnTimeoutMs ?? turnInfo?.timeoutMs ?? 30000}
