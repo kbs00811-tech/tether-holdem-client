@@ -748,27 +748,38 @@ export default function GameTable() {
     }
   }, [gameState?.currentTurnSeat, heroSeat]);
 
-  // V19: 내 턴 알림 사운드 (딩동!)
+  // V20: 내 턴 알림 사운드 (딩동!)
   useEffect(() => {
     if (isMyTurn) playSound('myTurn');
   }, [isMyTurn]);
 
-  // V19: 타이머 10초 경고 (틱틱)
+  // V20: 타이머 10초 경고 — 모든 플레이어 턴 (관전 모드 포함)
+  // hero 턴: turnInfo.deadline 사용
+  // 다른 플레이어 턴: otherTurnDeadline 사용
   useEffect(() => {
-    if (!isMyTurn || !turnInfo?.deadline) return;
-    const warnAt = turnInfo.deadline - 10000; // 10초 전
+    const currentSeat = gameState?.currentTurnSeat;
+    if (currentSeat === undefined || currentSeat === null || currentSeat < 0) return;
+
+    // deadline 결정: hero면 turnInfo, 아니면 otherTurnDeadline
+    const deadline = currentSeat === heroSeat ? turnInfo?.deadline : otherTurnDeadline;
+    if (!deadline) return;
+
+    const warnAt = deadline - 10000;
     const now = Date.now();
     if (warnAt <= now) return;
+
     const timer = setTimeout(() => {
-      if (useGameStore.getState().isMyTurn) {
+      // 아직 같은 플레이어 턴인지 확인
+      const currentState = useGameStore.getState();
+      if (currentState.gameState?.currentTurnSeat === currentSeat) {
         playSound('timerWarning');
-        // 3초 간격으로 2번 더
-        setTimeout(() => playSound('timerWarning'), 3000);
-        setTimeout(() => playSound('timerWarning'), 6000);
+        setTimeout(() => playSound('timerWarning'), 2500);
+        setTimeout(() => playSound('timerWarning'), 5000);
+        setTimeout(() => playSound('timerWarning'), 7500);
       }
     }, warnAt - now);
     return () => clearTimeout(timer);
-  }, [isMyTurn, turnInfo?.deadline]);
+  }, [gameState?.currentTurnSeat, turnInfo?.deadline, otherTurnDeadline, heroSeat]);
 
   // V19: 브라우저 뒤로가기/새로고침/탭 닫기 방지 (게임 중 실수 나가기 차단)
   useEffect(() => {
