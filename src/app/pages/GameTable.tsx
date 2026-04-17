@@ -2526,9 +2526,14 @@ export default function GameTable() {
                 //   — seat 좌표(y=100)는 "바닥" 느낌이라 실제 CardSqueeze 위치와 불일치
                 //   → hero 일 때만 target 을 고정 상수로 오버라이드
                 const isHeroCard = card.seat === heroSeat && heroSeat >= 0;
-                // ★ 카드를 아바타 위치로 직접 착지 (테이블 중앙 아닌 플레이어 위치)
-                const targetX = isHeroCard ? 50 : pos[0];
-                const targetY = isHeroCard ? (isDesktop ? 72 : 75) : pos[1];
+                // V19: GG포커 방식 — 카드 착지점 = 아바타와 테이블 중앙 사이
+                //   아바타 바로 앞(테이블 안쪽)에 착지 — 뒤로 넘어가지 않음
+                //   pullFactor: 0=아바타 위치, 1=테이블 중앙. 0.35 = 아바타 앞 35% 지점
+                const pullFactor = 0.35;
+                const rawTargetX = isHeroCard ? 50 : 50 + (pos[0] - 50) * (1 - pullFactor);
+                const rawTargetY = isHeroCard ? (isDesktop ? 72 : 75) : 50 + (pos[1] - 50) * (1 - pullFactor);
+                const targetX = rawTargetX;
+                const targetY = rawTargetY;
 
                 // V17: arc — 중간 지점 y값을 살짝 위로 (startY와 targetY 사이 -3%)
                 const midX = (startX + targetX) / 2;
