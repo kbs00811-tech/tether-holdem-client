@@ -703,20 +703,16 @@ export default function GameTable() {
   }, [send, clickedSeat, serverPlayers, maxSeats, currentRoomId, currentAvatarIdx]);
 
   const handleLeave = useCallback(() => {
-    if (seated) {
-      setShowLeaveConfirm(true); // 착석 중이면 확인 모달
-    } else {
-      send({ type: 'LEAVE_ROOM' });
-      navigate('/');
-    }
-  }, [send, navigate, seated]);
+    // V19: 관전자도 착석자도 항상 확인 모달 표시 (실수 나가기 방지)
+    setShowLeaveConfirm(true);
+  }, []);
 
   const confirmLeave = useCallback(() => {
-    send({ type: 'STAND_UP' });
+    if (seated) send({ type: 'STAND_UP' });
     send({ type: 'LEAVE_ROOM' });
     setShowLeaveConfirm(false);
     navigate('/');
-  }, [send, navigate]);
+  }, [send, navigate, seated]);
 
   // ★ 강제 나가기 — 전역 핸들러 (PlayerSlot 메뉴에서 호출)
   const forceLeave = useCallback(() => {
@@ -727,6 +723,34 @@ export default function GameTable() {
     (window as any).__forceLeave = forceLeave;
     return () => { delete (window as any).__forceLeave; };
   }, [forceLeave]);
+
+  // V19: 브라우저 뒤로가기/새로고침/탭 닫기 방지 (게임 중 실수 나가기 차단)
+  useEffect(() => {
+    if (!currentRoomId) return;
+
+    // 새로고침/탭 닫기 방지
+    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
+      e.preventDefault();
+      e.returnValue = '게임 진행 중입니다. 나가시겠습니까?';
+      return e.returnValue;
+    };
+
+    // 뒤로가기 방지 — history에 더미 state 추가
+    const handlePopState = (e: PopStateEvent) => {
+      e.preventDefault();
+      window.history.pushState(null, '', window.location.href);
+      setShowLeaveConfirm(true);
+    };
+
+    window.history.pushState(null, '', window.location.href);
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, [currentRoomId]);
 
   // ★ Stuck 감지 — 60초 동안 페이즈 변화/액션 없음 → 강제 나가기 배너
   const lastActivityRef = useRef<number>(Date.now());
@@ -2981,12 +3005,25 @@ export default function GameTable() {
       <AnimatePresence>
         {showLeaveConfirm && (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-            className="fixed inset-0 z-[95] flex items-center justify-center bg-black/60 backdrop-blur-sm">
+            className="fixed inset-0 z-[95] flex items-center justify-center bg-black/60 backdrop-blur-sm"
+            onClick={() => setShowLeaveConfirm(false)}>
             <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }}
-              className="rounded-2xl p-6 text-center max-w-[320px]"
-              style={{ background: "#141820", border: "1px solid rgba(255,255,255,0.06)" }}>
-              <div className="text-base font-bold text-white mb-2">Leave Table?</div>
-              <div className="text-xs text-[#6B7A90] mb-5">Your chips will be cashed out automatically.</div>
+              onClick={(e) => e.stopPropagation()}
+              className="rounded-2xl p-6 text-center max-w-[340px] mx-4"
+              style={{ background: "#141820", border: seated ? "1px solid rgba(239,68,68,0.3)" : "1px solid rgba(255,255,255,0.06)" }}>
+              {/* 경고 아이콘 */}
+              <div className="w-14 h-14 rounded-full flex items-center justify-center mx-auto mb-3"
+                style={{ background: seated ? "rgba(239,68,68,0.1)" : "rgba(255,215,0,0.1)" }}>
+                <span style={{ fontSize: 28 }}>{seated ? '⚠️' : '👋'}</span>
+              </div>
+              <div className="text-base font-bold text-white mb-1">
+                {seated ? '게임 중입니다!' : '테이블을 나가시겠습니까?'}
+              </div>
+              <div className="text-xs text-[#6B7A90] mb-5 leading-relaxed">
+                {seated
+                  ? '착석 중 나가면 칩이 자동 정산됩니다.\n핸드 진행 중이면 폴드 처리됩니다.'
+                  : '관전을 종료하고 로비로 돌아갑니다.'}
+              </div>
               <div className="flex flex-col gap-2">
                 {/* Reserved leave — safely leave after next hand */}
                 {!leaveReserved ? (
