@@ -189,7 +189,7 @@ export function PokerCard({ suit, rank, faceDown = false, size = "md", highlight
         <span style={{
           fontSize: rank === "A" ? s.center * 1.3 : s.center * 0.9,
           lineHeight: 1, color: sc.primary,
-          opacity: rank === "A" ? 1 : 0.7,
+          opacity: 1,
           filter: `drop-shadow(0 1px 2px ${sc.shadow})`,
         }}>{sym}</span>
       </div>
