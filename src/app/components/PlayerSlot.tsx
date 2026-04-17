@@ -195,17 +195,15 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, turnDeadline
                 if (isLeftSeat) {
                   return {
                     top: isDesktop ? -2 : 2,
-                    right: '100%',
-                    marginRight: isDesktop ? 4 : 2,
-                    transform: 'translateY(-20%)',
+                    left: isDesktop ? -8 : -4,
+                    transform: 'translateX(-100%) translateY(-20%)',
                   };
                 }
                 if (isRightSeat) {
                   return {
                     top: isDesktop ? -2 : 2,
-                    left: '100%',
-                    marginLeft: isDesktop ? 4 : 2,
-                    transform: 'translateY(-20%)',
+                    right: isDesktop ? -8 : -4,
+                    transform: 'translateX(100%) translateY(-20%)',
                   };
                 }
                 // 상단/하단 좌석: 아바타 위
