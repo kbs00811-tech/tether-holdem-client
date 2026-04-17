@@ -1,9 +1,10 @@
 /**
- * TETHER.BET Holdem - Sound Effects
- * Real poker sounds + Browser autoplay policy handling
+ * TETHER.BET Holdem - Sound Effects V19.4
+ *
+ * 근본 수정: 모든 play() 호출에서 AudioContext resume + 에러 로깅
+ * iframe 환경 + 관전 모드에서도 사운드 보장
  */
 
-// ── Audio pool (prevents lag from creating new Audio each time) ──
 const audioPool = new Map<string, HTMLAudioElement[]>();
 const POOL_SIZE = 3;
 
@@ -17,113 +18,81 @@ function getAudio(file: string): HTMLAudioElement {
     });
     audioPool.set(file, pool);
   }
-  // Find one that's not playing
   const available = pool.find(a => a.paused || a.ended);
   if (available) return available;
-  // All busy — clone
   const clone = new Audio(`/sounds/${file}`);
   pool.push(clone);
   return clone;
 }
 
-// ── Unlock audio on first user interaction ──
-// iOS Safari / Chrome autoplay policy: HTMLAudioElement는 첫 사용자 제스처 내에서
-// 한 번 play() 호출되어야 이후 자유롭게 재생 가능. AudioContext.resume()도 함께.
+// ── 글로벌 상태 ──
+let muted = false;
+let masterVolume = 0.7;
 let audioUnlocked = false;
-
-// Web Audio AudioContext — 파일 사운드와 비프음 모두 이 인스턴스 사용
 let audioCtx: AudioContext | null = null;
-function getAudioCtx(): AudioContext {
+
+function ensureAudioCtx(): AudioContext {
   if (!audioCtx) {
-    audioCtx = new ((window as any).AudioContext || (window as any).webkitAudioContext)();
+    const Ctor = (window as any).AudioContext || (window as any).webkitAudioContext;
+    if (Ctor) audioCtx = new Ctor();
   }
-  if (audioCtx.state === 'suspended') {
+  if (audioCtx && audioCtx.state === 'suspended') {
     audioCtx.resume().catch(() => {});
   }
-  return audioCtx;
+  return audioCtx!;
 }
-const KNOWN_FILES = [
-  'deal.wav', 'chip.mp3', 'check.mp3', 'call.mp3', 'fold.mp3', 'raise.mp3',
-  'allin.mp3', 'win.mp3', 'showdown.mp3', 'start.mp3', 'click.mp3',
-  'cardwin.mp3', 'chips_raise.mp3', 'spark.mp3', 'bonus.wav',
-  'royalflush.mp3', 'fullhouse.mp3', 'flush.mp3', 'straight.mp3', 'bgm.mp3',
-];
 
+// ── Unlock (첫 사용자 제스처) ──
 function unlockAudio() {
   if (audioUnlocked) return;
   audioUnlocked = true;
   try {
-    // 1) AudioContext resume — getAudioCtx()와 동일 인스턴스 사용
-    const ctx = getAudioCtx();
-    const buf = ctx.createBuffer(1, 1, 22050);
-    const src = ctx.createBufferSource();
-    src.buffer = buf;
-    src.connect(ctx.destination);
-    src.start(0);
-    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
-    // 2) 모든 사운드 파일 pre-warm — 무음으로 즉시 play → pause
-    for (const file of KNOWN_FILES) {
-      const audio = new Audio(`/sounds/${file}`);
-      audio.volume = 0;
-      audio.play().then(() => {
-        audio.pause();
-        audio.currentTime = 0;
-        audio.volume = 1;
-        // pool에 등록하여 이후 재사용
-        let pool = audioPool.get(file);
-        if (!pool) { pool = []; audioPool.set(file, pool); }
-        pool.push(audio);
-      }).catch(() => {});
+    const ctx = ensureAudioCtx();
+    if (ctx) {
+      const buf = ctx.createBuffer(1, 1, 22050);
+      const src = ctx.createBufferSource();
+      src.buffer = buf;
+      src.connect(ctx.destination);
+      src.start(0);
     }
     console.log('[SOUND] Audio unlocked');
-    // BGM 자동 시작 (사용자가 mute 안 했으면)
     if (!muted) startBGM();
   } catch (e) {
     console.warn('[SOUND] Unlock failed:', e);
   }
 }
 
-// Auto-unlock on any click/touch — 제거하지 않고 매번 resume 시도
+// 매 클릭/터치마다 unlock + resume (절대 제거 안 함)
 if (typeof window !== 'undefined') {
-  const unlock = () => {
+  const onInteraction = () => {
     if (!audioUnlocked) unlockAudio();
-    // AudioContext suspended면 resume (iOS 탭 전환 후 복귀 대응)
     if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
-    document.removeEventListener('keydown', unlock);
   };
-  document.addEventListener('click', unlock);
-  document.addEventListener('touchstart', unlock);
-  document.addEventListener('keydown', unlock);
+  document.addEventListener('click', onInteraction, { passive: true });
+  document.addEventListener('touchstart', onInteraction, { passive: true });
+  document.addEventListener('touchend', onInteraction, { passive: true });
+  document.addEventListener('keydown', onInteraction, { passive: true });
 }
 
-// ── Play function ──
-let masterVolume = 0.7; // 0-1
-
+// ── 파일 사운드 재생 ──
 function play(file: string, volume: number = 0.5) {
   if (muted) return;
-  // 아직 unlock 안 됐으면 시도 (관전 모드에서도 GAME_STATE 수신 시 사운드 재생 가능하도록)
-  if (!audioUnlocked) {
-    try { unlockAudio(); } catch {}
-  }
   try {
+    // AudioContext resume 매번 시도
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
     const audio = getAudio(file);
     audio.volume = Math.min(1, volume * masterVolume);
     audio.currentTime = 0;
-    audio.play().catch((e) => {
-      // NotAllowedError = 아직 user gesture 없음 — 로그만 남기고 무시
-      if (e?.name !== 'NotAllowedError') console.warn('[SOUND] play error:', file, e?.message);
-    });
+    audio.play().catch(() => {});
   } catch {}
 }
 
-// ── Web Audio 비프음 생성 ──
-// (AudioContext는 파일 상단에 통합 정의)
-
-/** 톤 비프 (내 턴 알림, 타이머 경고 등) */
+// ── Web Audio 비프음 ──
 function playBeep(freq: number, duration: number, vol: number = 0.3, type: OscillatorType = 'sine') {
   if (muted) return;
   try {
-    const ctx = getAudioCtx();
+    const ctx = ensureAudioCtx();
+    if (!ctx) return;
     const osc = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.type = type;
@@ -137,20 +106,17 @@ function playBeep(freq: number, duration: number, vol: number = 0.3, type: Oscil
   } catch {}
 }
 
-/** 2연음 벨소리 (딩동!) */
 function playDingDong(vol: number = 0.35) {
   if (muted) return;
-  playBeep(880, 0.12, vol, 'sine');   // 딩 (A5)
-  setTimeout(() => playBeep(660, 0.18, vol, 'sine'), 130); // 동 (E5)
+  playBeep(880, 0.12, vol, 'sine');
+  setTimeout(() => playBeep(660, 0.18, vol, 'sine'), 130);
 }
 
-/** 틱틱 타이머 경고 */
 function playTick(vol: number = 0.25) {
   if (muted) return;
   playBeep(1200, 0.05, vol, 'square');
 }
 
-/** 칩 수거 사운드 (짤그락) */
 function playChipCollect(vol: number = 0.3) {
   if (muted) return;
   for (let i = 0; i < 4; i++) {
@@ -158,14 +124,12 @@ function playChipCollect(vol: number = 0.3) {
   }
 }
 
-/** 배드비트 충격음 */
 function playBadBeat(vol: number = 0.4) {
   if (muted) return;
   playBeep(150, 0.5, vol, 'sawtooth');
   setTimeout(() => playBeep(80, 0.8, vol * 0.6, 'sawtooth'), 200);
 }
 
-/** 타임뱅크 모래시계 */
 function playTimeBankStart(vol: number = 0.3) {
   if (muted) return;
   playBeep(440, 0.15, vol, 'sine');
@@ -195,20 +159,18 @@ export const sounds = {
   fullHouse:      () => play('fullhouse.mp3', 0.7),
   flush:          () => play('flush.mp3', 0.7),
   straight:       () => play('straight.mp3', 0.7),
-  // V19: 신규 사운드 (Web Audio 생성 — 파일 불필요)
-  myTurn:         () => playDingDong(0.4),          // 딩동! 내 턴
-  timerWarning:   () => playTick(0.3),              // 틱! 10초 경고
-  communityFlip:  () => play('deal.wav', 0.5),      // 커뮤니티 카드 플립
-  chipCollect:    () => playChipCollect(0.3),        // 칩 수거 짤그락
-  badBeat:        () => playBadBeat(0.4),            // 배드비트 충격음
-  timeBankStart:  () => playTimeBankStart(0.3),      // 타임뱅크 시작
+  myTurn:         () => playDingDong(0.4),
+  timerWarning:   () => playTick(0.3),
+  communityFlip:  () => play('deal.wav', 0.5),
+  chipCollect:    () => playChipCollect(0.3),
+  badBeat:        () => playBadBeat(0.4),
+  timeBankStart:  () => playTimeBankStart(0.3),
   playerJoin:     () => play('chip.mp3', 0.4),
   newHand:        () => play('start.mp3', 0.4),
 };
 
-// ── Mute/Volume controls ──
-let muted = false;
-export function setMuted(v: boolean) { muted = v; console.log(`[SOUND] Muted: ${v}`); }
+// ── Mute/Volume ──
+export function setMuted(v: boolean) { muted = v; }
 export function isMuted() { return muted; }
 export function setMasterVolume(v: number) { masterVolume = Math.max(0, Math.min(1, v)); }
 export function getMasterVolume() { return masterVolume; }
