@@ -1847,29 +1847,45 @@ export default function GameTable() {
                 // 칩 개수는 BB 대비 비율로 결정 — 2~5개
                 const bbExternal = (gameState?.bigBlind ?? 0) / 100;
                 const betRatio = bbExternal > 0 ? p.bet / bbExternal : 1;
-                const chipCount = Math.min(5, Math.max(2, Math.ceil(betRatio)));
-                const chipColor = getChipColorByValue(p.bet);
-                // ★ 작은 칩 사이즈
-                const chipSize = isDesktop ? 22 : 12;
-                const chipStackW = isDesktop ? 24 : 14;
-                const chipStackH = isDesktop ? 30 : 16;
-                const stackOffset = isDesktop ? 3 : 1.5;
+                const chipCount = Math.min(6, Math.max(2, Math.ceil(betRatio)));
+                // V19: 리얼한 칩 스택 — 금액별 다른 색상 혼합 (카지노처럼)
+                const chipColors = (() => {
+                  const main = getChipColorByValue(p.bet);
+                  const sub = getChipColorByValue(p.bet * 0.3);
+                  const accent = getChipColorByValue(p.bet * 0.1);
+                  return [main, main, sub, main, accent, sub];
+                })();
+                const chipSize = isDesktop ? 20 : 11;
+                const chipStackW = isDesktop ? 22 : 13;
+                const chipStackH = isDesktop ? 32 : 18;
+                const stackOffset = isDesktop ? 2.5 : 1.3;
                 return (
                   <div key={`bet-${i}-${p.bet}`} className="z-10 flex flex-col items-center" style={{
                     position: "absolute", left: `${bx}%`, top: `${by}%`, transform: "translate(-50%,-50%)",
                   }}>
-                    {/* 칩 스택 (작게) */}
+                    {/* V19: 리얼 칩 스택 — 약간 어긋난 배치 + 그림자 */}
                     <div className="relative" style={{ width: chipStackW, height: chipStackH }}>
-                      {Array.from({ length: chipCount }).map((_, ci) => (
-                        <motion.div key={ci}
-                          initial={{ scale: 0, y: 15 }}
-                          animate={{ scale: 1, y: -ci * stackOffset }}
-                          transition={{ delay: ci * 0.05, type: "spring", stiffness: 300, damping: 20 }}
-                          style={{ position: "absolute", left: 0, top: isDesktop ? 6 : 3 }}
-                        >
-                          <PokerChip size={chipSize} color={chipColor} />
-                        </motion.div>
-                      ))}
+                      {Array.from({ length: chipCount }).map((_, ci) => {
+                        // 칩마다 미세한 x/rotate 오프셋 (자연스러운 쌓임)
+                        const xJitter = (Math.sin(ci * 2.7 + i) * (isDesktop ? 1.5 : 0.8));
+                        const rotJitter = Math.sin(ci * 1.3 + i * 0.7) * 4;
+                        return (
+                          <motion.div key={ci}
+                            initial={{ scale: 0, y: 12 }}
+                            animate={{ scale: 1, y: -ci * stackOffset }}
+                            transition={{ delay: ci * 0.04, type: "spring", stiffness: 350, damping: 22 }}
+                            style={{
+                              position: "absolute",
+                              left: xJitter,
+                              top: isDesktop ? 5 : 3,
+                              transform: `rotate(${rotJitter}deg)`,
+                              filter: ci > 0 ? `drop-shadow(0 ${0.5}px ${0.5}px rgba(0,0,0,0.4))` : undefined,
+                            }}
+                          >
+                            <PokerChip size={chipSize} color={chipColors[ci % chipColors.length]!} />
+                          </motion.div>
+                        );
+                      })}
                     </div>
                     {/* ★ 금액 라벨 — 칩 바로 아래 중앙 (사용자 요청) */}
                     <motion.div
@@ -2145,40 +2161,58 @@ export default function GameTable() {
               </motion.button>
             )}
 
-            {/* ===== CHIP FLY ANIMATION — 착지점 POT과 동일(47/49%) z-30 위에 POT z-20 겹침 */}
+            {/* ===== CHIP FLY — V19: arc 궤적 + 회전 + 바운스 착지 ===== */}
             <AnimatePresence>
               {flyingChips.map(chip => {
                 const seatPos = seatPositionsData[chip.fromSeat] ?? [50, 100];
-                const chipCount = chip.action === 'allin' ? 5 : chip.action === 'raise' ? 3 : 2;
-                const chipColor = getChipColorByValue(chip.amount);
-                return Array.from({ length: chipCount }).map((_, ci) => (
-                  <motion.div key={`fly-${chip.key}-${ci}`}
-                    className="z-[15] pointer-events-none"
-                    style={{ position: 'absolute', transform: 'translate(-50%, -50%)' }}
-                    initial={{
-                      left: `${seatPos[0]}%`,
-                      top: `${seatPos[1]}%`,
-                      scale: 0.3,
-                      opacity: 1,
-                    }}
-                    animate={{
-                      left: `${50 + (Math.random() - 0.5) * 6}%`,
-                      top: `${(isDesktop ? 47 : 49) + (Math.random() - 0.5) * 3}%`,
-                      scale: 1,
-                      opacity: [1, 1, 0],
-                      rotate: ci * 60,
-                    }}
-                    exit={{ opacity: 0, scale: 0.4 }}
-                    transition={{
-                      duration: 1.1 + ci * 0.06,
-                      delay: ci * 0.08,
-                      ease: [0.25, 0.46, 0.45, 0.94],
-                      times: [0, 0.7, 1],
-                    }}
-                  >
-                    <PokerChip size={isDesktop ? 22 : 16} color={chipColor} />
-                  </motion.div>
-                ));
+                const chipCount = chip.action === 'allin' ? 6 : chip.action === 'raise' ? 4 : 2;
+                const chipColors = ['gold', 'green', 'red', 'purple', 'blue', 'orange'];
+                const mainColor = getChipColorByValue(chip.amount);
+                const potX = 50;
+                const potY = isDesktop ? 48 : 50;
+
+                return Array.from({ length: chipCount }).map((_, ci) => {
+                  // 칩마다 다른 색상 (리얼한 칩 혼합)
+                  const color = ci === 0 ? mainColor : chipColors[ci % chipColors.length]!;
+                  // arc 궤적 — 중간점 위로 올라갔다가 내려옴
+                  const startX = seatPos[0];
+                  const startY = seatPos[1];
+                  const endX = potX + (Math.random() - 0.5) * 5;
+                  const endY = potY + (Math.random() - 0.5) * 2;
+                  const midX = (startX + endX) / 2 + (Math.random() - 0.5) * 8;
+                  const midY = Math.min(startY, endY) - 8 - Math.random() * 5;
+                  const spinAngle = 180 + Math.random() * 360;
+
+                  return (
+                    <motion.div key={`fly-${chip.key}-${ci}`}
+                      className="z-[15] pointer-events-none"
+                      style={{ position: 'absolute', transform: 'translate(-50%, -50%)' }}
+                      initial={{
+                        left: `${startX}%`,
+                        top: `${startY}%`,
+                        scale: 0.2,
+                        opacity: 1,
+                        rotate: 0,
+                      }}
+                      animate={{
+                        left: [`${startX}%`, `${midX}%`, `${endX}%`],
+                        top: [`${startY}%`, `${midY}%`, `${endY}%`],
+                        scale: [0.2, 1.1, 0.85],
+                        opacity: [1, 1, 0.6],
+                        rotate: [0, spinAngle * 0.6, spinAngle],
+                      }}
+                      exit={{ opacity: 0, scale: 0.3, transition: { duration: 0.15 } }}
+                      transition={{
+                        duration: 0.65 + ci * 0.04,
+                        delay: ci * 0.06,
+                        ease: [0.22, 0.68, 0.36, 1],
+                        times: [0, 0.55, 1],
+                      }}
+                    >
+                      <PokerChip size={isDesktop ? 20 : 14} color={color} />
+                    </motion.div>
+                  );
+                });
               })}
             </AnimatePresence>
 
