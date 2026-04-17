@@ -56,6 +56,12 @@ function ensureConnection() {
       console.log('[WS] Connected (singleton)');
       wsReady = true;
       useGameStore.getState().setConnected(true);
+      // V20: 재연결 시 이전 방 자동 복귀
+      const prevRoom = useGameStore.getState().currentRoomId;
+      if (prevRoom) {
+        console.log(`[WS] Auto-rejoin room: ${prevRoom}`);
+        setTimeout(() => sendMessage({ type: 'JOIN_ROOM', roomId: prevRoom, buyIn: 0 }), 500);
+      }
     };
 
     ws.onmessage = (event) => {
