@@ -98,8 +98,8 @@ export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModal
             style={{ background: "linear-gradient(90deg, transparent, #FF6B35, #26A17B, transparent)" }} />
           <div className="flex items-center justify-between">
             <div>
-              <h2 className="text-[15px] font-bold text-white">Create Table</h2>
-              <span className="text-[11px] text-[#4A5A70]">Set up your private holdem table</span>
+              <h2 className="text-[15px] font-bold text-white">테이블 생성</h2>
+              <span className="text-[11px] text-[#6B7A90]">나만의 홀덤 테이블을 만드세요</span>
             </div>
             <button onClick={onClose}
               className="w-7 h-7 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 text-[#6B7A90] hover:text-white transition">
@@ -109,19 +109,19 @@ export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModal
         </div>
 
         {/* Body — 모바일은 스크롤 (min-h-0 필수: flex 자식 overflow 활성화) */}
-        <div className="px-4 sm:px-6 py-3 sm:py-5 space-y-3 sm:space-y-5 overflow-y-auto flex-1 min-h-0" style={{ background: "#0F1520" }}>
+        <div className="px-4 sm:px-6 py-3 sm:py-5 space-y-3 sm:space-y-5 overflow-y-auto flex-1 min-h-0" style={{ background: "#141A24" }}>
 
           {/* Table Name */}
           <div>
-            <label className="text-[11px] text-[#4A5A70] uppercase tracking-wider mb-1.5 block">Table Name</label>
-            <Input placeholder="e.g. VIP Lounge" value={roomName}
+            <label className="text-[11px] text-[#8899AB] uppercase tracking-wider mb-1.5 block">테이블 이름</label>
+            <Input placeholder="예: VIP 라운지" value={roomName}
               onChange={e => setRoomName(e.target.value)}
               className="bg-[#0B1018] border-[#1A2235] focus:border-[#FF6B35] h-11 text-sm" />
           </div>
 
           {/* Blinds — 모바일 가로 스크롤, 데스크탑 균등 분할 */}
           <div>
-            <label className="text-[11px] text-[#4A5A70] uppercase tracking-wider mb-2 block">Blinds</label>
+            <label className="text-[11px] text-[#8899AB] uppercase tracking-wider mb-2 block">블라인드</label>
             <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1" style={{ scrollbarWidth: 'none' }}>
               {blindPresets.map((p, i) => (
                 <button key={i} onClick={() => setBlindIdx(i)}
@@ -139,7 +139,7 @@ export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModal
 
           {/* Max Players */}
           <div>
-            <label className="text-[11px] text-[#4A5A70] uppercase tracking-wider mb-2 block">Players</label>
+            <label className="text-[11px] text-[#8899AB] uppercase tracking-wider mb-2 block">인원</label>
             <div className="flex gap-2">
               {[
                 { n: 2, label: "Heads-Up", icon: Zap },
@@ -163,8 +163,8 @@ export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModal
           {/* Buy-in Info */}
           <div className="p-3 rounded-lg" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)" }}>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] text-[#4A5A70]">Buy-in Range</span>
-              <span className="text-[9px] text-[#3A4A5A]">Auto: 20BB – 100BB</span>
+              <span className="text-[10px] text-[#8899AB]">바이인 범위</span>
+              <span className="text-[9px] text-[#6B7A90]">자동: 20BB ~ 100BB</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="font-mono text-xs text-[#8899AB]">{getSymbol()}{minBuyIn.toLocaleString()}</span>
@@ -176,15 +176,15 @@ export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModal
           {/* Password */}
           <div>
             <div className="flex items-center justify-between mb-2">
-              <label className="flex items-center gap-1.5 text-[11px] text-[#4A5A70]">
-                <Lock className="h-3 w-3" /> Private Table
+              <label className="flex items-center gap-1.5 text-[11px] text-[#8899AB]">
+                <Lock className="h-3 w-3" /> 비공개 방
               </label>
               <Switch checked={usePassword} onCheckedChange={setUsePassword} />
             </div>
             <AnimatePresence>
               {usePassword && (
                 <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}>
-                  <Input type="password" placeholder="Enter password" value={password}
+                  <Input type="password" placeholder="비밀번호 입력" value={password}
                     onChange={e => setPassword(e.target.value)}
                     className="bg-[#0B1018] border-[#1A2235] focus:border-[#FF6B35] h-10 text-sm" />
                 </motion.div>
@@ -194,8 +194,8 @@ export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModal
 
           {/* V12: 초대 (방 생성 시에만) — 텔레그램 ID 기반 */}
           <div>
-            <label className="flex items-center gap-1.5 text-[11px] text-[#4A5A70] uppercase tracking-wider mb-2">
-              <UserPlus className="h-3 w-3" /> Invite via Telegram (optional · max 8)
+            <label className="flex items-center gap-1.5 text-[11px] text-[#8899AB] uppercase tracking-wider mb-2">
+              <UserPlus className="h-3 w-3" /> 텔레그램 초대 (선택 · 최대 8명)
             </label>
             <div className="flex gap-2 mb-2">
               <Input
@@ -216,9 +216,9 @@ export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModal
                 disabled={!inviteInput.trim() || invites.length >= 8}
                 className="px-3 rounded-lg text-[11px] font-bold text-white disabled:opacity-30"
                 style={{ background: 'linear-gradient(135deg, #0088CC, #0066AA)' }}
-                title="Telegram 알림 전송"
+                title="텔레그램 알림 전송"
               >
-                Add
+                추가
               </button>
             </div>
             {invites.length > 0 && (
@@ -234,20 +234,20 @@ export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModal
                 ))}
               </div>
             )}
-            <p className="text-[9px] text-[#3A4A5A] mt-1.5">
-              ⚠️ Telegram Bot이 @username 으로 방 링크 DM 발송
+            <p className="text-[9px] text-[#6B7A90] mt-1.5">
+              ⚠️ 텔레그램 봇이 @username 으로 방 링크를 DM 발송합니다
               <br />
-              ⚠️ 초대는 방 생성 시에만 가능 — 진행 중인 방에는 초대 불가
+              ⚠️ 초대는 방 생성 시에만 가능합니다
             </p>
           </div>
         </div>
 
         {/* Footer */}
-        <div className="flex gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-5 pb-4 sm:pb-5 shrink-0 border-t border-white/[0.05]" style={{ background: "#0F1520" }}>
+        <div className="flex gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-5 pb-4 sm:pb-5 shrink-0 border-t border-white/[0.05]" style={{ background: "#141A24" }}>
           <button onClick={onClose}
             className="flex-1 py-2.5 rounded-lg text-[13px] font-semibold text-[#6B7A90]
               bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:text-white transition-all">
-            Cancel
+            취소
           </button>
           <button onClick={handleCreate}
             disabled={!roomName.trim()}
@@ -258,7 +258,7 @@ export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModal
               boxShadow: roomName.trim() ? "0 4px 15px rgba(255,107,53,0.25)" : "none",
             }}>
             <span className="relative z-10 flex items-center justify-center gap-1.5">
-              <Zap className="h-3.5 w-3.5" /> Create Table
+              <Zap className="h-3.5 w-3.5" /> 테이블 생성
             </span>
             {roomName.trim() && (
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent
