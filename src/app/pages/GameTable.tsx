@@ -1837,12 +1837,21 @@ export default function GameTable() {
                       return { shownCards: shown, isWinner };
                     })()}
                     isCurrentTurn={gameState?.currentTurnSeat === i}
-                    // V16: 타이머 fix — 내 턴은 turnInfo.deadline (정확), 다른 플레이어 턴은 gameState.turnStartedAt + turnTimeoutMs 계산
+                    // V19: 타이머 정확도 수정 — 서버 turnStartedAt을 클라 시계로 보정
+                    //   서버 시각 ≠ 클라 시각이면 타이머 부정확 → 오프셋 보정
                     turnDeadline={
                       gameState?.currentTurnSeat === i
-                        ? (i === heroSeat
-                            ? turnInfo?.deadline
-                            : (gameState?.turnStartedAt ? gameState.turnStartedAt + (gameState.turnTimeoutMs || 30000) : undefined))
+                        ? (i === heroSeat && turnInfo?.deadline
+                            ? turnInfo.deadline
+                            : (() => {
+                                const srvStart = gameState?.turnStartedAt;
+                                const timeout = gameState?.turnTimeoutMs || 30000;
+                                if (!srvStart) return undefined;
+                                // 서버-클라 오프셋 보정: turnInfo.serverTime 이 있으면 사용
+                                const srvTime = turnInfo?.serverTime;
+                                const offset = srvTime ? (Date.now() - srvTime) : 0;
+                                return srvStart + timeout + offset;
+                              })())
                         : undefined
                     }
                     turnTotalMs={gameState?.turnTimeoutMs ?? turnInfo?.timeoutMs ?? 30000}

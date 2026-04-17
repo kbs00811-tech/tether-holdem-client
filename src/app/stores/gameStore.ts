@@ -363,15 +363,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
       }
       case 'PLAYER_ACTION': {
         set({ isMyTurn: false, timeBankActive: null });
-        // 액션별 사운드
-        if (msg.action === 0) playSound('fold');
-        else if (msg.action === 1) playSound('check');
-        else if (msg.action === 2) playSound('call');
-        else if (msg.action === 3) playSound('raise');
-        else if (msg.action === 4) playSound('allIn');
-        else playSound('chipBet');
-
         const myId = get().myPlayerId;
+        // V19: Hero 액션은 handleCheck/handleCall 등에서 이미 사운드 재생 → 중복 방지
+        // 다른 플레이어 액션만 사운드 재생
+        if (!myId || msg.playerId !== myId) {
+          if (msg.action === 0) playSound('fold');
+          else if (msg.action === 1) playSound('check');
+          else if (msg.action === 2) playSound('chipBet');
+          else if (msg.action === 3) playSound('chipsRaise');
+          else if (msg.action === 4) playSound('allIn');
+          // else: 알 수 없는 액션 — 사운드 없음 (chipBet 기본값 제거)
+        }
 
         // ★ 내가 폴드했으면 hole cards 즉시 클리어 (관전 모드 카드 잔존 버그 수정)
         if (msg.action === 0 && myId && msg.playerId === myId) {
@@ -465,8 +467,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
           const w = msg.winners[0] as any;
           speakWinner(w.nickname || 'Winner', w.handResult?.description);
         }
-        // ★ 쇼다운 결과 표시 시간 단축 (3000ms → 1500ms) — 카드 빠르게 정리
-        setTimeout(() => set({ showResult: false }), 1500);
+        // V19: 쇼다운 결과 표시 후 카드 전부 클리어 (다음 판에 잔존 방지)
+        setTimeout(() => set({ showResult: false, shownCards: {}, rabbitCards: [] }), 2500);
 
         // 내 통계 기록 (statsStore) + 카드 클리어
         // 핸드 종료 시 hole cards 클리어 (다음 딜링까지 빈 상태)
