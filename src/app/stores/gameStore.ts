@@ -366,15 +366,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
         const myId = get().myPlayerId;
         // V19: Hero 액션은 handleCheck/handleCall 등에서 이미 사운드 재생 → 중복 방지
         // 다른 플레이어 액션만 사운드 재생
-        // V19.3: 모든 플레이어 액션에 사운드 재생 (hero 포함 — 관전 모드 대응)
-        // 이전: hero 제외 → 관전 시 사운드 누락 가능성
-        const act = Number(msg.action); // 안전하게 숫자 변환
+        // V20: 사운드 — 모든 액션 + 디버그 로그
+        const act = Number(msg.action);
+        console.log(`[SND] PLAYER_ACTION act=${act} player=${msg.playerId?.slice(0,12)}`);
         if (act === 0) playSound('fold');
         else if (act === 1) playSound('check');
         else if (act === 2) playSound('chipBet');
         else if (act === 3) playSound('chipsRaise');
         else if (act === 4) playSound('allIn');
-        else playSound('chipBet'); // fallback
+        else { console.warn(`[SND] Unknown action: ${msg.action}`); playSound('chipBet'); }
 
         // ★ 내가 폴드했으면 hole cards 즉시 클리어 (관전 모드 카드 잔존 버그 수정)
         if (msg.action === 0 && myId && msg.playerId === myId) {
