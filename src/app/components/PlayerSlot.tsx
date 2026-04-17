@@ -174,7 +174,14 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, turnDeadline
           <motion.div
             initial={{ opacity: 0, y: 4 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -8 }}
+            exit={{
+              // V19: 폴드 시 카드가 테이블 중앙으로 슬라이드 + 축소 + 회전 (머크 파일)
+              opacity: 0,
+              y: 35,
+              scale: 0.2,
+              rotate: 12,
+              transition: { duration: 0.35, ease: [0.4, 0, 0.2, 1] },
+            }}
             className="absolute z-0 pointer-events-none"
             style={{
               top: isLargeDesktop ? -10 : isDesktop ? -6 : -1,
@@ -382,17 +389,22 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, turnDeadline
             </div>
           )}
 
-          {/* Dealer button */}
+          {/* V19: Dealer button — layoutId로 좌석 간 slide 애니메이션 */}
           {player.isDealer && (
-            <div className="absolute z-20" style={{
-              top: -3, right: -3, width: 15, height: 15, borderRadius: "50%",
-              background: "linear-gradient(135deg, #FFF, #E8E8E8)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.4)",
-              border: "1px solid rgba(0,0,0,0.1)",
-            }}>
-              <span style={{ fontSize: 7, fontWeight: 900, color: "#1A1A2E", fontFamily: "'JetBrains Mono', monospace" }}>D</span>
-            </div>
+            <motion.div
+              layoutId="dealer-button"
+              className="absolute z-20"
+              style={{
+                top: -3, right: -3, width: 17, height: 17, borderRadius: "50%",
+                background: "linear-gradient(135deg, #FFFDE7, #FFF9C4, #F5F5F5)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                boxShadow: "0 1px 4px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.8)",
+                border: "1.5px solid rgba(0,0,0,0.12)",
+              }}
+              transition={{ type: "spring", stiffness: 200, damping: 22, duration: 0.5 }}
+            >
+              <span style={{ fontSize: 7.5, fontWeight: 900, color: "#1A1A2E", fontFamily: "'JetBrains Mono', monospace" }}>D</span>
+            </motion.div>
           )}
 
           {/* SB/BB badges */}
