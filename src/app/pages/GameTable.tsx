@@ -645,13 +645,13 @@ export default function GameTable() {
 
   const handleCall = useCallback(() => {
     send({ type: 'BET', action: 2 });
-    playSound('chipBet');
+    playSound('call');
     triggerChipFly(heroSeat, 'call', callAmount);
   }, [send, callAmount, heroSeat, triggerChipFly]);
 
   const handleRaise = useCallback(() => {
     send({ type: 'BET', action: 3, amount: raiseAmount });
-    playSound('chipsRaise');
+    playSound('raise');
     triggerChipFly(heroSeat, 'raise', raiseAmount);
   }, [send, raiseAmount, heroSeat, triggerChipFly]);
 
