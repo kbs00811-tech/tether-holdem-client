@@ -30,6 +30,18 @@ function getAudio(file: string): HTMLAudioElement {
 // iOS Safari / Chrome autoplay policy: HTMLAudioElement는 첫 사용자 제스처 내에서
 // 한 번 play() 호출되어야 이후 자유롭게 재생 가능. AudioContext.resume()도 함께.
 let audioUnlocked = false;
+
+// Web Audio AudioContext — 파일 사운드와 비프음 모두 이 인스턴스 사용
+let audioCtx: AudioContext | null = null;
+function getAudioCtx(): AudioContext {
+  if (!audioCtx) {
+    audioCtx = new ((window as any).AudioContext || (window as any).webkitAudioContext)();
+  }
+  if (audioCtx.state === 'suspended') {
+    audioCtx.resume().catch(() => {});
+  }
+  return audioCtx;
+}
 const KNOWN_FILES = [
   'deal.wav', 'chip.mp3', 'check.mp3', 'call.mp3', 'fold.mp3', 'raise.mp3',
   'allin.mp3', 'win.mp3', 'showdown.mp3', 'start.mp3', 'click.mp3',
@@ -41,17 +53,14 @@ function unlockAudio() {
   if (audioUnlocked) return;
   audioUnlocked = true;
   try {
-    // 1) AudioContext resume
-    const Ctx = (window as any).AudioContext || (window as any).webkitAudioContext;
-    if (Ctx) {
-      const ctx = new Ctx();
-      const buf = ctx.createBuffer(1, 1, 22050);
-      const src = ctx.createBufferSource();
-      src.buffer = buf;
-      src.connect(ctx.destination);
-      src.start(0);
-      if (ctx.state === 'suspended') ctx.resume().catch(() => {});
-    }
+    // 1) AudioContext resume — getAudioCtx()와 동일 인스턴스 사용
+    const ctx = getAudioCtx();
+    const buf = ctx.createBuffer(1, 1, 22050);
+    const src = ctx.createBufferSource();
+    src.buffer = buf;
+    src.connect(ctx.destination);
+    src.start(0);
+    if (ctx.state === 'suspended') ctx.resume().catch(() => {});
     // 2) 모든 사운드 파일 pre-warm — 무음으로 즉시 play → pause
     for (const file of KNOWN_FILES) {
       const audio = new Audio(`/sounds/${file}`);
@@ -92,26 +101,23 @@ let masterVolume = 0.7; // 0-1
 
 function play(file: string, volume: number = 0.5) {
   if (muted) return;
+  // 아직 unlock 안 됐으면 시도 (관전 모드에서도 GAME_STATE 수신 시 사운드 재생 가능하도록)
+  if (!audioUnlocked) {
+    try { unlockAudio(); } catch {}
+  }
   try {
     const audio = getAudio(file);
     audio.volume = Math.min(1, volume * masterVolume);
     audio.currentTime = 0;
-    audio.play().catch(() => {});
+    audio.play().catch((e) => {
+      // NotAllowedError = 아직 user gesture 없음 — 로그만 남기고 무시
+      if (e?.name !== 'NotAllowedError') console.warn('[SOUND] play error:', file, e?.message);
+    });
   } catch {}
 }
 
-// ── Web Audio 비프음 생성 (파일 없이 코드로 생성) ──
-let audioCtx: AudioContext | null = null;
-function getAudioCtx(): AudioContext {
-  if (!audioCtx) {
-    audioCtx = new ((window as any).AudioContext || (window as any).webkitAudioContext)();
-  }
-  // iOS/Chrome: AudioContext는 user gesture 후 resume 필요
-  if (audioCtx.state === 'suspended') {
-    audioCtx.resume().catch(() => {});
-  }
-  return audioCtx;
-}
+// ── Web Audio 비프음 생성 ──
+// (AudioContext는 파일 상단에 통합 정의)
 
 /** 톤 비프 (내 턴 알림, 타이머 경고 등) */
 function playBeep(freq: number, duration: number, vol: number = 0.3, type: OscillatorType = 'sine') {
