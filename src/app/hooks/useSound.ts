@@ -8,14 +8,21 @@
 let muted = false;
 let masterVolume = 0.7;
 
-/** 핵심 — 사운드 1개 재생. 이게 전부. */
+/** 핵심 — 사운드 1개 재생 + 에러 상세 로그 */
 function play(file: string, vol: number = 0.5): void {
-  if (muted) return;
+  if (muted) { console.log(`[SND] MUTED skip: ${file}`); return; }
+  console.log(`[SND] play: ${file} vol=${vol}`);
   try {
     const a = new Audio(`/sounds/${file}`);
     a.volume = Math.min(1, vol * masterVolume);
-    a.play().catch(() => {});
-  } catch {}
+    a.play().then(() => {
+      console.log(`[SND] ✅ OK: ${file}`);
+    }).catch((e) => {
+      console.error(`[SND] ❌ FAIL: ${file} — ${e?.name}: ${e?.message}`);
+    });
+  } catch (e) {
+    console.error(`[SND] ❌ EXCEPTION: ${file}`, e);
+  }
 }
 
 // ── Sound map ──
