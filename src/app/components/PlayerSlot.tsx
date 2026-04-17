@@ -189,12 +189,24 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, turnDeadline
                 animate={{ opacity: 1, rotateY: 0, scale: 1 }}
                 transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                 className="flex"
-                style={{ gap: 0 }}
+                style={{
+                  gap: 0,
+                  // V19: 승자 카드 금테 glow
+                  ...(isWinner ? {
+                    filter: 'drop-shadow(0 0 8px rgba(255,215,0,0.6)) drop-shadow(0 0 16px rgba(255,215,0,0.3))',
+                  } : {}),
+                }}
               >
-                <div style={{ transform: "rotate(-6deg) translateX(1px)" }}>
+                <div style={{
+                  transform: "rotate(-6deg) translateX(1px)",
+                  ...(isWinner ? { border: '2px solid rgba(255,215,0,0.5)', borderRadius: 6 } : {}),
+                }}>
                   <PokerCard suit={shownCards[0]!.suit} rank={shownCards[0]!.rank as any} size={isLargeDesktop ? "lg" : isDesktop ? "md" : "xs"} />
                 </div>
-                <div style={{ transform: "rotate(6deg) translateX(-1px)", marginLeft: isLargeDesktop ? -10 : isDesktop ? -7 : -4 }}>
+                <div style={{
+                  transform: "rotate(6deg) translateX(-1px)", marginLeft: isLargeDesktop ? -10 : isDesktop ? -7 : -4,
+                  ...(isWinner ? { border: '2px solid rgba(255,215,0,0.5)', borderRadius: 6 } : {}),
+                }}>
                   <PokerCard suit={shownCards[1]!.suit} rank={shownCards[1]!.rank as any} size={isLargeDesktop ? "lg" : isDesktop ? "md" : "xs"} />
                 </div>
               </motion.div>

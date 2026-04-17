@@ -308,7 +308,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         set(s => ({
           gameState: s.gameState ? { ...s.gameState, communityCards: msg.cards, phase: msg.phase } : null,
         }));
-        playSound('cardFlip');
+        playSound('communityFlip');
         // 딜러 음성 — 페이즈별
         {
           const phaseStr = String(msg.phase || '').toUpperCase();
@@ -358,7 +358,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             startedAt: Date.now(),
           },
         });
-        playSound('myTurn');
+        playSound('timeBankStart');
         break;
       }
       case 'PLAYER_ACTION': {
@@ -458,6 +458,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
           handHistoryRecords: [...s.handHistoryRecords.slice(-49), record],
         }));
         playSound('win');
+        // V19: 칩 수거 사운드 (1초 후 — 승리 팡파레 끝난 후)
+        setTimeout(() => playSound('chipCollect'), 1000);
         // 딜러 음성 — 승자 발표
         if (msg.winners && msg.winners[0]) {
           const w = msg.winners[0] as any;
@@ -627,7 +629,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             ts: Date.now(),
           },
         });
-        playSound('showdown');
+        playSound(isBadBeat ? 'badBeat' : 'showdown');
         setTimeout(() => set({ dramaticMoment: null }), 4500);
         break;
       }

@@ -100,32 +100,98 @@ function play(file: string, volume: number = 0.5) {
   } catch {}
 }
 
+// ── Web Audio 비프음 생성 (파일 없이 코드로 생성) ──
+let audioCtx: AudioContext | null = null;
+function getAudioCtx(): AudioContext {
+  if (!audioCtx) audioCtx = new ((window as any).AudioContext || (window as any).webkitAudioContext)();
+  return audioCtx;
+}
+
+/** 톤 비프 (내 턴 알림, 타이머 경고 등) */
+function playBeep(freq: number, duration: number, vol: number = 0.3, type: OscillatorType = 'sine') {
+  if (muted) return;
+  try {
+    const ctx = getAudioCtx();
+    const osc = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = type;
+    osc.frequency.value = freq;
+    gain.gain.value = vol * masterVolume;
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + duration);
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.start();
+    osc.stop(ctx.currentTime + duration);
+  } catch {}
+}
+
+/** 2연음 벨소리 (딩동!) */
+function playDingDong(vol: number = 0.35) {
+  if (muted) return;
+  playBeep(880, 0.12, vol, 'sine');   // 딩 (A5)
+  setTimeout(() => playBeep(660, 0.18, vol, 'sine'), 130); // 동 (E5)
+}
+
+/** 틱틱 타이머 경고 */
+function playTick(vol: number = 0.25) {
+  if (muted) return;
+  playBeep(1200, 0.05, vol, 'square');
+}
+
+/** 칩 수거 사운드 (짤그락) */
+function playChipCollect(vol: number = 0.3) {
+  if (muted) return;
+  for (let i = 0; i < 4; i++) {
+    setTimeout(() => playBeep(2000 + Math.random() * 1500, 0.03, vol * (0.5 + Math.random() * 0.5), 'triangle'), i * 40);
+  }
+}
+
+/** 배드비트 충격음 */
+function playBadBeat(vol: number = 0.4) {
+  if (muted) return;
+  playBeep(150, 0.5, vol, 'sawtooth');
+  setTimeout(() => playBeep(80, 0.8, vol * 0.6, 'sawtooth'), 200);
+}
+
+/** 타임뱅크 모래시계 */
+function playTimeBankStart(vol: number = 0.3) {
+  if (muted) return;
+  playBeep(440, 0.15, vol, 'sine');
+  setTimeout(() => playBeep(550, 0.15, vol, 'sine'), 170);
+  setTimeout(() => playBeep(660, 0.15, vol, 'sine'), 340);
+}
+
 // ── Sound definitions ──
 export const sounds = {
-  cardDeal:     () => play('deal.wav', 0.5),
-  cardFlip:     () => play('deal.wav', 0.4),
-  chipBet:      () => play('chip.mp3', 0.6),
-  check:        () => play('check.mp3', 0.6),
-  call:         () => play('call.mp3', 0.6),
-  fold:         () => play('fold.mp3', 0.5),
-  raise:        () => play('raise.mp3', 0.6),
-  allIn:        () => play('allin.mp3', 0.8),
-  win:          () => play('win.mp3', 0.7),
-  showdown:     () => play('showdown.mp3', 0.6),
-  start:        () => play('start.mp3', 0.5),
-  click:        () => play('click.mp3', 0.4),
-  cardWin:      () => play('cardwin.mp3', 0.6),
-  chipsRaise:   () => play('chips_raise.mp3', 0.6),
-  spark:        () => play('spark.mp3', 0.5),
-  bonus:        () => play('bonus.wav', 0.6),
-  royalFlush:   () => play('royalflush.mp3', 0.8),
-  fullHouse:    () => play('fullhouse.mp3', 0.7),
-  flush:        () => play('flush.mp3', 0.7),
-  straight:     () => play('straight.mp3', 0.7),
-  myTurn:       () => play('click.mp3', 0.6),
-  timerWarning: () => play('click.mp3', 0.7),
-  playerJoin:   () => play('chip.mp3', 0.4),
-  newHand:      () => play('start.mp3', 0.4),
+  cardDeal:       () => play('deal.wav', 0.5),
+  cardFlip:       () => play('deal.wav', 0.4),
+  chipBet:        () => play('chip.mp3', 0.6),
+  check:          () => play('check.mp3', 0.6),
+  call:           () => play('call.mp3', 0.6),
+  fold:           () => play('fold.mp3', 0.5),
+  raise:          () => play('raise.mp3', 0.6),
+  allIn:          () => play('allin.mp3', 0.8),
+  win:            () => play('win.mp3', 0.7),
+  showdown:       () => play('showdown.mp3', 0.6),
+  start:          () => play('start.mp3', 0.5),
+  click:          () => play('click.mp3', 0.4),
+  cardWin:        () => play('cardwin.mp3', 0.6),
+  chipsRaise:     () => play('chips_raise.mp3', 0.6),
+  spark:          () => play('spark.mp3', 0.5),
+  bonus:          () => play('bonus.wav', 0.6),
+  royalFlush:     () => play('royalflush.mp3', 0.8),
+  fullHouse:      () => play('fullhouse.mp3', 0.7),
+  flush:          () => play('flush.mp3', 0.7),
+  straight:       () => play('straight.mp3', 0.7),
+  // V19: 신규 사운드 (Web Audio 생성 — 파일 불필요)
+  myTurn:         () => playDingDong(0.4),          // 딩동! 내 턴
+  timerWarning:   () => playTick(0.3),              // 틱! 10초 경고
+  communityFlip:  () => play('deal.wav', 0.5),      // 커뮤니티 카드 플립
+  chipCollect:    () => playChipCollect(0.3),        // 칩 수거 짤그락
+  badBeat:        () => playBadBeat(0.4),            // 배드비트 충격음
+  timeBankStart:  () => playTimeBankStart(0.3),      // 타임뱅크 시작
+  playerJoin:     () => play('chip.mp3', 0.4),
+  newHand:        () => play('start.mp3', 0.4),
 };
 
 // ── Mute/Volume controls ──

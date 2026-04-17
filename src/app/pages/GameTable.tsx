@@ -724,6 +724,28 @@ export default function GameTable() {
     return () => { delete (window as any).__forceLeave; };
   }, [forceLeave]);
 
+  // V19: 내 턴 알림 사운드 (딩동!)
+  useEffect(() => {
+    if (isMyTurn) playSound('myTurn');
+  }, [isMyTurn]);
+
+  // V19: 타이머 10초 경고 (틱틱)
+  useEffect(() => {
+    if (!isMyTurn || !turnInfo?.deadline) return;
+    const warnAt = turnInfo.deadline - 10000; // 10초 전
+    const now = Date.now();
+    if (warnAt <= now) return;
+    const timer = setTimeout(() => {
+      if (useGameStore.getState().isMyTurn) {
+        playSound('timerWarning');
+        // 3초 간격으로 2번 더
+        setTimeout(() => playSound('timerWarning'), 3000);
+        setTimeout(() => playSound('timerWarning'), 6000);
+      }
+    }, warnAt - now);
+    return () => clearTimeout(timer);
+  }, [isMyTurn, turnInfo?.deadline]);
+
   // V19: 브라우저 뒤로가기/새로고침/탭 닫기 방지 (게임 중 실수 나가기 차단)
   useEffect(() => {
     if (!currentRoomId) return;
@@ -1981,23 +2003,23 @@ export default function GameTable() {
                 <AnimatePresence>
                   {communityCards.map((card, i) => (
                     <motion.div key={`comm-${card.suit}-${card.rank}-${i}`}
-                      initial={{ rotateY: 180, opacity: 0, x: -120 + i * 12, y: -80, scale: 0.25 }}
-                      animate={{ rotateY: 0, opacity: 1, x: 0, y: 0, scale: 1 }}
+                      initial={{ rotateY: 180, opacity: 0, scale: 0.3, y: -30 }}
+                      animate={{ rotateY: 0, opacity: 1, scale: 1, y: 0 }}
                       exit={{ opacity: 0, scale: 0.5, y: -20 }}
                       transition={{
-                        // 버그2 수정: 플랍(0~2)만 300ms 스태거, 턴(3)·리버(4)는 즉시 펼침
-                        // 지속시간도 0.5 → 0.75 로 늘려 카드 뒤집히는 느낌 강화
-                        delay: i < 3 ? i * 0.30 : 0,
-                        duration: 0.75,
+                        delay: i < 3 ? i * 0.25 : 0,
+                        duration: 0.6,
                         type: "spring",
-                        stiffness: 120,
-                        damping: 14,
+                        stiffness: 140,
+                        damping: 16,
                       }}
-                      className="shrink-0">
+                      className="shrink-0"
+                      style={{ perspective: 800, transformStyle: 'preserve-3d' }}>
                       <div className="relative">
                         <PokerCard suit={card.suit} rank={card.rank} size={isLargeDesktop ? "xl" : isDesktop ? "lg" : "sm"} />
+                        {/* 카드 그림자 */}
                         <div className="absolute -bottom-1 left-1 right-1 h-2 rounded-full"
-                          style={{ background: "rgba(0,0,0,0.3)", filter: "blur(3px)" }} />
+                          style={{ background: "rgba(0,0,0,0.35)", filter: "blur(4px)" }} />
                       </div>
                     </motion.div>
                   ))}
