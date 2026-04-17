@@ -552,22 +552,23 @@ export default function GameTable() {
         return [...prev, ...newStacks].slice(-20);
       });
     }, 700);
-    setTimeout(() => setFlyingChips(prev => prev.filter(c => c.key !== chip.key)), 900);
+    // ★ 칩 비행 시간 연장 (900ms → 1400ms) — 리얼하게 보이도록
+    setTimeout(() => setFlyingChips(prev => prev.filter(c => c.key !== chip.key)), 1400);
   }, []);
 
   // 승리 시 칩 수거 애니메이션
   useEffect(() => {
     if (showResult && winners && winners[0]) {
       const winnerSeat = serverPlayers.find(p => p.id === winners[0].playerId)?.seat ?? heroSeat;
+      // ★ 승리 칩 애니메이션 — 빠르게 정리
       setTimeout(() => {
         setWinChips([{ toSeat: winnerSeat, amount: winners[0].amount, key: Date.now() }]);
         playSound('win');
-      }, 800);
-      // 칩 도착 후 정리
+      }, 500);
       setTimeout(() => {
         setWinChips([]);
         setPotChipStacks([]);
-      }, 2200);
+      }, 1500);
     }
   }, [showResult, winners]);
 
@@ -2145,10 +2146,10 @@ export default function GameTable() {
                     }}
                     exit={{ opacity: 0, scale: 0.4 }}
                     transition={{
-                      duration: 0.7 + ci * 0.04,
-                      delay: ci * 0.05,
-                      ease: [0.22, 0.68, 0.36, 1],
-                      times: [0, 0.6, 1],
+                      duration: 1.1 + ci * 0.06,
+                      delay: ci * 0.08,
+                      ease: [0.25, 0.46, 0.45, 0.94],
+                      times: [0, 0.7, 1],
                     }}
                   >
                     <PokerChip size={isDesktop ? 22 : 16} color={chipColor} />
@@ -2460,8 +2461,9 @@ export default function GameTable() {
                 //   — seat 좌표(y=100)는 "바닥" 느낌이라 실제 CardSqueeze 위치와 불일치
                 //   → hero 일 때만 target 을 고정 상수로 오버라이드
                 const isHeroCard = card.seat === heroSeat && heroSeat >= 0;
-                const targetX = isHeroCard ? 50 : tableLeft + (pos[0] - 50) * tableW / 200;
-                const targetY = isHeroCard ? (isDesktop ? 72 : 75) : tableTop + pos[1] * tableH / 100;
+                // ★ 카드를 아바타 위치로 직접 착지 (테이블 중앙 아닌 플레이어 위치)
+                const targetX = isHeroCard ? 50 : pos[0];
+                const targetY = isHeroCard ? (isDesktop ? 72 : 75) : pos[1];
 
                 // V17: arc — 중간 지점 y값을 살짝 위로 (startY와 targetY 사이 -3%)
                 const midX = (startX + targetX) / 2;

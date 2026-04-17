@@ -463,7 +463,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
           const w = msg.winners[0] as any;
           speakWinner(w.nickname || 'Winner', w.handResult?.description);
         }
-        setTimeout(() => set({ showResult: false }), 3000);
+        // ★ 쇼다운 결과 표시 시간 단축 (3000ms → 1500ms) — 카드 빠르게 정리
+        setTimeout(() => set({ showResult: false }), 1500);
 
         // 내 통계 기록 (statsStore) + 카드 클리어
         // 핸드 종료 시 hole cards 클리어 (다음 딜링까지 빈 상태)
