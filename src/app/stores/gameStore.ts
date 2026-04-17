@@ -468,7 +468,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
           speakWinner(w.nickname || 'Winner', w.handResult?.description);
         }
         // V19: 쇼다운 결과 표시 후 카드 전부 클리어 (다음 판에 잔존 방지)
-        setTimeout(() => set({ showResult: false, shownCards: {}, rabbitCards: [] }), 2500);
+        // V20: 카드 클리어 — finishHand(1500ms) 전에 완료 (카드 걷어가기)
+        setTimeout(() => set({ showResult: false, shownCards: {}, rabbitCards: [], winners: null }), 1200);
 
         // 내 통계 기록 (statsStore) + 카드 클리어
         // 핸드 종료 시 hole cards 클리어 (다음 딜링까지 빈 상태)
