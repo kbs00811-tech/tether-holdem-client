@@ -1253,6 +1253,83 @@ export default function GameTable() {
         </div>
       </div>
 
+      {/* ====== 모바일 BGM 플로팅 버튼 ====== */}
+      <button
+        onClick={() => setShowVolume(!showVolume)}
+        className="fixed bottom-20 right-3 z-40 w-12 h-12 rounded-full flex items-center justify-center sm:hidden"
+        style={{
+          background: showVolume ? 'linear-gradient(135deg, #FF6B35, #E85D2C)' : 'rgba(20,24,32,0.9)',
+          border: '1.5px solid rgba(255,255,255,0.15)',
+          boxShadow: '0 4px 15px rgba(0,0,0,0.5)',
+          backdropFilter: 'blur(8px)',
+        }}>
+        <span style={{ fontSize: 18 }}>{isMuted ? '🔇' : '🎵'}</span>
+      </button>
+
+      {/* 모바일 BGM 팝업 (하단) */}
+      <AnimatePresence>
+        {showVolume && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            className="fixed bottom-[88px] right-3 z-50 p-4 rounded-2xl w-56 sm:hidden"
+            style={{
+              background: 'rgba(14,18,26,0.97)',
+              border: '1px solid rgba(255,255,255,0.1)',
+              backdropFilter: 'blur(16px)',
+              boxShadow: '0 12px 40px rgba(0,0,0,0.6)',
+            }}>
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[11px] text-white font-bold">🎵 사운드</span>
+              <button onClick={() => {
+                  const newMuted = !isMuted;
+                  setIsMuted(newMuted);
+                  setSoundMuted(newMuted);
+                  if (newMuted) stopBGM(); else startBGM();
+                }}
+                className="px-2 py-0.5 rounded text-[9px] font-bold"
+                style={{
+                  background: isMuted ? 'rgba(239,68,68,0.15)' : 'rgba(52,211,153,0.15)',
+                  color: isMuted ? '#EF4444' : '#34D399',
+                }}>
+                {isMuted ? '🔇 OFF' : '🔊 ON'}
+              </button>
+            </div>
+            <input type="range" min={0} max={100} value={volume}
+              onChange={e => {
+                const v = Number(e.target.value);
+                setVolume(v);
+                setBGMVolume(v / 100 * 0.3);
+                if (v === 0) { setIsMuted(true); setSoundMuted(true); }
+                else { setIsMuted(false); setSoundMuted(false); }
+              }}
+              className="w-full h-1.5 rounded-full appearance-none bg-[#1A2235] mb-3
+                [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4
+                [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#FF6B35]
+                [&::-webkit-slider-thumb]:appearance-none" />
+            <div className="text-[9px] text-[#6B7A90] mb-1.5 uppercase tracking-wider">BGM</div>
+            <div className="space-y-1 max-h-[150px] overflow-y-auto">
+              {BGM_TRACKS.map(track => (
+                <button key={track.id}
+                  onClick={() => setBGMTrack(track.id)}
+                  className="w-full text-left px-2.5 py-2 rounded-lg text-[11px] transition-colors"
+                  style={{
+                    background: getBGMTrackId() === track.id ? 'rgba(255,107,53,0.15)' : 'transparent',
+                    color: getBGMTrackId() === track.id ? '#FF6B35' : '#8899AB',
+                  }}>
+                  {track.name}
+                </button>
+              ))}
+            </div>
+            <button onClick={() => setShowVolume(false)}
+              className="w-full mt-2 py-2 rounded-lg text-[10px] font-bold text-[#6B7A90] bg-white/[0.04]">
+              닫기
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       {/* ====== Bad Beat / Cooler 드라마틱 배너 ====== */}
       <AnimatePresence>
         {dramaticMoment && (
