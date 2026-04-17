@@ -63,15 +63,39 @@ export function isMuted() { return muted; }
 export function setMasterVolume(v: number) { masterVolume = Math.max(0, Math.min(1, v)); }
 export function getMasterVolume() { return masterVolume; }
 
-// ── BGM ──
+// ── BGM (다중 장르 지원) ──
+export const BGM_TRACKS = [
+  { id: 'lounge', name: '라운지 재즈', file: '/sounds/bgm.mp3' },
+  // 아래는 파일 추가 시 활성화
+  // { id: 'tension', name: '긴박감', file: '/sounds/bgm_tension.mp3' },
+  // { id: 'chill', name: '편안한', file: '/sounds/bgm_chill.mp3' },
+  // { id: 'kpop', name: 'K-Pop', file: '/sounds/bgm_kpop.mp3' },
+  // { id: 'latin', name: '라틴', file: '/sounds/bgm_latin.mp3' },
+  // { id: 'pop', name: '팝', file: '/sounds/bgm_pop.mp3' },
+];
+
 let bgmAudio: HTMLAudioElement | null = null;
 let bgmPlaying = false;
+let currentBGMId = 'lounge';
+
+export function getBGMTrackId() { return currentBGMId; }
+
+export function setBGMTrack(trackId: string) {
+  const track = BGM_TRACKS.find(t => t.id === trackId);
+  if (!track) return;
+  const wasPlaying = bgmPlaying;
+  stopBGM();
+  currentBGMId = trackId;
+  bgmAudio = null; // 새 트랙으로 교체
+  if (wasPlaying) startBGM();
+}
 
 export function startBGM() {
   if (muted) return;
   try {
     if (!bgmAudio) {
-      bgmAudio = new Audio('/sounds/bgm.mp3');
+      const track = BGM_TRACKS.find(t => t.id === currentBGMId) ?? BGM_TRACKS[0]!;
+      bgmAudio = new Audio(track.file);
       bgmAudio.loop = true;
       bgmAudio.volume = 0.12 * masterVolume;
     }

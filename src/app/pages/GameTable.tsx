@@ -47,6 +47,12 @@ export default function GameTable() {
 
   // V3 P2D: 모바일 게임 플레이 중 화면 꺼짐 방지 (방 입장 중에만 활성)
   useWakeLock(!!useGameStore(s => s.currentRoomId));
+
+  // V20: BGM 자동 시작 (방 입장 시)
+  useEffect(() => {
+    if (currentRoomId && !isSoundMuted()) startBGM();
+    return () => stopBGM();
+  }, [currentRoomId]);
   const currentAvatarIdx = useSettingsStore(s => s.avatar);
   const { user: embedUser } = useEmbedMode();
   const realBalance = embedUser?.balance ?? 0;
