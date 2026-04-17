@@ -378,6 +378,27 @@ export default function Lobby() {
         </div>
       </section>
 
+      {/* ═══════ TOURNAMENT COMING SOON ═══════ */}
+      {activeCategory === 'Tournament' && (
+        <section className="mx-3 sm:mx-5 mt-6 mb-6">
+          <div className="rounded-2xl p-8 text-center" style={{
+            background: 'linear-gradient(135deg, rgba(167,139,250,0.08), rgba(139,92,246,0.04))',
+            border: '1px solid rgba(167,139,250,0.2)',
+          }}>
+            <div className="text-4xl mb-3">🏆</div>
+            <h3 className="text-lg font-black text-white mb-2">토너먼트 준비 중</h3>
+            <p className="text-xs text-[#8899AB] mb-4 leading-relaxed">
+              MTT(멀티테이블 토너먼트), Sit & Go, PKO 등<br/>
+              다양한 토너먼트가 곧 오픈됩니다!
+            </p>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-[11px] font-bold"
+              style={{ background: 'rgba(167,139,250,0.15)', color: '#A78BFA', border: '1px solid rgba(167,139,250,0.3)' }}>
+              COMING SOON
+            </div>
+          </div>
+        </section>
+      )}
+
       {/* ═══════ ROOM LIST (Tournament 제외) ═══════ */}
       {activeCategory !== 'Tournament' && (
       <section className="mx-3 sm:mx-5 mt-6 mb-6">
