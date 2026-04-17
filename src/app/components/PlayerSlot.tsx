@@ -185,9 +185,36 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, turnDeadline
             }}
             className="absolute z-0 pointer-events-none"
             style={{
-              top: isLargeDesktop ? -10 : isDesktop ? -6 : -1,
-              left: "50%",
-              transform: "translateX(-50%) translateY(-80%)",
+              // V20: 카드 위치 — 좌석 위치에 따라 아바타 좌/우/상 배치
+              // 좌측 좌석(1,2,3): 아바타 왼쪽
+              // 우측 좌석(5,6,7): 아바타 오른쪽
+              // 상단(0,4,8 히어로/탑): 아바타 위
+              ...((() => {
+                const isLeftSeat = position !== undefined && [1, 2, 3].includes(position);
+                const isRightSeat = position !== undefined && [5, 6, 7].includes(position);
+                if (isLeftSeat) {
+                  return {
+                    top: isDesktop ? -2 : 2,
+                    right: '100%',
+                    marginRight: isDesktop ? 4 : 2,
+                    transform: 'translateY(-20%)',
+                  };
+                }
+                if (isRightSeat) {
+                  return {
+                    top: isDesktop ? -2 : 2,
+                    left: '100%',
+                    marginLeft: isDesktop ? 4 : 2,
+                    transform: 'translateY(-20%)',
+                  };
+                }
+                // 상단/하단 좌석: 아바타 위
+                return {
+                  top: isLargeDesktop ? -10 : isDesktop ? -6 : -1,
+                  left: '50%',
+                  transform: 'translateX(-50%) translateY(-80%)',
+                };
+              })()),
             }}>
             {/* V3 P2C: 쇼다운 시 shownCards 가 있으면 face-up, 아니면 face-down */}
             {shownCards && shownCards.length === 2 ? (
