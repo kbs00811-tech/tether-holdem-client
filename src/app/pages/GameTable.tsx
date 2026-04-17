@@ -871,13 +871,14 @@ export default function GameTable() {
   //        [1]     [5]         8 / 4 o'clock
   //             [0]           6 o'clock (hero)
   // V3 P2D-FIX: 좌표를 3~97 범위로 clamp — 아바타 크기(~96px) 감안 시 ±10% 여유 확보
+  // V20: GG포커 실측 기반 좌석 좌표
   const HERO_LAYOUT_6: [number, number][] = [
-    [50,  82],    // 0: hero
-    [6,   68],    // 1: bottom-left (이전 -5)
-    [6,   22],    // 2: upper-left (이전 -5)
-    [50,  3],     // 3: top center (이전 -5)
-    [94,  22],    // 4: upper-right (이전 105)
-    [94,  68],    // 5: bottom-right (이전 105)
+    [50,  88],    // 0: hero (하단 중앙)
+    [8,   60],    // 1: left-bottom
+    [8,   22],    // 2: left-top
+    [50,  5],     // 3: top center
+    [92,  22],    // 4: right-top
+    [92,  60],    // 5: right-bottom
   ];
 
   const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
@@ -886,32 +887,34 @@ export default function GameTable() {
   // 9-Max: 9 seats at 40° intervals, clockwise from hero (bottom center)
   // V3 P2D-FIX: 좌우 좌표를 3~97 범위로 clamp (이전 -12~114 → 시트 짤림 버그)
   // Portrait (모바일)
+  // V20: GG포커 모바일 좌표
   const HERO_LAYOUT_9_PORTRAIT: [number, number][] = [
-    [50,  82],    // 0: hero
-    [17,  80],    // 1: bottom-left (이전 15)
-    [4,   55],    // 2: left (이전 -8)
-    [6,   22],    // 3: upper-left (이전 0)
-    [30,  4],     // 4: top-left (이전 0)
-    [70,  4],     // 5: top-right (이전 0)
-    [94,  22],    // 6: upper-right (이전 100)
-    [96,  55],    // 7: right (이전 108)
-    [83,  80],    // 8: bottom-right (이전 85)
+    [50,  88],    // 0: hero
+    [12,  78],    // 1: bottom-left
+    [4,   52],    // 2: left
+    [8,   24],    // 3: upper-left
+    [32,  6],     // 4: top-left
+    [68,  6],     // 5: top-right
+    [92,  24],    // 6: upper-right
+    [96,  52],    // 7: right
+    [88,  78],    // 8: bottom-right
   ];
   // Landscape (데스크탑) — V3 P2D: 타원 기반 균등 배치 (40도 간격)
   // 중심 (50, 48), 가로 반지름 44, 세로 반지름 34
   // Hero 6시(270°) 기준, 시계방향 40° 증가
   // 좌표는 (cx + rx*cos, cy + ry*sin) — 각도는 12시부터 시계방향
   // 실제값: 하단 중앙에서 시작 → 우하 → 우상 → 상 → 좌상 → 좌하 순(시계방향)
+  // V20: GG포커 데스크탑 좌표 (실측 기반)
   const HERO_LAYOUT_9_LANDSCAPE: [number, number][] = [
-    [50,  86],    // 0: hero (6시)
-    [18,  82],    // 1: 7~8시 (hero 좌측 바로 옆)
-    [6,   56],    // 2: 9시 (왼쪽)
-    [12,  26],    // 3: 10~11시
-    [34,  8],     // 4: 11~12시
-    [66,  8],     // 5: 12~1시
-    [88,  26],    // 6: 1~2시
-    [94,  56],    // 7: 3시 (오른쪽)
-    [82,  82],    // 8: 4~5시 (hero 우측 바로 옆)
+    [50,  88],    // 0: hero (6시)
+    [15,  78],    // 1: 7~8시
+    [5,   55],    // 2: 9시 (왼쪽)
+    [8,   30],    // 3: 10~11시
+    [35,  12],    // 4: 11~12시
+    [65,  12],    // 5: 12~1시
+    [92,  30],    // 6: 1~2시
+    [95,  55],    // 7: 3시 (오른쪽)
+    [85,  78],    // 8: 4~5시
   ];
   const HERO_LAYOUT_9 = isDesktop ? HERO_LAYOUT_9_LANDSCAPE : HERO_LAYOUT_9_PORTRAIT;
 
