@@ -1256,7 +1256,7 @@ export default function GameTable() {
       {/* ====== 모바일 BGM 플로팅 버튼 ====== */}
       <button
         onClick={() => setShowVolume(!showVolume)}
-        className="fixed bottom-20 right-3 z-40 w-12 h-12 rounded-full flex items-center justify-center sm:hidden"
+        className="fixed bottom-20 left-3 z-40 w-12 h-12 rounded-full flex items-center justify-center sm:hidden"
         style={{
           background: showVolume ? 'linear-gradient(135deg, #FF6B35, #E85D2C)' : 'rgba(20,24,32,0.9)',
           border: '1.5px solid rgba(255,255,255,0.15)',
@@ -1273,7 +1273,7 @@ export default function GameTable() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-[88px] right-3 z-50 p-4 rounded-2xl w-56 sm:hidden"
+            className="fixed bottom-[88px] left-3 z-50 p-4 rounded-2xl w-56 sm:hidden"
             style={{
               background: 'rgba(14,18,26,0.97)',
               border: '1px solid rgba(255,255,255,0.1)',
