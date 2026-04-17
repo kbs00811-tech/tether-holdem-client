@@ -83,12 +83,12 @@ function unlockAudio() {
   }
 }
 
-// Auto-unlock on first click/touch
+// Auto-unlock on any click/touch — 제거하지 않고 매번 resume 시도
 if (typeof window !== 'undefined') {
   const unlock = () => {
-    unlockAudio();
-    document.removeEventListener('click', unlock);
-    document.removeEventListener('touchstart', unlock);
+    if (!audioUnlocked) unlockAudio();
+    // AudioContext suspended면 resume (iOS 탭 전환 후 복귀 대응)
+    if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume().catch(() => {});
     document.removeEventListener('keydown', unlock);
   };
   document.addEventListener('click', unlock);

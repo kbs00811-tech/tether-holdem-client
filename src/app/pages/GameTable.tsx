@@ -727,18 +727,26 @@ export default function GameTable() {
     return () => { delete (window as any).__forceLeave; };
   }, [forceLeave]);
 
-  // V19.2: 다른 플레이어 턴 deadline 캡처 — currentTurnSeat 변경 시 1회만
+  // V19.3: 다른 플레이어 턴 deadline — 서버가 보낸 turnDeadline + serverTime으로 정확 계산
   useEffect(() => {
     const seat = gameState?.currentTurnSeat ?? null;
     if (seat !== lastTurnSeatRef.current) {
       lastTurnSeatRef.current = seat;
       if (seat !== null && seat !== heroSeat) {
-        setOtherTurnDeadline(Date.now() + (gameState?.turnTimeoutMs || 30000));
+        // 서버가 보낸 turnDeadline + serverTime으로 클라 시계 보정
+        const srvDeadline = (gameState as any)?.turnDeadline;
+        const srvTime = (gameState as any)?.serverTime;
+        if (srvDeadline && srvTime) {
+          const offset = Date.now() - srvTime;
+          setOtherTurnDeadline(srvDeadline + offset);
+        } else {
+          setOtherTurnDeadline(Date.now() + (gameState?.turnTimeoutMs || 30000));
+        }
       } else {
         setOtherTurnDeadline(null);
       }
     }
-  }, [gameState?.currentTurnSeat, heroSeat, gameState?.turnTimeoutMs]);
+  }, [gameState?.currentTurnSeat, heroSeat]);
 
   // V19: 내 턴 알림 사운드 (딩동!)
   useEffect(() => {
