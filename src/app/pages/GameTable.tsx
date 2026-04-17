@@ -727,21 +727,14 @@ export default function GameTable() {
     return () => { delete (window as any).__forceLeave; };
   }, [forceLeave]);
 
-  // V19.3: 다른 플레이어 턴 deadline — 서버가 보낸 turnDeadline + serverTime으로 정확 계산
+  // V20: 다른 플레이어 턴 deadline — turnRemainMs 직접 사용 (오프셋 계산 제거)
   useEffect(() => {
     const seat = gameState?.currentTurnSeat ?? null;
     if (seat !== lastTurnSeatRef.current) {
       lastTurnSeatRef.current = seat;
       if (seat !== null && seat !== heroSeat) {
-        // 서버가 보낸 turnDeadline + serverTime으로 클라 시계 보정
-        const srvDeadline = (gameState as any)?.turnDeadline;
-        const srvTime = (gameState as any)?.serverTime;
-        if (srvDeadline && srvTime) {
-          const offset = Date.now() - srvTime;
-          setOtherTurnDeadline(srvDeadline + offset);
-        } else {
-          setOtherTurnDeadline(Date.now() + (gameState?.turnTimeoutMs || 30000));
-        }
+        const remainMs = (gameState as any)?.turnRemainMs ?? (gameState?.turnTimeoutMs || 30000);
+        setOtherTurnDeadline(Date.now() + remainMs);
       } else {
         setOtherTurnDeadline(null);
       }

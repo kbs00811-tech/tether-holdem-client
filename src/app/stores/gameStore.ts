@@ -9,6 +9,7 @@ import type {
   WinnerInfo,
 } from '../types/serverTypes';
 import { playSound } from '../hooks/useSound';
+import { SoundManager } from '../managers/SoundManager';
 import { useStatsStore } from './statsStore';
 import {
   speakNewHand, speakFlop, speakTurn, speakRiver, speakAllIn, speakWinner,
@@ -308,7 +309,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         set(s => ({
           gameState: s.gameState ? { ...s.gameState, communityCards: msg.cards, phase: msg.phase } : null,
         }));
-        playSound('communityFlip');
+        SoundManager.onCommunityCards();
         // 딜러 음성 — 페이즈별
         {
           const phaseStr = String(msg.phase || '').toUpperCase();
@@ -319,24 +320,14 @@ export const useGameStore = create<GameStore>((set, get) => ({
         try { useStatsStore.getState().onPhaseChange(String(msg.phase || 'FLOP')); } catch {}
         break;
       case 'YOUR_TURN': {
-        // 서버 deadline 보정 — 서버가 보낸 deadline(절대 시각)을 클라 시계로 변환
+        // V20: turnRemainMs — 서버가 남은 시간 직접 전송 → 오프셋 계산 불필요
         const msgAny = msg as any;
-        const srvTime: number | undefined = msgAny.serverTime;
-        const srvDeadline: number | undefined = msgAny.deadline;
-        let clientDeadline: number | undefined;
-        if (typeof srvDeadline === 'number') {
-          const offset = srvTime ? (Date.now() - srvTime) : 0;
-          clientDeadline = srvDeadline + offset;
-        } else if (typeof msg.timeoutMs === 'number') {
-          // 폴백: deadline 없으면 로컬 기준
-          clientDeadline = Date.now() + msg.timeoutMs;
-        }
+        const remainMs = msgAny.turnRemainMs ?? msg.timeoutMs ?? 30000;
         set({
           isMyTurn: true,
           turnInfo: {
             timeoutMs: msg.timeoutMs,
-            deadline: clientDeadline,
-            serverTime: srvTime,
+            deadline: Date.now() + remainMs,
             minBet: msg.minBet,
             maxBet: msg.maxBet,
             callAmount: msg.callAmount,
@@ -358,7 +349,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             startedAt: Date.now(),
           },
         });
-        playSound('timeBankStart');
+        SoundManager.onTimeBankStart();
         break;
       }
       case 'PLAYER_ACTION': {
@@ -367,13 +358,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
         // V19: Hero 액션은 handleCheck/handleCall 등에서 이미 사운드 재생 → 중복 방지
         // 다른 플레이어 액션만 사운드 재생
         // V20: 사운드 — 모든 액션 + 디버그 로그
-        // V20: 올바른 사운드 매핑
-        const act = Number(msg.action);
-        if (act === 0) playSound('fold');       // fold.mp3
-        else if (act === 1) playSound('check'); // check.mp3 (탁! 두드림)
-        else if (act === 2) playSound('call');  // call.mp3 (칩 콜)
-        else if (act === 3) playSound('raise'); // raise.mp3 (칩 스택 밀기)
-        else if (act === 4) playSound('allIn'); // allin.mp3
+        // V20: SoundManager 통합 — 한 줄로 사운드 처리
+        SoundManager.onAction(Number(msg.action));
 
         // ★ 내가 폴드했으면 hole cards 즉시 클리어 (관전 모드 카드 잔존 버그 수정)
         if (msg.action === 0 && myId && msg.playerId === myId) {
@@ -459,9 +445,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
           isMyTurn: false,
           handHistoryRecords: [...s.handHistoryRecords.slice(-49), record],
         }));
-        playSound('win');
-        // V19: 칩 수거 사운드 (1초 후 — 승리 팡파레 끝난 후)
-        setTimeout(() => playSound('chipCollect'), 1000);
+        SoundManager.onHandResult();
         // 딜러 음성 — 승자 발표
         if (msg.winners && msg.winners[0]) {
           const w = msg.winners[0] as any;
@@ -632,7 +616,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             ts: Date.now(),
           },
         });
-        playSound(isBadBeat ? 'badBeat' : 'showdown');
+        SoundManager.onDramatic(isBadBeat ? 'bad_beat' : 'cooler');
         setTimeout(() => set({ dramaticMoment: null }), 4500);
         break;
       }
