@@ -160,13 +160,7 @@ export default function Lobby() {
     return true;
   });
 
-  // Simulate live counter
-  useEffect(() => {
-    const t = setInterval(() => {
-      setOnlineCount(c => c + Math.floor(Math.random() * 5) - 2);
-    }, 3000);
-    return () => clearInterval(t);
-  }, []);
+  // onlineCount는 serverRooms에서 실시간 계산 — 시뮬레이션 불필요
 
   // ★ 방 클릭 시 즉시 관전 모드로 입장 — BuyInModal 제거.
   // 착석은 GameTable 내부에서 빈 좌석 클릭 시 처리.
