@@ -1180,18 +1180,11 @@ export default function GameTable() {
             </AnimatePresence>
           </div>
           <div className="relative">
-            <button onClick={() => {
-              const newMuted = !isMuted;
-              setIsMuted(newMuted);
-              setSoundMuted(newMuted);
-              if (newMuted) stopBGM(); else startBGM();
-              playSound('click');
-            }}
-              onContextMenu={(e) => { e.preventDefault(); setShowVolume(!showVolume); }}
+            <button onClick={() => setShowVolume(!showVolume)}
               className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0"
               style={{
-                background: isMuted ? "rgba(239,68,68,0.08)" : "rgba(255,255,255,0.05)",
-                border: "1px solid rgba(255,255,255,0.08)",
+                background: showVolume ? "rgba(255,107,53,0.1)" : isMuted ? "rgba(239,68,68,0.08)" : "rgba(255,255,255,0.05)",
+                border: showVolume ? "1px solid rgba(255,107,53,0.3)" : "1px solid rgba(255,255,255,0.08)",
               }}>
               {isMuted ? <VolumeX className="h-5 w-5 text-[#EF4444]" /> : <Volume2 className="h-5 w-5 text-[#8899AB]" />}
             </button>
@@ -1201,7 +1194,22 @@ export default function GameTable() {
                 <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                   className="absolute top-12 right-0 z-50 p-3 rounded-xl w-48"
                   style={{ background: "rgba(20,24,32,0.95)", border: "1px solid rgba(255,255,255,0.06)", backdropFilter: "blur(12px)" }}>
-                  <div className="text-[10px] text-[#6B7A90] mb-2 uppercase tracking-wider">Volume</div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] text-[#6B7A90] uppercase tracking-wider">Volume</span>
+                    <button onClick={() => {
+                        const newMuted = !isMuted;
+                        setIsMuted(newMuted);
+                        setSoundMuted(newMuted);
+                        if (newMuted) stopBGM(); else startBGM();
+                      }}
+                      className="px-2 py-0.5 rounded text-[9px] font-bold"
+                      style={{
+                        background: isMuted ? 'rgba(239,68,68,0.15)' : 'rgba(52,211,153,0.15)',
+                        color: isMuted ? '#EF4444' : '#34D399',
+                      }}>
+                      {isMuted ? '🔇 음소거' : '🔊 ON'}
+                    </button>
+                  </div>
                   <div className="flex items-center gap-2 mb-3">
                     <VolumeX className="h-3 w-3 text-[#3D4F65]" />
                     <input type="range" min={0} max={100} value={volume}
