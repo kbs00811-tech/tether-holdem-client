@@ -185,28 +185,60 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, turnDeadline
             }}
             className="absolute z-0 pointer-events-none"
             style={{
-              // V20: 카드 위치 — 좌석 위치에 따라 아바타 좌/우/상 배치
-              // 좌측 좌석(1,2,3): 아바타 왼쪽
-              // 우측 좌석(5,6,7): 아바타 오른쪽
-              // 상단(0,4,8 히어로/탑): 아바타 위
+              // V20: 좌석별 카드 최적 위치
+              // 테이블 중앙 기준 — 안쪽으로 카드 배치 (짤림 방지)
               ...((() => {
-                const isLeftSeat = position !== undefined && [1, 2, 3].includes(position);
-                const isRightSeat = position !== undefined && [5, 6, 7].includes(position);
-                if (isLeftSeat) {
-                  return {
-                    top: isDesktop ? -2 : 2,
-                    left: isDesktop ? -8 : -4,
-                    transform: 'translateX(-100%) translateY(-20%)',
-                  };
-                }
-                if (isRightSeat) {
-                  return {
-                    top: isDesktop ? -2 : 2,
-                    right: isDesktop ? -8 : -4,
-                    transform: 'translateX(100%) translateY(-20%)',
-                  };
-                }
-                // 상단/하단 좌석: 아바타 위
+                const p = position ?? 0;
+                // 좌측 벽면 (2): 아바타 오른쪽 (안쪽)
+                if (p === 2) return {
+                  top: isDesktop ? -2 : 0,
+                  left: '100%',
+                  marginLeft: isDesktop ? 4 : 2,
+                  transform: 'translateY(-20%)',
+                };
+                // 좌하 (1): 아바타 오른쪽 위
+                if (p === 1) return {
+                  top: isDesktop ? -2 : 0,
+                  left: '100%',
+                  marginLeft: isDesktop ? 4 : 2,
+                  transform: 'translateY(-30%)',
+                };
+                // 좌상 (3): 아바타 오른쪽 아래
+                if (p === 3) return {
+                  top: isDesktop ? -2 : 0,
+                  left: '100%',
+                  marginLeft: isDesktop ? 4 : 2,
+                  transform: 'translateY(-10%)',
+                };
+                // 우측 벽면 (7): 아바타 왼쪽 (안쪽)
+                if (p === 7) return {
+                  top: isDesktop ? -2 : 0,
+                  right: '100%',
+                  marginRight: isDesktop ? 4 : 2,
+                  transform: 'translateY(-20%)',
+                };
+                // 우하 (8): 아바타 왼쪽 위
+                if (p === 8) return {
+                  top: isDesktop ? -2 : 0,
+                  right: '100%',
+                  marginRight: isDesktop ? 4 : 2,
+                  transform: 'translateY(-30%)',
+                };
+                // 우상 (6): 아바타 왼쪽 아래
+                if (p === 6) return {
+                  top: isDesktop ? -2 : 0,
+                  right: '100%',
+                  marginRight: isDesktop ? 4 : 2,
+                  transform: 'translateY(-10%)',
+                };
+                // 상단 (4,5): 아바타 아래
+                if (p === 4 || p === 5) return {
+                  top: '100%',
+                  left: '50%',
+                  marginTop: isDesktop ? 4 : 2,
+                  transform: 'translateX(-50%)',
+                };
+                // 히어로 (0): 아바타 위
                 return {
                   top: isLargeDesktop ? -10 : isDesktop ? -6 : -1,
                   left: '50%',
