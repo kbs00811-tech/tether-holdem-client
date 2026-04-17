@@ -2161,52 +2161,37 @@ export default function GameTable() {
               </motion.button>
             )}
 
-            {/* ===== CHIP FLY — V19: arc 궤적 + 회전 + 바운스 착지 ===== */}
+            {/* ===== CHIP FLY — V19.1: 직선 비행 + 다색 칩 ===== */}
             <AnimatePresence>
               {flyingChips.map(chip => {
                 const seatPos = seatPositionsData[chip.fromSeat] ?? [50, 100];
-                const chipCount = chip.action === 'allin' ? 6 : chip.action === 'raise' ? 4 : 2;
-                const chipColors = ['gold', 'green', 'red', 'purple', 'blue', 'orange'];
+                const chipCount = chip.action === 'allin' ? 5 : chip.action === 'raise' ? 3 : 2;
+                const chipColors = ['gold', 'green', 'red', 'purple', 'blue'];
                 const mainColor = getChipColorByValue(chip.amount);
-                const potX = 50;
-                const potY = isDesktop ? 48 : 50;
 
                 return Array.from({ length: chipCount }).map((_, ci) => {
-                  // 칩마다 다른 색상 (리얼한 칩 혼합)
                   const color = ci === 0 ? mainColor : chipColors[ci % chipColors.length]!;
-                  // arc 궤적 — 중간점 위로 올라갔다가 내려옴
-                  const startX = seatPos[0];
-                  const startY = seatPos[1];
-                  const endX = potX + (Math.random() - 0.5) * 5;
-                  const endY = potY + (Math.random() - 0.5) * 2;
-                  const midX = (startX + endX) / 2 + (Math.random() - 0.5) * 8;
-                  const midY = Math.min(startY, endY) - 8 - Math.random() * 5;
-                  const spinAngle = 180 + Math.random() * 360;
-
                   return (
                     <motion.div key={`fly-${chip.key}-${ci}`}
                       className="z-[15] pointer-events-none"
                       style={{ position: 'absolute', transform: 'translate(-50%, -50%)' }}
                       initial={{
-                        left: `${startX}%`,
-                        top: `${startY}%`,
-                        scale: 0.2,
+                        left: `${seatPos[0]}%`,
+                        top: `${seatPos[1]}%`,
+                        scale: 0.3,
                         opacity: 1,
-                        rotate: 0,
                       }}
                       animate={{
-                        left: [`${startX}%`, `${midX}%`, `${endX}%`],
-                        top: [`${startY}%`, `${midY}%`, `${endY}%`],
-                        scale: [0.2, 1.1, 0.85],
-                        opacity: [1, 1, 0.6],
-                        rotate: [0, spinAngle * 0.6, spinAngle],
+                        left: `${50 + (Math.random() - 0.5) * 4}%`,
+                        top: `${(isDesktop ? 48 : 50) + (Math.random() - 0.5) * 2}%`,
+                        scale: [0.3, 1, 0.8],
+                        opacity: [1, 1, 0.5],
                       }}
-                      exit={{ opacity: 0, scale: 0.3, transition: { duration: 0.15 } }}
+                      exit={{ opacity: 0, scale: 0.3 }}
                       transition={{
-                        duration: 0.65 + ci * 0.04,
-                        delay: ci * 0.06,
+                        duration: 0.5 + ci * 0.03,
+                        delay: ci * 0.05,
                         ease: [0.22, 0.68, 0.36, 1],
-                        times: [0, 0.55, 1],
                       }}
                     >
                       <PokerChip size={isDesktop ? 20 : 14} color={color} />
