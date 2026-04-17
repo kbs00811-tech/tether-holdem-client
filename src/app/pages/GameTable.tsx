@@ -14,7 +14,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useGameStore } from "../stores/gameStore";
 import { useSocket } from "../hooks/useSocket";
 import { useWakeLock } from "../hooks/useWakeLock";
-import { playSound, setMuted as setSoundMuted, isMuted as isSoundMuted, startBGM, stopBGM, setBGMVolume } from "../hooks/useSound";
+import { playSound, setMuted as setSoundMuted, isMuted as isSoundMuted, startBGM, stopBGM, setBGMVolume, BGM_TRACKS, setBGMTrack, getBGMTrackId } from "../hooks/useSound";
 import { useSettingsStore, TABLE_FELTS } from "../stores/settingsStore";
 import { useEmbedMode } from "../hooks/useEmbedMode";
 import { formatMoney, getSymbol } from "../utils/currency";
@@ -1218,10 +1218,25 @@ export default function GameTable() {
                         [&::-webkit-slider-thumb]:appearance-none" />
                     <Volume2 className="h-3 w-3 text-[#6B7A90]" />
                   </div>
-                  <div className="text-center text-xs text-[#4A5A70] font-mono">{volume}%</div>
+                  <div className="text-center text-xs text-[#4A5A70] font-mono mb-3">{volume}%</div>
+                  {/* BGM 장르 선택 */}
+                  <div className="text-[10px] text-[#6B7A90] mb-1.5 uppercase tracking-wider">BGM</div>
+                  <div className="space-y-1 mb-3 max-h-[120px] overflow-y-auto">
+                    {BGM_TRACKS.map(track => (
+                      <button key={track.id}
+                        onClick={() => { setBGMTrack(track.id); }}
+                        className="w-full text-left px-2 py-1.5 rounded text-[10px] transition-colors"
+                        style={{
+                          background: getBGMTrackId() === track.id ? 'rgba(255,107,53,0.15)' : 'transparent',
+                          color: getBGMTrackId() === track.id ? '#FF6B35' : '#6B7A90',
+                        }}>
+                        {track.name}
+                      </button>
+                    ))}
+                  </div>
                   <button onClick={() => setShowVolume(false)}
-                    className="w-full mt-2 py-1.5 rounded-lg text-[10px] text-[#6B7A90] bg-white/[0.03]">
-                    Close
+                    className="w-full py-1.5 rounded-lg text-[10px] text-[#6B7A90] bg-white/[0.03]">
+                    닫기
                   </button>
                 </motion.div>
               )}

@@ -65,18 +65,18 @@ export function getMasterVolume() { return masterVolume; }
 
 // ── BGM (다중 장르 지원) ──
 export const BGM_TRACKS = [
-  { id: 'lounge', name: '라운지 재즈', file: '/sounds/bgm.mp3' },
-  // 아래는 파일 추가 시 활성화
-  // { id: 'tension', name: '긴박감', file: '/sounds/bgm_tension.mp3' },
-  // { id: 'chill', name: '편안한', file: '/sounds/bgm_chill.mp3' },
-  // { id: 'kpop', name: 'K-Pop', file: '/sounds/bgm_kpop.mp3' },
-  // { id: 'latin', name: '라틴', file: '/sounds/bgm_latin.mp3' },
-  // { id: 'pop', name: '팝', file: '/sounds/bgm_pop.mp3' },
+  { id: 'casino', name: '🎰 카지노 재즈', file: '/sounds/bgm_casino.mp3' },
+  { id: 'chill', name: '😌 편안한 라운지', file: '/sounds/bgm_chill.mp3' },
+  { id: 'tension', name: '😰 긴박감', file: '/sounds/bgm_tension.mp3' },
+  { id: 'latin', name: '💃 라틴 재즈', file: '/sounds/bgm_latin.mp3' },
+  { id: 'upbeat', name: '🎸 신나는 펑크', file: '/sounds/bgm_upbeat.mp3' },
+  { id: 'paradise', name: '🏝️ 파라다이스', file: '/sounds/bgm_paradise.mp3' },
+  { id: 'lounge', name: '🍸 클래식 라운지', file: '/sounds/bgm.mp3' },
 ];
 
 let bgmAudio: HTMLAudioElement | null = null;
 let bgmPlaying = false;
-let currentBGMId = 'lounge';
+let currentBGMId = 'casino';
 
 export function getBGMTrackId() { return currentBGMId; }
 
