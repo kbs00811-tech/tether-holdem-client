@@ -48,10 +48,24 @@ export default function GameTable() {
   // V3 P2D: 모바일 게임 플레이 중 화면 꺼짐 방지 (방 입장 중에만 활성)
   useWakeLock(!!useGameStore(s => s.currentRoomId));
 
-  // V20: BGM 자동 시작 (방 입장 시)
+  // V20: BGM — 방 입장 후 첫 터치/클릭에서 시작 (autoplay 정책 대응)
   useEffect(() => {
-    if (currentRoomId && !isSoundMuted()) startBGM();
-    return () => stopBGM();
+    if (!currentRoomId) return;
+    const tryStart = () => {
+      if (!isSoundMuted()) startBGM();
+      document.removeEventListener('click', tryStart);
+      document.removeEventListener('touchstart', tryStart);
+    };
+    // 즉시 시도 (이미 user gesture 후면 성공)
+    if (!isSoundMuted()) startBGM();
+    // 실패 대비 — 다음 터치/클릭에서 재시도
+    document.addEventListener('click', tryStart, { once: true });
+    document.addEventListener('touchstart', tryStart, { once: true });
+    return () => {
+      stopBGM();
+      document.removeEventListener('click', tryStart);
+      document.removeEventListener('touchstart', tryStart);
+    };
   }, [currentRoomId]);
   const currentAvatarIdx = useSettingsStore(s => s.avatar);
   const { user: embedUser } = useEmbedMode();
