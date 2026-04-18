@@ -449,6 +449,7 @@ export default function GameTable() {
       const avatarToUse = isMySeat
         ? currentAvatarIdx
         : (typeof p.avatarId === 'number' ? p.avatarId : stableAvatarFromId(p.id || `seat-${i}`));
+      if (isMySeat) console.log(`[AVATAR] Hero seat=${i} local=${currentAvatarIdx} server=${p.avatarId} used=${avatarToUse}`);
       return {
         name: p.nickname,
         stack: p.stack / 100,
