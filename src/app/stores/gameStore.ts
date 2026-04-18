@@ -204,12 +204,15 @@ export const useGameStore = create<GameStore>((set, get) => ({
         const st: any = msg.state;
         // V18.1: showResult 활성(핸드 결과 표시 중) 이면 winners/showResult 보존
         //   → HAND_RESULT 직후 도착하는 GAME_STATE 가 승자 표시를 덮어쓰는 race condition 방지
-        const isShowingResult = get().showResult;
+        // V20: GAME_STATE 수신 시 항상 winners/showResult 클리어
+        // 이전: showResult=true면 보존 → 카드 안 걷히는 버그
         const updates: any = {
           gameState: msg.state,
           isMyTurn: false,
           equities: null,
-          ...(isShowingResult ? {} : { winners: null, showResult: false }),
+          winners: null,
+          showResult: false,
+          shownCards: {},
         };
         const cur = get().dealingInfo;
         const phaseStr = String(st?.phase || '').toUpperCase();
@@ -452,8 +455,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
           speakWinner(w.nickname || 'Winner', w.handResult?.description);
         }
         // V19: 쇼다운 결과 표시 후 카드 전부 클리어 (다음 판에 잔존 방지)
-        // V20: 카드 클리어 — finishHand(1500ms) 전에 완료 (카드 걷어가기)
-        setTimeout(() => set({ showResult: false, shownCards: {}, rabbitCards: [], winners: null }), 1200);
+        // V20: 카드 2초 표시 후 강제 클리어
+        setTimeout(() => {
+          set({ showResult: false, shownCards: {}, rabbitCards: [], winners: null });
+        }, 2000);
 
         // 내 통계 기록 (statsStore) + 카드 클리어
         // 핸드 종료 시 hole cards 클리어 (다음 딜링까지 빈 상태)

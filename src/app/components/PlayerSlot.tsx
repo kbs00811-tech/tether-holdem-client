@@ -76,6 +76,8 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, turnDeadline
     const tick = () => {
       const remain = Math.max(0, turnDeadline - Date.now());
       setLiveRemainMs(remain);
+      // V20: 0 도달하면 인터벌 중지 (깜빡임 방지)
+      if (remain <= 0) clearInterval(id);
     };
     tick();
     const id = setInterval(tick, 250);
@@ -457,8 +459,8 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, turnDeadline
             </div>
             {/* 카운트다운 초 — 실제 남은 시간 표시 */}
             <motion.div
-              animate={{ opacity: effectiveSeconds <= 5 ? [1, 0.4, 1] : 1 }}
-              transition={{ repeat: effectiveSeconds <= 5 ? Infinity : 0, duration: 0.6 }}
+              animate={{ opacity: effectiveSeconds <= 5 && effectiveSeconds > 0 ? [1, 0.4, 1] : 1 }}
+              transition={{ repeat: effectiveSeconds <= 5 && effectiveSeconds > 0 ? Infinity : 0, duration: 0.6 }}
               style={{
                 textAlign: "center", marginTop: 1,
                 fontSize: 10, fontWeight: 800,

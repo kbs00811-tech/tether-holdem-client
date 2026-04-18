@@ -69,6 +69,7 @@ export default function GameTable() {
   const [showHandHistory, setShowHandHistory] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false); // V3 Task 4 Phase A
   const [showMenu, setShowMenu] = useState(false); // V18: 헤더 More 드롭다운
+  const [bgmTrackId, setBgmTrackId] = useState(getBGMTrackId()); // BGM 선택 상태
   // V19.2: 다른 플레이어 턴 deadline 캡처 (렌더마다 재계산 방지)
   const [otherTurnDeadline, setOtherTurnDeadline] = useState<number | null>(null);
   const lastTurnSeatRef = useRef<number | null>(null);
@@ -1235,11 +1236,11 @@ export default function GameTable() {
                   <div className="space-y-1 mb-3 max-h-[120px] overflow-y-auto">
                     {BGM_TRACKS.map(track => (
                       <button key={track.id}
-                        onClick={() => { setBGMTrack(track.id); }}
+                        onClick={() => { setBGMTrack(track.id); setBgmTrackId(track.id); }}
                         className="w-full text-left px-2 py-1.5 rounded text-[10px] transition-colors"
                         style={{
-                          background: getBGMTrackId() === track.id ? 'rgba(255,107,53,0.15)' : 'transparent',
-                          color: getBGMTrackId() === track.id ? '#FF6B35' : '#6B7A90',
+                          background: bgmTrackId === track.id ? 'rgba(255,107,53,0.15)' : 'transparent',
+                          color: bgmTrackId === track.id ? '#FF6B35' : '#6B7A90',
                         }}>
                         {track.name}
                       </button>
@@ -1315,11 +1316,11 @@ export default function GameTable() {
             <div className="space-y-1 max-h-[150px] overflow-y-auto">
               {BGM_TRACKS.map(track => (
                 <button key={track.id}
-                  onClick={() => setBGMTrack(track.id)}
+                  onClick={() => { setBGMTrack(track.id); setBgmTrackId(track.id); }}
                   className="w-full text-left px-2.5 py-2 rounded-lg text-[11px] transition-colors"
                   style={{
-                    background: getBGMTrackId() === track.id ? 'rgba(255,107,53,0.15)' : 'transparent',
-                    color: getBGMTrackId() === track.id ? '#FF6B35' : '#8899AB',
+                    background: bgmTrackId === track.id ? 'rgba(255,107,53,0.15)' : 'transparent',
+                    color: bgmTrackId === track.id ? '#FF6B35' : '#8899AB',
                   }}>
                   {track.name}
                 </button>
