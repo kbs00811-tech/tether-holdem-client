@@ -4,7 +4,7 @@ import { Switch } from "./ui/switch";
 import { motion } from "motion/react";
 import { Volume2, Music, Sparkles, Check } from "lucide-react";
 import { setMuted } from "../hooks/useSound";
-import { useSettingsStore, AVATAR_IMAGES, AVATAR_NAMES, CARD_SKINS, TABLE_FELTS } from "../stores/settingsStore";
+import { useSettingsStore, AVATAR_IMAGES, AVATAR_NAMES, CARD_SKINS, COUNTRIES } from "../stores/settingsStore";
 import { useGameStore } from "../stores/gameStore";
 import { wsSend } from "../hooks/useSocket";
 
@@ -19,17 +19,10 @@ const cardSkinList = [
   { id: 3, name: "Neon", desc: "Cyberpunk glow", colors: ["#FF6B35", "#26A17B", "#A78BFA", "#FFD700"] },
 ];
 
-const tableFeltList = [
-  { id: 1, name: "Emerald", color: "#1A7A50" },
-  { id: 2, name: "Navy", color: "#1A3A6A" },
-  { id: 3, name: "Crimson", color: "#6A1A2A" },
-  { id: 4, name: "Purple", color: "#3A1A6A" },
-];
-
 export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const {
-    avatar, cardSkin, tableFelt, soundEnabled, musicEnabled, cardAnimations, runItMode, nickname,
-    setAvatar, setCardSkin, setTableFelt, setSoundEnabled, setMusicEnabled, setCardAnimations, setRunItMode, setNickname,
+    avatar, cardSkin, soundEnabled, musicEnabled, cardAnimations, runItMode, nickname, countryCode,
+    setAvatar, setCardSkin, setSoundEnabled, setMusicEnabled, setCardAnimations, setRunItMode, setNickname, setCountryCode,
   } = useSettingsStore();
 
   // V3 P2C1: 로컬 input state — 타이핑 중엔 store 동기화 하지 않고, blur/Enter 에서 저장
@@ -186,6 +179,45 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
             </div>
           </div>
 
+          {/* ═══ Country / 국가 (V22 hotfix: Avatar 바로 아래로 이동 — 정체성 설정 그룹화) ═══ */}
+          <div>
+            <h3 className="text-xs font-bold text-white mb-3 uppercase tracking-wider">
+              Country <span className="text-[#4A5A70] normal-case tracking-normal">· 국가 (선택, 내 아바타 옆 국기)</span>
+            </h3>
+            <div className="grid grid-cols-6 gap-2 max-h-[200px] overflow-y-auto p-1">
+              {/* None (미선택) */}
+              <button
+                onClick={() => setCountryCode(null)}
+                className="flex flex-col items-center gap-1 py-2 rounded-lg transition-all"
+                title="None"
+                aria-label="국가 미선택"
+                style={{
+                  background: countryCode === null ? "rgba(255,107,53,0.15)" : "rgba(255,255,255,0.02)",
+                  border: countryCode === null ? "2px solid #FF6B35" : "2px solid transparent",
+                }}>
+                <span className="text-xl leading-none">🌍</span>
+                <span className="text-[9px] font-bold text-[#6B7A90]">None</span>
+              </button>
+              {COUNTRIES.map(c => {
+                const label = c.nameLocal ? `${c.name} (${c.nameLocal})` : c.name;
+                return (
+                  <button key={c.code}
+                    onClick={() => setCountryCode(c.code)}
+                    className="flex flex-col items-center gap-1 py-2 rounded-lg transition-all"
+                    title={label}
+                    aria-label={label}
+                    style={{
+                      background: countryCode === c.code ? "rgba(255,107,53,0.15)" : "rgba(255,255,255,0.02)",
+                      border: countryCode === c.code ? "2px solid #FF6B35" : "2px solid transparent",
+                    }}>
+                    <span className="text-xl leading-none">{c.flag}</span>
+                    <span className="text-[9px] font-bold" style={{ color: countryCode === c.code ? "#FF6B35" : "#6B7A90" }}>{c.code}</span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
           {/* ═══ Card Skin ═══ */}
           <div>
             <h3 className="text-xs font-bold text-white mb-3 uppercase tracking-wider">Card Style</h3>
@@ -204,25 +236,6 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   </div>
                   <div className="text-[11px] font-bold" style={{ color: cardSkin === skin.id ? "#FF6B35" : "#6B7A90" }}>{skin.name}</div>
                   <div className="text-[9px] text-[#3A4A5A]">{skin.desc}</div>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* ═══ Table Felt ═══ */}
-          <div>
-            <h3 className="text-xs font-bold text-white mb-3 uppercase tracking-wider">Table Felt</h3>
-            <div className="flex gap-2">
-              {tableFeltList.map(skin => (
-                <button key={skin.id} onClick={() => setTableFelt(skin.id)}
-                  className="flex-1 py-3 rounded-xl text-center transition-all"
-                  style={{
-                    background: skin.color,
-                    border: tableFelt === skin.id ? "2px solid #FFD700" : "2px solid transparent",
-                    boxShadow: tableFelt === skin.id ? "0 0 10px rgba(255,215,0,0.2)" : "none",
-                    opacity: tableFelt === skin.id ? 1 : 0.5,
-                  }}>
-                  <div className="text-[10px] font-bold text-white/80">{skin.name}</div>
                 </button>
               ))}
             </div>

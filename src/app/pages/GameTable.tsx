@@ -14,10 +14,12 @@ import { motion, AnimatePresence } from "motion/react";
 import { useGameStore } from "../stores/gameStore";
 import { useSocket } from "../hooks/useSocket";
 import { useWakeLock } from "../hooks/useWakeLock";
-import { playSound, setMuted as setSoundMuted, isMuted as isSoundMuted, startBGM, stopBGM, setBGMVolume, BGM_TRACKS, setBGMTrack, getBGMTrackId } from "../hooks/useSound";
-import { useSettingsStore, TABLE_FELTS } from "../stores/settingsStore";
+import { playSound, setMuted as setSoundMuted, isMuted as isSoundMuted, startBGM, stopBGM, setBGMVolume, BGM_TRACKS, setBGMTrack, getBGMTrackId, setBGMMuted, isBGMMuted, setSFXVolume, getSFXVolume, setBGMVolumeLevel, getBGMVolumeLevel } from "../hooks/useSound";
+import { useSettingsStore, TABLE_FELTS, getCountryByCode } from "../stores/settingsStore";
 import { useEmbedMode } from "../hooks/useEmbedMode";
 import { formatMoney, getSymbol } from "../utils/currency";
+import { useT } from "../../i18n";
+import { evaluateHeroHand } from "../utils/handEvaluator";
 
 // Suit 변환: 서버(1-4) → 피그마("spades" etc.)
 const SUIT_MAP: Record<number, "spades"|"hearts"|"diamonds"|"clubs"> = {
@@ -28,6 +30,7 @@ const RANK_MAP: Record<number, string> = {
 };
 
 export default function GameTable() {
+  const t = useT();
   const { tableId } = useParams();
   const navigate = useNavigate();
   const { send } = useSocket();
@@ -68,6 +71,7 @@ export default function GameTable() {
     };
   }, [currentRoomId]);
   const currentAvatarIdx = useSettingsStore(s => s.avatar);
+  const currentTableFelt = useSettingsStore(s => s.tableFelt);
   const { user: embedUser } = useEmbedMode();
   const realBalance = embedUser?.balance ?? 0;
   const myPlayerIdReactive = useGameStore(s => s.myPlayerId);
@@ -219,7 +223,7 @@ export default function GameTable() {
           if (document.visibilityState === 'hidden') {
             send({ type: 'SIT_OUT' });
             useGameStore.setState({ isSittingOut: true });
-            toast('백그라운드 감지 — 자동 Sit Out', { icon: '⏸️' });
+            toast(t('alert.backgroundDetected'), { icon: '⏸️' });
           }
         }, 30000);
         // 5분 후 완전 나가기
@@ -279,7 +283,7 @@ export default function GameTable() {
       setTimeout(() => { try { send({ type: 'LEAVE_ROOM' }); } catch {} }, 100);
       setLeaveReserved(false);
       reserveBaselineRef.current = -1;
-      toast.success('게임 종료 후 자동 퇴장');
+      toast.success(t('alert.afterHandLeave'));
       setTimeout(() => navigate('/'), 300);
     }
   }, [leaveReserved, handHistoryCount, reservedLeavePhase, seated, send, navigate]);
@@ -464,6 +468,11 @@ export default function GameTable() {
         ? currentAvatarIdx
         : (typeof p.avatarId === 'number' ? p.avatarId : stableAvatarFromId(p.id || `seat-${i}`));
       if (isMySeat) console.log(`[AVATAR] Hero seat=${i} local=${currentAvatarIdx} server=${p.avatarId} used=${avatarToUse}`);
+      // V22: 국가 코드 → 국기 이모지 변환 (Hero 는 settings 에서 읽고, 다른 플레이어는 서버값 사용)
+      const serverCountryCode = (p as any).countryCode as string | null | undefined;
+      const localCountryCode = useSettingsStore.getState().countryCode;
+      const effectiveCountryCode = isMySeat ? localCountryCode : serverCountryCode;
+      const flagEmoji = getCountryByCode(effectiveCountryCode)?.flag;
       return {
         name: p.nickname,
         stack: p.stack / 100,
@@ -477,6 +486,7 @@ export default function GameTable() {
         isSmallBlind: p.isSB,
         isBigBlind: p.isBB,
         cards: undefined,
+        country: flagEmoji,
         hudStats: (p as any).hudStats,
       };
     }
@@ -529,12 +539,12 @@ export default function GameTable() {
       // 버그 #2: B2C 지갑 잔액 부족 — 착석/top-up 구분 안 되므로 메시지로 안내
       setLocalPlayers({});
       setSeated(false);
-      toast.error('💸 지갑 잔액이 부족합니다. PeerX 지갑에서 충전하세요.', { duration: 4000 });
+      toast.error(`💸 ${t('alert.insufficientBalance')}`, { duration: 4000 });
     } else if (lastError.code === 'TOPUP_FAILED') {
       // 버그 #2: 핸드 진행 중이거나 최대 스택 초과 — 착석 상태 유지
-      toast.error('⏱️ 핸드 종료 후 다시 시도하세요 (또는 최대 스택 초과)', { duration: 3500 });
+      toast.error(`⏱️ ${t('alert.tryAfterHand')}`, { duration: 3500 });
     } else if (lastError.code === 'INVALID_AMOUNT') {
-      toast.error('잘못된 금액입니다');
+      toast.error(t('buyInModal.insufficientBalance'));
     } else if (lastError.code === 'RECONNECTED') {
       toast.success(lastError.message, { duration: 5000, icon: '🔄' });
     }
@@ -947,7 +957,7 @@ export default function GameTable() {
 
   return (
     <div className={`h-[100dvh] flex flex-col overflow-hidden select-none ${iosFullscreenMode ? 'fixed inset-0 z-[9999]' : ''}`}
-      style={{ background: "radial-gradient(ellipse at 50% 40%, #0C1620 0%, #080E16 40%, #050A10 100%)" }}>
+      style={{ background: "#0B111A" }}>
 
       {/* ====== TOP BAR — V3 P2D 모바일 크기 업 + 정렬 개선 ====== */}
       <div className="shrink-0 z-30 px-3 sm:px-4 md:px-6 py-2 sm:py-2.5 md:py-3 flex items-center justify-between"
@@ -957,11 +967,12 @@ export default function GameTable() {
             style={{ background: "rgba(255,255,255,0.05)" }}>
             <ArrowLeft className="h-5 w-5 text-[#8899AB]" />
           </button>
-          <div className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-lg shrink-0"
-            style={{ background: "rgba(255,107,53,0.08)", border: "1px solid rgba(255,107,53,0.15)" }}>
-            <Zap className="h-4 w-4 text-[#FF6B35]" />
-            <span className="text-sm sm:text-base text-[#FF6B35] font-mono font-black">{blinds}</span>
-          </div>
+          {gameState?.smallBlind ? (
+            <div className="flex items-center gap-1 px-2 py-1 rounded-lg shrink-0"
+              style={{ background: "rgba(255,107,53,0.08)", border: "1px solid rgba(255,107,53,0.15)" }}>
+              <span className="text-[11px] sm:text-sm text-[#FF6B35] font-mono font-black">{sbAmount}/{bbAmount}</span>
+            </div>
+          ) : null}
           <div className="flex items-center gap-1 px-2 py-1.5 rounded-lg shrink-0"
             style={{ background: "rgba(255,255,255,0.04)" }}>
             <Users className="h-4 w-4 text-[#6B7A90]" />
@@ -1102,7 +1113,7 @@ export default function GameTable() {
                         <button onClick={() => {
                             const inHand = phase !== "WAITING" && phase !== "RESULT";
                             if (inHand) {
-                              toast('⏱️ 현재 핸드 종료 후 충전 가능합니다', { duration: 2500, icon: '⏳' });
+                              toast(`⏱️ ${t('alert.topUpAfterHand')}`, { duration: 2500, icon: '⏳' });
                             }
                             setShowTopUpModal(true);
                             setShowMenu(false);
@@ -1213,31 +1224,31 @@ export default function GameTable() {
                 <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
                   className="absolute top-12 right-0 z-50 p-3 rounded-xl w-48"
                   style={{ background: "rgba(20,24,32,0.95)", border: "1px solid rgba(255,255,255,0.06)", backdropFilter: "blur(12px)" }}>
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-[10px] text-[#6B7A90] uppercase tracking-wider">Volume</span>
+                  {/* 효과음 (GAME) */}
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] text-[#6B7A90] uppercase tracking-wider">🎮 Game</span>
                     <button onClick={() => {
                         const newMuted = !isMuted;
                         setIsMuted(newMuted);
                         setSoundMuted(newMuted);
-                        if (newMuted) stopBGM(); else startBGM();
                       }}
                       className="px-2 py-0.5 rounded text-[9px] font-bold"
                       style={{
                         background: isMuted ? 'rgba(239,68,68,0.15)' : 'rgba(52,211,153,0.15)',
                         color: isMuted ? '#EF4444' : '#34D399',
                       }}>
-                      {isMuted ? '🔇 음소거' : '🔊 ON'}
+                      {isMuted ? 'OFF' : 'ON'}
                     </button>
                   </div>
                   <div className="flex items-center gap-2 mb-3">
                     <VolumeX className="h-3 w-3 text-[#3D4F65]" />
-                    <input type="range" min={0} max={100} value={volume}
+                    <input type="range" min={0} max={100} value={Math.round(getSFXVolume() * 100)}
                       onChange={e => {
                         const v = Number(e.target.value);
+                        setSFXVolume(v / 100);
                         setVolume(v);
-                        setBGMVolume(v / 100 * 0.3);
                         if (v === 0) { setIsMuted(true); setSoundMuted(true); }
-                        else { setIsMuted(false); setSoundMuted(false); }
+                        else if (isMuted) { setIsMuted(false); setSoundMuted(false); }
                       }}
                       className="flex-1 h-1.5 rounded-full appearance-none bg-[#1A2235]
                         [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4
@@ -1245,9 +1256,39 @@ export default function GameTable() {
                         [&::-webkit-slider-thumb]:appearance-none" />
                     <Volume2 className="h-3 w-3 text-[#6B7A90]" />
                   </div>
-                  <div className="text-center text-xs text-[#4A5A70] font-mono mb-3">{volume}%</div>
-                  {/* BGM 장르 선택 */}
-                  <div className="text-[10px] text-[#6B7A90] mb-1.5 uppercase tracking-wider">BGM</div>
+
+                  {/* BGM */}
+                  <div className="flex items-center justify-between mb-1.5">
+                    <span className="text-[10px] text-[#6B7A90] uppercase tracking-wider">🎵 BGM</span>
+                    <button onClick={() => {
+                        const bgmOff = isBGMMuted();
+                        setBGMMuted(!bgmOff);
+                        if (bgmOff) startBGM(); else stopBGM();
+                      }}
+                      className="px-2 py-0.5 rounded text-[9px] font-bold"
+                      style={{
+                        background: isBGMMuted() ? 'rgba(239,68,68,0.15)' : 'rgba(52,211,153,0.15)',
+                        color: isBGMMuted() ? '#EF4444' : '#34D399',
+                      }}>
+                      {isBGMMuted() ? 'OFF' : 'ON'}
+                    </button>
+                  </div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <VolumeX className="h-3 w-3 text-[#3D4F65]" />
+                    <input type="range" min={0} max={100} value={Math.round(getBGMVolumeLevel() * 100)}
+                      onChange={e => {
+                        const v = Number(e.target.value);
+                        setBGMVolumeLevel(v / 100);
+                      }}
+                      className="flex-1 h-1.5 rounded-full appearance-none bg-[#1A2235]
+                        [&::-webkit-slider-thumb]:w-4 [&::-webkit-slider-thumb]:h-4
+                        [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:bg-[#A78BFA]
+                        [&::-webkit-slider-thumb]:appearance-none" />
+                    <Volume2 className="h-3 w-3 text-[#6B7A90]" />
+                  </div>
+
+                  {/* BGM 트랙 선택 */}
+                  <div className="text-[9px] text-[#4A5A70] mb-1 uppercase tracking-wider">Track</div>
                   <div className="space-y-1 mb-3 max-h-[120px] overflow-y-auto">
                     {BGM_TRACKS.map(track => (
                       <button key={track.id}
@@ -1272,27 +1313,14 @@ export default function GameTable() {
         </div>
       </div>
 
-      {/* ====== 모바일 BGM 플로팅 버튼 ====== */}
-      <button
-        onClick={() => setShowVolume(!showVolume)}
-        className="fixed bottom-20 left-3 z-40 w-12 h-12 rounded-full flex items-center justify-center sm:hidden"
-        style={{
-          background: showVolume ? 'linear-gradient(135deg, #FF6B35, #E85D2C)' : 'rgba(20,24,32,0.9)',
-          border: '1.5px solid rgba(255,255,255,0.15)',
-          boxShadow: '0 4px 15px rgba(0,0,0,0.5)',
-          backdropFilter: 'blur(8px)',
-        }}>
-        <span style={{ fontSize: 18 }}>{isMuted ? '🔇' : '🎵'}</span>
-      </button>
-
-      {/* 모바일 BGM 팝업 (하단) */}
+      {/* ====== 모바일 BGM 팝업 (인라인 버튼에서 열림) ====== */}
       <AnimatePresence>
         {showVolume && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-[88px] left-3 z-50 p-4 rounded-2xl w-56 sm:hidden"
+            className="fixed bottom-[140px] left-1/2 -translate-x-1/2 z-50 p-4 rounded-2xl w-56 sm:hidden"
             style={{
               background: 'rgba(14,18,26,0.97)',
               border: '1px solid rgba(255,255,255,0.1)',
@@ -1533,7 +1561,7 @@ export default function GameTable() {
                           onClick={() => {
                             try {
                               navigator.clipboard.writeText(headsupInvite.url);
-                              toast.success('복사됨!');
+                              toast.success(t('common.copied'));
                             } catch {}
                           }}
                           className="shrink-0 px-2 py-1 rounded text-[9px] font-black"
@@ -1907,7 +1935,7 @@ export default function GameTable() {
         <div className="shrink-0 z-20 px-3 py-1.5 flex items-center justify-between text-[11px] font-bold"
           style={{ background: "linear-gradient(90deg, rgba(240,185,11,0.15), rgba(240,185,11,0.05))", borderBottom: "1px solid rgba(240,185,11,0.3)", color: "#F0B90B" }}>
           <span>⏱️ 나가기 예약됨 — 이번 핸드 종료 후 자동 퇴장</span>
-          <button onClick={() => { setLeaveReserved(false); toast.success('예약 취소됨'); }}
+          <button onClick={() => { setLeaveReserved(false); toast.success(t('common.cancel')); }}
             className="px-2 py-0.5 rounded text-[10px] border border-[#F0B90B]/40">
             취소
           </button>
@@ -1975,6 +2003,7 @@ export default function GameTable() {
                 }}>
                   <PlayerSlot position={i} player={player} isHero={i === heroSeat}
                     isDealingNow={forceDealAnim > 0}
+                    hideCards={phase === 'WAITING' || phase === 'RESULT'}
                     {...(() => {
                       // V3 P2C: shownCards + isWinner 계산 — 서버 playerId 매핑
                       const sp = serverPlayers.find(p => p.seat === i);
@@ -2085,38 +2114,26 @@ export default function GameTable() {
                 );
               })}
             </div>
-            <div className="absolute inset-x-[9.5%] inset-y-[5%]" style={{ borderRadius: 160, background: "linear-gradient(180deg, #19232E 0%, #121A22 100%)", boxShadow: "inset 0 2px 6px rgba(0,0,0,0.5)" }} />
+            {/* 외곽 레일 — 중립 다크 단색 (브랜드색 제거) */}
+            <div className="absolute inset-x-[9.5%] inset-y-[5%]" style={{
+              borderRadius: 160,
+              background: "linear-gradient(180deg, #1A1F2A 0%, #12171F 100%)",
+              boxShadow: "inset 0 2px 6px rgba(0,0,0,0.5)",
+            }} />
 
-            {/* Neon pinstripe — vivid color shift */}
-            <motion.div
-              className="absolute inset-x-[10.5%] inset-y-[5.8%]"
-              animate={{
-                borderColor: [
-                  "rgba(38,161,123,0.2)",
-                  "rgba(38,161,123,0.35)",
-                  "rgba(255,107,53,0.25)",
-                  "rgba(255,215,0,0.2)",
-                  "rgba(139,92,246,0.15)",
-                  "rgba(38,161,123,0.2)",
-                ],
-                boxShadow: [
-                  "0 0 8px rgba(38,161,123,0.08), inset 0 0 8px rgba(38,161,123,0.04)",
-                  "0 0 15px rgba(38,161,123,0.12), inset 0 0 12px rgba(38,161,123,0.06)",
-                  "0 0 10px rgba(255,107,53,0.08), inset 0 0 8px rgba(255,107,53,0.04)",
-                  "0 0 12px rgba(255,215,0,0.06), inset 0 0 8px rgba(255,215,0,0.03)",
-                  "0 0 10px rgba(139,92,246,0.06), inset 0 0 8px rgba(139,92,246,0.03)",
-                  "0 0 8px rgba(38,161,123,0.08), inset 0 0 8px rgba(38,161,123,0.04)",
-                ],
-              }}
-              transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-              style={{ borderRadius: 160, border: "1.5px solid rgba(38,161,123,0.2)" }}
-            />
+            {/* 엣지 글로우 — 정적(static) USDT 그린 1px, 애니메이션 제거 */}
+            <div className="absolute inset-x-[10.5%] inset-y-[5.8%]" style={{
+              borderRadius: 160,
+              border: "1px solid rgba(38,161,123,0.15)",
+              boxShadow: "0 0 10px rgba(38,161,123,0.06), inset 0 0 10px rgba(38,161,123,0.03)",
+              pointerEvents: "none",
+            }} />
 
-            {/* Felt — dynamic color from settings */}
+            {/* Felt — 리액티브 훅 기반 동적 색상 (설정 변경 즉시 반영) */}
             <div className="absolute inset-x-[11%] inset-y-[6.2%] overflow-hidden" style={{
               borderRadius: 160,
-              background: TABLE_FELTS[useSettingsStore.getState().tableFelt as keyof typeof TABLE_FELTS]?.gradient ?? TABLE_FELTS[1].gradient,
-              boxShadow: "inset 0 0 60px rgba(0,0,0,0.3), inset 0 -20px 40px rgba(0,0,0,0.12)",
+              background: TABLE_FELTS[currentTableFelt as keyof typeof TABLE_FELTS]?.gradient ?? TABLE_FELTS[1].gradient,
+              boxShadow: "inset 0 0 60px rgba(0,0,0,0.35), inset 0 -20px 40px rgba(0,0,0,0.15)",
             }}>
               <div className="absolute inset-x-[12%] inset-y-[10%]" style={{ borderRadius: 160, border: "1px solid rgba(255,255,255,0.03)" }} />
               <motion.div
@@ -2610,7 +2627,7 @@ export default function GameTable() {
               }}>
               <span style={{ fontSize: 11 }}>👁</span>
               <span className="text-[10px] text-[#8899AB] font-semibold whitespace-nowrap">
-                관전 중 · 빈 자리 클릭해서 착석
+                {t('game.spectating')}
               </span>
               <button
                 onClick={() => {
@@ -2620,7 +2637,7 @@ export default function GameTable() {
                     if (!occupied.has(i)) { emptySeat = i; break; }
                   }
                   if (emptySeat === -1) {
-                    toast.error('테이블이 꽉 찼습니다');
+                    toast.error(t('lobby.tableIsFull'));
                     return;
                   }
                   handleSitClick(emptySeat);
@@ -2825,6 +2842,43 @@ export default function GameTable() {
             card1={{ suit: myHoleCards[0]!.suit as any, rank: myHoleCards[0]!.rank as any }}
             card2={{ suit: myHoleCards[1]!.suit as any, rank: myHoleCards[1]!.rank as any }}
           />
+          {/* GG포커 스타일 — 현재 족보 표시 */}
+          {(() => {
+            const cc = communityCards?.map((c: any) => ({ suit: c.suit, rank: c.rank })) ?? [];
+            const hand = evaluateHeroHand(
+              [{ suit: myHoleCards[0]!.suit, rank: myHoleCards[0]!.rank },
+               { suit: myHoleCards[1]!.suit, rank: myHoleCards[1]!.rank }],
+              cc
+            );
+            if (!hand) return null;
+            const colors = {
+              weak: { bg: 'rgba(100,116,139,0.25)', border: 'rgba(100,116,139,0.4)', text: '#94A3B8' },
+              medium: { bg: 'rgba(251,191,36,0.2)', border: 'rgba(251,191,36,0.4)', text: '#FBBF24' },
+              strong: { bg: 'rgba(52,211,153,0.2)', border: 'rgba(52,211,153,0.4)', text: '#34D399' },
+              premium: { bg: 'rgba(255,215,0,0.25)', border: 'rgba(255,215,0,0.5)', text: '#FFD700' },
+            };
+            const c = colors[hand.strength];
+            return (
+              <motion.div
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                key={`hand-${hand.rank}-${hand.description}`}
+                className="flex flex-col items-center mt-1"
+              >
+                <div className="px-2.5 py-0.5 rounded-full text-center"
+                  style={{ background: c.bg, border: `1px solid ${c.border}` }}>
+                  <span className="text-[9px] sm:text-[10px] font-black tracking-wide" style={{ color: c.text }}>
+                    {hand.description}
+                  </span>
+                </div>
+                {hand.draws && hand.draws.length > 0 && (
+                  <span className="text-[8px] text-[#60A5FA] mt-0.5 font-medium">
+                    + {hand.draws.join(' · ')}
+                  </span>
+                )}
+              </motion.div>
+            );
+          })()}
         </motion.div>
       )}
 
@@ -2853,7 +2907,7 @@ export default function GameTable() {
                     style={{ fontSize: 12 }}
                   >⏱</motion.span>
                   <span className="text-[10px] font-black tracking-widest" style={{ color: "#FCA5A5" }}>
-                    TIME BANK 사용 중 · {timeBankActive.seconds}s
+                    {t('timer.timeBank')} · {timeBankActive.seconds}{t('timer.seconds')}
                   </span>
                 </motion.div>
               )}
@@ -3024,14 +3078,32 @@ export default function GameTable() {
                 })}
               </div>
 
-              {/* ===== Top Up 미니 버튼 — 베팅 영역 위쪽 우측 (버그7: 기존엔 헤더에 있었고 모바일에선 숨겨져 있었음) ===== */}
+              {/* ===== Top Up + 모바일 🎵/💬 버튼 ===== */}
               {seated && (
-                <div className="flex justify-end mb-1.5">
+                <div className="flex justify-end items-center gap-1.5 mb-1.5">
+                  {/* 모바일 사운드/채팅 — 베팅 영역 내 배치 (겹침 방지) */}
+                  <button onClick={() => setShowVolume(!showVolume)}
+                    className="sm:hidden w-7 h-7 rounded-md flex items-center justify-center"
+                    style={{
+                      background: showVolume ? 'rgba(255,107,53,0.2)' : 'rgba(255,255,255,0.06)',
+                      border: showVolume ? '1px solid rgba(255,107,53,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                    }}>
+                    <span style={{ fontSize: 12 }}>{isMuted ? '🔇' : '🎵'}</span>
+                  </button>
+                  <button onClick={() => setShowChat(!showChat)}
+                    className="sm:hidden w-7 h-7 rounded-md flex items-center justify-center relative"
+                    style={{
+                      background: showChat ? 'rgba(255,107,53,0.2)' : 'rgba(255,255,255,0.06)',
+                      border: showChat ? '1px solid rgba(255,107,53,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                    }}>
+                    <span style={{ fontSize: 12 }}>💬</span>
+                  </button>
+                  <div className="flex-1" />
                   <button
                     onClick={() => {
                       const inHand = phase !== "WAITING" && phase !== "RESULT";
                       if (inHand) {
-                        toast('⏱️ 현재 핸드 종료 후 충전 가능합니다', { duration: 2500, icon: '⏳' });
+                        toast(`⏱️ ${t('alert.topUpAfterHand')}`, { duration: 2500, icon: '⏳' });
                       }
                       setShowTopUpModal(true);
                     }}
@@ -3057,7 +3129,7 @@ export default function GameTable() {
                     background: "linear-gradient(180deg, #D32F2F 0%, #B71C1C 100%)",
                     boxShadow: "0 4px 14px rgba(211,47,47,0.3), inset 0 1px 0 rgba(255,255,255,0.1)",
                   }}>
-                  <span className="text-white text-[13px] sm:text-[14px] font-black uppercase tracking-widest">Fold</span>
+                  <span className="text-white text-[13px] sm:text-[14px] font-black uppercase tracking-widest">{t('action.fold')}</span>
                 </motion.button>
 
                 <motion.button whileTap={{ scale: 0.93 }} onClick={canCheck ? handleCheck : handleCall}
@@ -3068,7 +3140,7 @@ export default function GameTable() {
                   }}>
                   <div className="flex flex-col items-center">
                     <span className="text-white text-[13px] sm:text-[14px] font-black uppercase tracking-widest">
-                      {canCheck ? "Check" : "Call"}
+                      {canCheck ? t('action.check') : t('action.call')}
                     </span>
                     {!canCheck && (
                       <span className="text-white/70 text-[10px] font-mono font-bold">
@@ -3091,7 +3163,7 @@ export default function GameTable() {
                   }}>
                   <div className="flex flex-col items-center">
                     <span className="text-white text-[13px] sm:text-[14px] font-black uppercase tracking-widest">
-                      {raiseAmount >= maxRaise ? "All In" : "Raise"}
+                      {raiseAmount >= maxRaise ? t('action.allIn') : t('action.raise')}
                     </span>
                     <span className="text-white/70 text-[10px] font-mono font-bold">
                       {getSymbol()}{(raiseAmount/100).toLocaleString()}
@@ -3171,27 +3243,48 @@ export default function GameTable() {
               </div>
             </div>
           ) : (
-            <div className="py-4 text-center">
+            <div className="py-4 flex items-center justify-center gap-3">
               <span className="text-xs text-[#3D4F65]">
-                {phase === "WAITING" ? "Waiting for players..." : phase === "RESULT" ? "Next hand starting..." : "Waiting for action..."}
+                {phase === "WAITING" ? t('game.waitingForPlayers') : phase === "RESULT" ? t('game.nextHand') : t('game.waitingForAction')}
               </span>
+              {/* 모바일 사운드/채팅 — 대기/관전 시 */}
+              <div className="flex items-center gap-1 sm:hidden">
+                <button onClick={() => setShowVolume(!showVolume)}
+                  className="w-7 h-7 rounded-md flex items-center justify-center"
+                  style={{
+                    background: showVolume ? 'rgba(255,107,53,0.2)' : 'rgba(255,255,255,0.06)',
+                    border: showVolume ? '1px solid rgba(255,107,53,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                  }}>
+                  <span style={{ fontSize: 12 }}>{isMuted ? '🔇' : '🎵'}</span>
+                </button>
+                <button onClick={() => setShowChat(!showChat)}
+                  className="w-7 h-7 rounded-md flex items-center justify-center"
+                  style={{
+                    background: showChat ? 'rgba(255,107,53,0.2)' : 'rgba(255,255,255,0.06)',
+                    border: showChat ? '1px solid rgba(255,107,53,0.4)' : '1px solid rgba(255,255,255,0.08)',
+                  }}>
+                  <span style={{ fontSize: 12 }}>💬</span>
+                </button>
+              </div>
             </div>
           )}
         </div>
       </div>
 
       <ChatPanel open={showChat} onOpenChange={setShowChat} />
-      {/* V12: Buy-in 값을 실제 방 config에서 가져옴 (서버 RoomInfo.minBuyIn 기반) */}
+      {/* V21.5: Buy-in — rooms + gameState 양쪽에서 방 정보 조회 (fallback 체인) */}
       {(() => {
         const currentRoom = rooms.find(r => r.id === currentRoomId);
-        // 서버는 cents 단위, UI는 원 단위
-        const cfgMinCents = currentRoom?.minBuyIn ?? 5000000;  // 기본 50K원
-        const cfgBbCents = currentRoom?.bigBlind ?? 10000;     // 기본 100원 BB
+        // gameState에서도 방 정보 가져오기 (rooms에 없는 경우 — 새로 만든 방 등)
+        const gs = gameState as any;
+        const cfgMinCents = currentRoom?.minBuyIn ?? gs?.minBuyIn ?? gs?.config?.minBuyIn ?? 5000000;
+        const cfgMaxCents = currentRoom?.maxBuyIn ?? gs?.maxBuyIn ?? gs?.config?.maxBuyIn ?? cfgMinCents * 2;
+        const cfgBbCents = currentRoom?.bigBlind ?? gs?.bigBlind ?? gs?.config?.bigBlind ?? 10000;
+        const cfgSbCents = currentRoom?.smallBlind ?? gs?.smallBlind ?? gs?.config?.smallBlind ?? Math.floor(cfgBbCents / 2);
         const minBuyInKrw = Math.floor(cfgMinCents / 100);
-        // maxBuyIn = 200 BB (GG 표준)
-        const maxBuyInKrw = Math.max(minBuyInKrw * 2, Math.floor(cfgBbCents * 200 / 100));
-        const blindsLabel = currentRoom
-          ? `${Math.floor((currentRoom.smallBlind ?? 0)/100).toLocaleString()}/${Math.floor((currentRoom.bigBlind ?? 0)/100).toLocaleString()}`
+        const maxBuyInKrw = Math.max(minBuyInKrw * 2, Math.floor(cfgMaxCents / 100), Math.floor(cfgBbCents * 200 / 100));
+        const blindsLabel = (cfgSbCents > 0 || cfgBbCents > 0)
+          ? `${Math.floor(cfgSbCents/100).toLocaleString()}/${Math.floor(cfgBbCents/100).toLocaleString()}`
           : "50/100";
         return (
           <BuyInModal open={showBuyInModal} onOpenChange={setShowBuyInModal}

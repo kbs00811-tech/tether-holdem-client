@@ -73,14 +73,15 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, turnDeadline
       setLiveRemainMs(null);
       return;
     }
+    // V21: let으로 먼저 선언 → tick() 내부에서 안전하게 참조 (TDZ 방지)
+    let id: ReturnType<typeof setInterval> | undefined;
     const tick = () => {
       const remain = Math.max(0, turnDeadline - Date.now());
       setLiveRemainMs(remain);
-      // V20: 0 도달하면 인터벌 중지 (깜빡임 방지)
-      if (remain <= 0) clearInterval(id);
+      if (remain <= 0 && id !== undefined) clearInterval(id);
     };
     tick();
-    const id = setInterval(tick, 250);
+    id = setInterval(tick, 250);
     return () => clearInterval(id);
   }, [isCurrentTurn, turnDeadline]);
 
@@ -154,9 +155,9 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, turnDeadline
   const avatarColor = avatarColors[player.avatar % avatarColors.length];
   const avatarGlyph = avatarGlyphs[player.avatar % avatarGlyphs.length];
 
-  // V16: 딜링 애니메이션 재생 중엔 opponent face-down 숨김 (중복 딜링 버그 수정)
-  //      딜링 완료 후에만 face-down 카드 표시 → "모든 회원은 딜링 후에 카드를 보여줘"
-  const showOpponentCards = !isHero && !isDead && player.status !== "waiting" && !isDealingNow;
+  // V21.6: 상대 카드 표시 조건 — 핸드 진행 중 + 딜링 완료 후만
+  // hideCards: GameTable에서 핸드 결과 후 강제 숨김 전달
+  const showOpponentCards = !isHero && !isDead && player.status !== "waiting" && !isDealingNow && !hideCards;
 
   const formatStack = (n: number) => {
     // 100원 단위로 반올림 후 콤마 구분 풀 표시
@@ -380,12 +381,12 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, turnDeadline
             )}
           </div>
 
-          {/* Country flag */}
+          {/* Country flag (V22: emoji 국기 지원) */}
           {player.country && !isDead && (
             <div style={{
-              position: "absolute", top: -2, left: -2, zIndex: 10,
-              fontSize: 9, lineHeight: 1,
-              filter: "drop-shadow(0 1px 2px rgba(0,0,0,0.5))",
+              position: "absolute", top: -4, left: -4, zIndex: 10,
+              fontSize: 16, lineHeight: 1,
+              filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.7))",
             }}>{player.country}</div>
           )}
 

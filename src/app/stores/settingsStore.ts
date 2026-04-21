@@ -19,6 +19,8 @@ interface SettingsState {
   runItMode: 'off' | 'twice' | 'thrice';
   // V3 P2C1: 커스텀 닉네임 (한글/영어 2~16자) — 빈 문자열이면 서버 기본값 사용
   nickname: string;
+  // V22: 국가 (ISO 3166-1 alpha-2, null = 미선택)
+  countryCode: string | null;
   syncedFromServer: boolean;
 
   setAvatar: (id: number) => void;
@@ -29,6 +31,7 @@ interface SettingsState {
   setCardAnimations: (v: boolean) => void;
   setRunItMode: (m: 'off' | 'twice' | 'thrice') => void;
   setNickname: (n: string) => void;
+  setCountryCode: (code: string | null) => void;
   loadFromServer: () => Promise<void>;
 }
 
@@ -47,8 +50,16 @@ function saveSettings(state: Partial<SettingsState>) {
       soundEnabled: state.soundEnabled, musicEnabled: state.musicEnabled, cardAnimations: state.cardAnimations,
       runItMode: state.runItMode,
       nickname: state.nickname,
+      countryCode: state.countryCode,
     }));
   } catch {}
+}
+
+// V22: 국가 코드를 홀덤 WS 서버에 즉시 전파
+function syncCountryCodeToHoldemWs(countryCode: string | null) {
+  import('../hooks/useSocket').then(mod => {
+    try { mod.wsSend({ type: 'UPDATE_COUNTRY', countryCode } as any); } catch {}
+  }).catch(() => {});
 }
 
 // V3 P2C1: 닉네임을 홀덤 WS 에 즉시 전파
@@ -90,6 +101,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   cardAnimations: saved.cardAnimations ?? true,
   runItMode: (saved as any).runItMode ?? 'off',
   nickname: (saved as any).nickname ?? '',
+  countryCode: (saved as any).countryCode ?? null,
   syncedFromServer: false,
 
   setAvatar: (id) => set(s => {
@@ -108,6 +120,15 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
     const n = { ...s, runItMode: m };
     saveSettings(n);
     syncRunItModeToHoldemWs(m);
+    return n;
+  }),
+  setCountryCode: (code) => set(s => {
+    // 유효성: ISO alpha-2 (영문 대문자 2자) 또는 null
+    const normalized = code ? code.trim().toUpperCase() : null;
+    if (normalized !== null && !/^[A-Z]{2}$/.test(normalized)) return s;
+    const n = { ...s, countryCode: normalized };
+    saveSettings(n);
+    syncCountryCodeToHoldemWs(normalized);
     return n;
   }),
   setNickname: (nn) => set(s => {
@@ -246,10 +267,68 @@ export const CARD_SKINS = {
   3: { name: "Neon", spades: "#A78BFA", hearts: "#FF6B35", diamonds: "#26A17B", clubs: "#FFD700" },
 };
 
-// Table felt colors
+// Table felt — V22 단일 다크 톤 (프로 포커 앱 스타일, 색상 선택지 제거)
+// 카드/칩·베팅 UI 가시성 최대화가 목적. 사용자가 felt 색상을 선택할 수 없도록 UI 도 제거됨.
 export const TABLE_FELTS = {
-  1: { name: "Emerald", primary: "#1A7A50", gradient: "radial-gradient(ellipse at 50% 40%, #1A7A50 0%, #167045 15%, #126540 30%, #0E5838 45%, #0B4C30 60%, #084028 75%, #063622 90%, #052E1C 100%)" },
-  2: { name: "Navy", gradient: "radial-gradient(ellipse at 50% 40%, #1A3A6A 0%, #152F5A 15%, #102550 30%, #0C1E48 45%, #081840 60%, #061238 75%, #040E30 90%, #030A28 100%)" },
-  3: { name: "Crimson", gradient: "radial-gradient(ellipse at 50% 40%, #6A1A2A 0%, #5A1525 15%, #501020 30%, #480C1A 45%, #400818 60%, #380615 75%, #300410 90%, #28030C 100%)" },
-  4: { name: "Royal Purple", gradient: "radial-gradient(ellipse at 50% 40%, #3A1A6A 0%, #30155A 15%, #281050 30%, #200C48 45%, #1A0840 60%, #140638 75%, #100430 90%, #0C0328 100%)" },
+  1: {
+    name: "Emerald Pro",
+    primary: "#1E8A5C",
+    gradient: "radial-gradient(ellipse at 50% 40%, #1E8A5C 0%, #13613F 55%, #0A3A25 100%)",
+  },
 };
+
+// V22: 지원 국가 목록 (ISO 3166-1 alpha-2) — 주요 포커 시장 30개
+// 지역별 그룹 정렬 (Asia → Europe → Americas → Oceania → MENA → Africa)
+export interface Country {
+  code: string;      // ISO alpha-2 (예: 'KR')
+  name: string;      // 영어 이름
+  nameLocal?: string; // 현지 이름 (optional)
+  flag: string;      // emoji 국기
+  region: 'asia' | 'europe' | 'americas' | 'oceania' | 'mena' | 'africa';
+}
+
+export const COUNTRIES: Country[] = [
+  // Asia (12)
+  { code: 'KR', name: 'Korea',       nameLocal: '한국',       flag: '🇰🇷', region: 'asia' },
+  { code: 'JP', name: 'Japan',       nameLocal: '日本',       flag: '🇯🇵', region: 'asia' },
+  { code: 'CN', name: 'China',       nameLocal: '中国',       flag: '🇨🇳', region: 'asia' },
+  { code: 'TW', name: 'Taiwan',      nameLocal: '台灣',       flag: '🇹🇼', region: 'asia' },
+  { code: 'HK', name: 'Hong Kong',   nameLocal: '香港',       flag: '🇭🇰', region: 'asia' },
+  { code: 'TH', name: 'Thailand',    nameLocal: 'ไทย',        flag: '🇹🇭', region: 'asia' },
+  { code: 'VN', name: 'Vietnam',     nameLocal: 'Việt Nam',   flag: '🇻🇳', region: 'asia' },
+  { code: 'PH', name: 'Philippines', nameLocal: 'Pilipinas',  flag: '🇵🇭', region: 'asia' },
+  { code: 'ID', name: 'Indonesia',                            flag: '🇮🇩', region: 'asia' },
+  { code: 'SG', name: 'Singapore',                            flag: '🇸🇬', region: 'asia' },
+  { code: 'MY', name: 'Malaysia',                             flag: '🇲🇾', region: 'asia' },
+  { code: 'IN', name: 'India',                                flag: '🇮🇳', region: 'asia' },
+  // Europe (8)
+  { code: 'GB', name: 'United Kingdom',                       flag: '🇬🇧', region: 'europe' },
+  { code: 'DE', name: 'Germany',     nameLocal: 'Deutschland', flag: '🇩🇪', region: 'europe' },
+  { code: 'FR', name: 'France',                               flag: '🇫🇷', region: 'europe' },
+  { code: 'ES', name: 'Spain',       nameLocal: 'España',     flag: '🇪🇸', region: 'europe' },
+  { code: 'IT', name: 'Italy',       nameLocal: 'Italia',     flag: '🇮🇹', region: 'europe' },
+  { code: 'RU', name: 'Russia',      nameLocal: 'Россия',     flag: '🇷🇺', region: 'europe' },
+  { code: 'UA', name: 'Ukraine',                              flag: '🇺🇦', region: 'europe' },
+  { code: 'PL', name: 'Poland',                               flag: '🇵🇱', region: 'europe' },
+  // Americas (5)
+  { code: 'US', name: 'USA',                                  flag: '🇺🇸', region: 'americas' },
+  { code: 'CA', name: 'Canada',                               flag: '🇨🇦', region: 'americas' },
+  { code: 'BR', name: 'Brazil',      nameLocal: 'Brasil',     flag: '🇧🇷', region: 'americas' },
+  { code: 'MX', name: 'Mexico',      nameLocal: 'México',     flag: '🇲🇽', region: 'americas' },
+  { code: 'AR', name: 'Argentina',                            flag: '🇦🇷', region: 'americas' },
+  // Oceania (2)
+  { code: 'AU', name: 'Australia',                            flag: '🇦🇺', region: 'oceania' },
+  { code: 'NZ', name: 'New Zealand',                          flag: '🇳🇿', region: 'oceania' },
+  // MENA (2)
+  { code: 'AE', name: 'UAE',                                  flag: '🇦🇪', region: 'mena' },
+  { code: 'TR', name: 'Turkey',      nameLocal: 'Türkiye',    flag: '🇹🇷', region: 'mena' },
+  // Africa (1)
+  { code: 'ZA', name: 'South Africa',                         flag: '🇿🇦', region: 'africa' },
+];
+
+/** code 로 Country 찾기 (O(1) lookup 용 Map) */
+const COUNTRY_MAP: Record<string, Country> = Object.fromEntries(COUNTRIES.map(c => [c.code, c]));
+export function getCountryByCode(code: string | null | undefined): Country | undefined {
+  if (!code) return undefined;
+  return COUNTRY_MAP[code.toUpperCase()];
+}

@@ -1,6 +1,6 @@
 import { formatMoney, getSymbol } from "../utils/currency";
 import { Link } from "react-router";
-import { Trophy, Users, Clock, DollarSign, Zap, Crown, Star, ChevronRight, Flame } from "lucide-react";
+import { Trophy, Users, Clock, DollarSign, Zap, Crown, Star, ChevronRight, Flame, RefreshCw, ArrowLeft } from "lucide-react";
 import { Badge } from "../components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../components/ui/dialog";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../components/ui/tabs";
@@ -9,6 +9,7 @@ import { useState, useEffect } from "react";
 import { toast } from "sonner";
 import { useGameStore } from "../stores/gameStore";
 import { useSocket } from "../hooks/useSocket";
+import { useT } from "../../i18n";
 
 interface Tournament {
   id: string;
@@ -22,6 +23,8 @@ interface Tournament {
   prizePool?: number;
   structure: "Regular" | "Turbo" | "Hyper" | "PKO";
   featured?: boolean;
+  /** Late Registration 남은 시간 (초). 0 또는 undefined 면 창 닫힘 */
+  lateRegRemainingSeconds?: number;
 }
 
 const mockTournaments: Tournament[] = [
@@ -40,8 +43,22 @@ const structureConfig: Record<string, { color: string; bg: string; icon: any }> 
   PKO:     { color: "#A78BFA", bg: "rgba(167,139,250,0.08)", icon: Crown },
 };
 
+/** Late Reg 남은 시간을 MM:SS 형식으로 포맷 */
+function formatMMSS(seconds: number): string {
+  const m = Math.floor(seconds / 60);
+  const s = Math.max(0, seconds % 60);
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
 // ── Detail Modal ──────────────────────────────────────────
 function TournamentDetailModal({ tournament }: { tournament: Tournament }) {
+  const { send } = useSocket();
+  const t = useT();
+  const handleRegister = () => {
+    send({ type: 'JOIN_TOURNAMENT', tournamentId: tournament.id } as any);
+    toast.success(t('tournament.registeringToast', { name: tournament.name }));
+  };
+  const handleRebuy = () => send({ type: 'TOURNAMENT_REBUY', tournamentId: tournament.id } as any);
   const sc = structureConfig[tournament.structure] ?? structureConfig.Regular;
   const blindStructure = [
     { level: 1, sb: 10, bb: 20, ante: 0, duration: 10 },
@@ -157,25 +174,35 @@ function TournamentDetailModal({ tournament }: { tournament: Tournament }) {
       <div className="flex gap-3 px-6 pb-5" style={{ background: "#0F1520" }}>
         {tournament.status === "registering" ? (
           <>
-            <button onClick={() => toast.success(`${getSymbol()}${tournament.buyIn} Registered!`)}
+            <button onClick={handleRegister}
               className="flex-1 py-2.5 rounded-lg text-[13px] font-bold text-white relative overflow-hidden group"
               style={{ background: "linear-gradient(135deg, #FF6B35, #E85D2C)", boxShadow: "0 4px 15px rgba(255,107,53,0.25)" }}>
               <span className="relative z-10 flex items-center justify-center gap-1.5">
-                <Zap className="h-3.5 w-3.5" /> Register ({getSymbol()}{tournament.buyIn})
+                <Zap className="h-3.5 w-3.5" /> {t('tournament.register')} ({getSymbol()}{tournament.buyIn})
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
             </button>
             <button className="flex-1 py-2.5 rounded-lg text-[13px] font-semibold text-[#6B7A90] bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:text-white transition-all">
-              Late Reg Info
+              {t('tournament.lateRegInfo')}
             </button>
           </>
         ) : (
-          <Link to={`/tournament/${tournament.id}`} className="flex-1">
-            <button className="w-full py-2.5 rounded-lg text-[13px] font-bold text-white"
-              style={{ background: "linear-gradient(135deg, #FF6B35, #E85D2C)" }}>
-              Watch Live
+          <>
+            <Link to={`/tournament/${tournament.id}`} className="flex-1">
+              <button className="w-full py-2.5 rounded-lg text-[13px] font-bold text-white"
+                style={{ background: "linear-gradient(135deg, #FF6B35, #E85D2C)" }}>
+                {t('tournament.watchLive')}
+              </button>
+            </Link>
+            {/* Rebuy 버튼 — 서버가 자격 검증 (미자격 시 toast 로 에러 반환) */}
+            <button onClick={handleRebuy}
+              className="flex-1 py-2.5 rounded-lg text-[13px] font-bold text-white"
+              style={{ background: "linear-gradient(135deg, #26A17B, #1E8A5C)", boxShadow: "0 4px 15px rgba(38,161,123,0.25)" }}>
+              <span className="flex items-center justify-center gap-1.5">
+                <RefreshCw className="h-3.5 w-3.5" /> {t('tournament.rebuy')} ({getSymbol()}{tournament.buyIn})
+              </span>
             </button>
-          </Link>
+          </>
         )}
       </div>
     </DialogContent>
@@ -187,6 +214,7 @@ export default function TournamentLobby() {
   const { send, connected } = useSocket();
   const serverTournaments = useGameStore(s => s.tournaments);
   const [filter, setFilter] = useState<string>("all");
+  const tr = useT();
 
   // 서버에서 토너먼트 목록 요청
   useEffect(() => {
@@ -207,6 +235,7 @@ export default function TournamentLobby() {
         status: t.status as any,
         structure: (["Regular", "Turbo", "PKO", "Hyper"] as const)[i % 4],
         featured: i === 0,
+        lateRegRemainingSeconds: t.lateRegRemainingSeconds,
       }))
     : mockTournaments;
 
@@ -217,6 +246,14 @@ export default function TournamentLobby() {
   return (
     <div className="min-h-screen">
 
+      {/* ═══ Back Navigation (V22 hotfix) ═══ */}
+      <div className="flex items-center px-3 sm:px-5 pt-3">
+        <Link to="/" aria-label="뒤로 가기" className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs text-[#8899AB] hover:text-white hover:bg-white/5 transition-colors">
+          <ArrowLeft className="h-4 w-4" />
+          <span className="font-semibold">{tr('common.back') || 'Back'}</span>
+        </Link>
+      </div>
+
       {/* ═══ Hero Banner ═══ */}
       <section className="relative mx-3 sm:mx-5 mt-3 rounded-2xl overflow-hidden" style={{ height: "clamp(200px, 28vh, 280px)" }}>
         <img src="/banners/hero_tournament.png" alt="Tournament" className="absolute inset-0 w-full h-full object-cover" />
@@ -226,11 +263,11 @@ export default function TournamentLobby() {
         <div className="relative z-10 h-full flex flex-col justify-end px-5 sm:px-8 pb-5">
           <div className="flex items-center gap-2 mb-2">
             <Trophy className="h-5 w-5 text-[#FFD700]" />
-            <span className="text-[10px] uppercase tracking-widest text-[#FFD700] font-bold">Tournaments</span>
+            <span className="text-[10px] uppercase tracking-widest text-[#FFD700] font-bold">{tr('tournament.headerBadge')}</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-black text-white mb-1">Poker Tournaments</h1>
+          <h1 className="text-2xl sm:text-3xl font-black text-white mb-1">{tr('tournament.headerTitle')}</h1>
           <p className="text-[#6B7A90] text-xs sm:text-sm max-w-md">
-            Premium tournaments with guaranteed prize pools
+            {tr('tournament.headerSubtitle')}
           </p>
         </div>
       </section>
@@ -259,7 +296,7 @@ export default function TournamentLobby() {
                         <Star className="h-2.5 w-2.5" fill="#FFD700" /> FEATURED
                       </span>
                       <h2 className="text-xl sm:text-2xl font-black text-white">{featured.name}</h2>
-                      <p className="text-[#4A5A70] text-xs mt-0.5">The biggest tournament of the week</p>
+                      <p className="text-[#4A5A70] text-xs mt-0.5">{tr('tournament.heroDescription')}</p>
                     </div>
                     <Trophy className="h-12 w-12 text-[#FFD700] opacity-20 group-hover:opacity-40 transition" />
                   </div>
@@ -307,11 +344,11 @@ export default function TournamentLobby() {
         {/* ═══ Filters ═══ */}
         <div className="flex items-center gap-2 mb-4 overflow-x-auto pb-1 scrollbar-none">
           {[
-            { key: "all", label: "All", icon: Trophy },
-            { key: "Regular", label: "Regular", icon: Star },
-            { key: "Turbo", label: "Turbo", icon: Zap },
-            { key: "Hyper", label: "Hyper", icon: Flame },
-            { key: "PKO", label: "Knockout", icon: Crown },
+            { key: "all", label: tr('tournament.filterAll'), icon: Trophy },
+            { key: "Regular", label: tr('tournament.filterRegular'), icon: Star },
+            { key: "Turbo", label: tr('tournament.filterTurbo'), icon: Zap },
+            { key: "Hyper", label: tr('tournament.filterHyper'), icon: Flame },
+            { key: "PKO", label: tr('tournament.filterPKO'), icon: Crown },
           ].map(f => (
             <button key={f.key} onClick={() => setFilter(f.key)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold whitespace-nowrap transition-all
@@ -348,11 +385,18 @@ export default function TournamentLobby() {
                     <div className="flex items-start justify-between mb-3">
                       <div>
                         <h3 className="text-sm font-bold text-white group-hover:text-[#FF6B35] transition-colors">{t.name}</h3>
-                        <div className="flex items-center gap-1.5 mt-1">
+                        <div className="flex items-center gap-1.5 mt-1 flex-wrap">
                           <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold"
                             style={{ color: t.status === "playing" ? "#34D399" : "#FF6B35", background: t.status === "playing" ? "rgba(52,211,153,0.08)" : "rgba(255,107,53,0.08)" }}>
-                            {t.status === "playing" ? "● Live" : "Registering"}
+                            {t.status === "playing" ? tr('tournament.statusLive') : tr('tournament.statusRegistering')}
                           </span>
+                          {/* Late Registration 배지 — RUNNING 상태 + 창 열림 */}
+                          {t.status === "playing" && (t.lateRegRemainingSeconds ?? 0) > 0 && (
+                            <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold font-mono"
+                              style={{ color: "#FBBF24", background: "rgba(251,191,36,0.12)", border: "1px solid rgba(251,191,36,0.2)" }}>
+                              {tr('tournament.lateReg')} {formatMMSS(t.lateRegRemainingSeconds!)}
+                            </span>
+                          )}
                           <span className="text-[9px] px-1.5 py-0.5 rounded font-semibold inline-flex items-center gap-0.5"
                             style={{ color: sc.color, background: sc.bg }}>
                             <Icon className="h-2.5 w-2.5" /> {t.structure}
@@ -360,7 +404,7 @@ export default function TournamentLobby() {
                         </div>
                       </div>
                       <div className="text-right">
-                        <div className="text-[10px] text-[#4A5A70]">Guaranteed</div>
+                        <div className="text-[10px] text-[#4A5A70]">{tr('tournament.guaranteed')}</div>
                         <div className="font-mono text-sm font-bold text-[#FF6B35]">{getSymbol()}{t.guaranteed.toLocaleString()}</div>
                       </div>
                     </div>
@@ -368,15 +412,15 @@ export default function TournamentLobby() {
                     {/* Stats */}
                     <div className="grid grid-cols-3 gap-2 mb-3">
                       <div className="text-center px-2 py-1.5 rounded-md" style={{ background: "rgba(255,255,255,0.02)" }}>
-                        <div className="text-[9px] text-[#4A5A70]">Buy-in</div>
+                        <div className="text-[9px] text-[#4A5A70]">{tr('tournament.buyIn')}</div>
                         <div className="font-mono text-xs font-semibold text-white">{getSymbol()}{t.buyIn}</div>
                       </div>
                       <div className="text-center px-2 py-1.5 rounded-md" style={{ background: "rgba(255,255,255,0.02)" }}>
-                        <div className="text-[9px] text-[#4A5A70]">Players</div>
+                        <div className="text-[9px] text-[#4A5A70]">{tr('tournament.players')}</div>
                         <div className="font-mono text-xs font-semibold text-white">{t.players}</div>
                       </div>
                       <div className="text-center px-2 py-1.5 rounded-md" style={{ background: "rgba(255,255,255,0.02)" }}>
-                        <div className="text-[9px] text-[#4A5A70]">Start</div>
+                        <div className="text-[9px] text-[#4A5A70]">{tr('tournament.start')}</div>
                         <div className="text-xs font-semibold text-white">{t.startTime.split(" ")[1]}</div>
                       </div>
                     </div>
@@ -400,7 +444,7 @@ export default function TournamentLobby() {
 
         {filtered.length === 0 && (
           <div className="py-20 text-center text-[#4A5A70] text-sm">
-            No tournaments match this filter
+            {tr('tournament.noMatch')}
           </div>
         )}
       </div>
