@@ -18,7 +18,30 @@ import { useSocket, addSocketListener, removeSocketListener } from "../hooks/use
 import { useGameStore } from "../stores/gameStore";
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer, BarChart, Bar, LineChart, Line, PieChart, Pie, Cell } from "recharts";
 
-const ADMIN_PASSWORD = "tether2026";
+// 보안 STEP 1: ADMIN_PASSWORD 하드코딩 제거 — 사용자가 입력 → 서버 검증 → 단명 token 발급
+//   - 이전: ADMIN_KEY_HEADER 가 클라 번들에 평문 노출 (CRITICAL: anyone with DevTools = admin)
+//   - 현재: 진입 시 password 입력 → POST /admin/auth/login → token 받음 → sessionStorage
+//   - 이후 모든 admin 호출에 X-Admin-Token 헤더로만 인증
+const ADMIN_TOKEN_KEY = 'holdem_admin_token';
+function getAdminToken(): string | null {
+  try { return sessionStorage.getItem(ADMIN_TOKEN_KEY); } catch { return null; }
+}
+function setAdminToken(token: string | null): void {
+  try {
+    if (token) sessionStorage.setItem(ADMIN_TOKEN_KEY, token);
+    else sessionStorage.removeItem(ADMIN_TOKEN_KEY);
+  } catch {}
+}
+function adminFetch(url: string, init?: RequestInit): Promise<Response> {
+  const token = getAdminToken();
+  return fetch(url, {
+    ...init,
+    headers: {
+      ...(init?.headers || {}),
+      ...(token ? { 'X-Admin-Token': token } : {}),
+    },
+  });
+}
 
 // ═══ 타입 정의 ═══
 interface AdminPlayer {
@@ -128,12 +151,731 @@ function Panel({ children, className = "" }: { children: React.ReactNode; classN
   return <div className={`rounded-xl p-5 ${className}`} style={{ background: "#141820", border: "1px solid rgba(255,255,255,0.04)" }}>{children}</div>;
 }
 
+// ═══════════════════════════════════════════════════
+// 🟢 LIVE 데이터 패널들 (실 API 연결)
+// ═══════════════════════════════════════════════════
+
+// 보안 STEP 1: ADMIN_KEY_HEADER 제거 — adminFetch() 가 token 자동 주입
+
+function PartnersLivePanel() {
+  const [partners, setPartners] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [statsAgg, setStatsAgg] = useState({ total: 0, active: 0, sandbox: 0, suspended: 0 });
+
+  const refresh = useCallback(async () => {
+    try {
+      const res = await adminFetch('/admin/partners');
+      const data = await res.json();
+      if (data.success) {
+        setPartners(data.partners || []);
+        const agg = { total: data.partners.length, active: 0, sandbox: 0, suspended: 0 };
+        for (const p of data.partners) {
+          if (p.status === 'active') agg.active++;
+          else if (p.status === 'sandbox') agg.sandbox++;
+          else if (p.status === 'suspended') agg.suspended++;
+        }
+        setStatsAgg(agg);
+      }
+    } catch {} finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => {
+    refresh();
+    const t = setInterval(refresh, 30000);
+    return () => clearInterval(t);
+  }, [refresh]);
+
+  const changeStatus = async (id: string, status: string) => {
+    if (!confirm(`${id} → ${status} 변경?`)) return;
+    try {
+      const res = await adminFetch(`/admin/partners/${id}/status`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json'},
+        body: JSON.stringify({ status, reason: 'admin manual' }),
+      });
+      const data = await res.json();
+      if (data.success) { toast.success(`${id} → ${status}`); refresh(); }
+      else toast.error(data.error || 'Failed');
+    } catch (e: any) { toast.error(e.message); }
+  };
+
+  return (
+    <>
+      {/* 통계 */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatCard label="Total" value={String(statsAgg.total)} icon={Activity} color="#26A17B" />
+        <StatCard label="Active" value={String(statsAgg.active)} icon={Check} color="#34D399" />
+        <StatCard label="Sandbox" value={String(statsAgg.sandbox)} icon={Clock} color="#FBBF24" />
+        <StatCard label="Suspended" value={String(statsAgg.suspended)} icon={Ban} color="#EF4444" />
+      </div>
+
+      {/* 테이블 */}
+      <Panel>
+        <div className="flex items-center justify-between mb-3">
+          <SectionHeader title="Partner List" icon={Activity} color="#A78BFA" />
+          <button onClick={refresh} className="text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1"
+            style={{ background: "rgba(38,161,123,0.1)", color: "#26A17B" }}>
+            <RefreshCw className="h-3 w-3" /> Refresh
+          </button>
+        </div>
+        {loading ? (
+          <div className="text-center py-6 text-[#6B7A90]">로딩 중...</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-[9px] text-[#4A5A70] uppercase tracking-wider border-b border-white/[0.03]">
+                  <th className="text-left py-2 px-2">ID</th>
+                  <th className="text-center">Status</th>
+                  <th className="text-center">Plan</th>
+                  <th className="text-left">Webhook URL</th>
+                  <th className="text-center">API Key</th>
+                  <th className="text-center">Hands</th>
+                  <th className="text-center">Rake</th>
+                  <th className="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/[0.02]">
+                {partners.map(p => (
+                  <tr key={p.id} className="hover:bg-white/[0.01]">
+                    <td className="py-2 px-2">
+                      <div className="text-white font-medium text-[11px]">{p.name}</div>
+                      <div className="text-[9px] text-[#3A4A5A]">{p.id}</div>
+                    </td>
+                    <td className="text-center">
+                      <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${
+                        p.status === 'active' ? 'text-emerald-400 bg-emerald-400/[0.08]' :
+                        p.status === 'sandbox' ? 'text-yellow-400 bg-yellow-400/[0.08]' :
+                        p.status === 'suspended' ? 'text-red-400 bg-red-400/[0.08]' :
+                        'text-[#6B7A90] bg-white/[0.04]'
+                      }`}>{p.status}</span>
+                    </td>
+                    <td className="text-center text-[9px] text-[#A78BFA] uppercase">{p.plan}</td>
+                    <td className="text-[9px] text-[#6B7A90] truncate max-w-[180px]">
+                      {p.apiCallbackUrl || <span className="text-[#3A4A5A]">— 없음 —</span>}
+                    </td>
+                    <td className="text-center font-mono text-[9px] text-[#22D3EE]">{p.apiKey}</td>
+                    <td className="text-center font-mono text-white text-[10px]">{(p.stats?.totalHands || 0).toLocaleString()}</td>
+                    <td className="text-center font-mono text-[#FFD700] text-[10px]">₩{Math.round((p.stats?.totalRake || 0) / 100).toLocaleString()}</td>
+                    <td className="text-center">
+                      <div className="flex items-center justify-center gap-1">
+                        {p.status !== 'active' && (
+                          <button onClick={() => changeStatus(p.id, 'active')}
+                            className="text-[9px] px-1.5 py-0.5 rounded text-emerald-400 bg-emerald-400/[0.08]"
+                            title="활성화">▶</button>
+                        )}
+                        {p.status !== 'suspended' && p.id !== 'tether_bet' && (
+                          <button onClick={() => changeStatus(p.id, 'suspended')}
+                            className="text-[9px] px-1.5 py-0.5 rounded text-red-400 bg-red-400/[0.08]"
+                            title="중지">⏸</button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </Panel>
+    </>
+  );
+}
+
+function ReconciliationLivePanel() {
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const res = await adminFetch('/admin/reconciliation?days=7');
+        const json = await res.json();
+        if (json.success) setData(json);
+      } catch {} finally { setLoading(false); }
+    };
+    fetchData();
+    const t = setInterval(fetchData, 60000);
+    return () => clearInterval(t);
+  }, []);
+
+  if (loading) return <Panel><div className="text-center py-6 text-[#6B7A90]">대사 로딩 중...</div></Panel>;
+  if (!data) return <Panel><div className="text-center py-6 text-[#EF4444]">로드 실패</div></Panel>;
+
+  return (
+    <Panel>
+      <div className="flex items-center justify-between mb-3">
+        <SectionHeader title="Reconciliation (rake_hist vs daily_settlements)" icon={Shield} color="#FBBF24" />
+        <div className="flex items-center gap-2 text-[10px]">
+          <span className="text-[#34D399]">✅ {data.okCount}</span>
+          <span className="text-[#EF4444]">❌ {data.issueCount}</span>
+        </div>
+      </div>
+      <div className="overflow-x-auto">
+        <table className="w-full text-xs">
+          <thead>
+            <tr className="text-[9px] text-[#4A5A70] uppercase tracking-wider border-b border-white/[0.03]">
+              <th className="text-left py-2 px-2">날짜</th>
+              <th className="text-center">Settle 핸드</th>
+              <th className="text-center">Rake 핸드</th>
+              <th className="text-center">차이</th>
+              <th className="text-center">Settle 레이크</th>
+              <th className="text-center">분배 검증</th>
+              <th className="text-center">상태</th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-white/[0.02]">
+            {(data.rows || []).map((r: any) => (
+              <tr key={r.settlement_date}>
+                <td className="py-2 px-2 text-white font-mono text-[10px]">{r.settlement_date}</td>
+                <td className="text-center font-mono text-[10px] text-[#6B7A90]">{(r.settle_hands || 0).toLocaleString()}</td>
+                <td className="text-center font-mono text-[10px] text-[#6B7A90]">{(r.rake_hand_count || 0).toLocaleString()}</td>
+                <td className={`text-center font-mono text-[10px] ${Math.abs(r.diff_hands || 0) > 100 ? 'text-[#EF4444]' : 'text-[#6B7A90]'}`}>
+                  {r.diff_hands > 0 ? '+' : ''}{r.diff_hands}
+                </td>
+                <td className="text-center font-mono text-[10px] text-[#FFD700]">₩{Math.round((r.settle_rake || 0) / 100).toLocaleString()}</td>
+                <td className="text-center text-[10px]">{r.diff_split === 0 ? '✅' : `❌ ${r.diff_split}`}</td>
+                <td className="text-center text-[10px]">{r.is_ok ? '🟢' : '🔴'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    </Panel>
+  );
+}
+
+function SystemMetricsPanel() {
+  const [metrics, setMetrics] = useState<any>(null);
+  const [health, setHealth] = useState<any>(null);
+
+  useEffect(() => {
+    const fetchAll = async () => {
+      try {
+        const [m, h] = await Promise.all([
+          fetch('/metrics').then(r => r.text()),
+          fetch('/health').then(r => r.json()),
+        ]);
+        const parsed: any = {};
+        for (const line of m.split('\n')) {
+          const match = line.match(/^tether_holdem_(\w+)\s+([\d.-]+)/);
+          if (match) parsed[match[1]] = Number(match[2]);
+        }
+        setMetrics(parsed);
+        setHealth(h);
+      } catch {}
+    };
+    fetchAll();
+    const t = setInterval(fetchAll, 5000);
+    return () => clearInterval(t);
+  }, []);
+
+  if (!metrics || !health) return <Panel><div className="text-center py-6 text-[#6B7A90]">메트릭 로딩...</div></Panel>;
+
+  return (
+    <>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatCard label="Total Hands" value={(metrics.hands_total || 0).toLocaleString()} icon={Hash} color="#FFD700" />
+        <StatCard label="In Progress" value={String(metrics.hands_in_progress || 0)} icon={Activity} color="#26A17B" />
+        <StatCard label="Active Rooms" value={String(health.checks?.activeRooms || 0)} icon={Eye} color="#A78BFA" />
+        <StatCard label="Connections" value={String(metrics.connections_active || 0)} icon={Wifi} color="#60A5FA" />
+      </div>
+      <Panel>
+        <SectionHeader title="시스템 상태" icon={Monitor} color="#26A17B" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 text-[11px]">
+          <div className="p-3 rounded-lg bg-white/[0.02]">
+            <div className="text-[#6B7A90] mb-1">Memory</div>
+            <div className="text-2xl font-bold text-white">{health.checks?.memory?.percent || 0}%</div>
+            <div className="text-[10px] text-[#6B7A90]">{Math.round((health.checks?.memory?.used || 0) / 1024)} / {Math.round((health.checks?.memory?.total || 0) / 1024)} MB</div>
+          </div>
+          <div className="p-3 rounded-lg bg-white/[0.02]">
+            <div className="text-[#6B7A90] mb-1">Uptime</div>
+            <div className="text-2xl font-bold text-white">{Math.floor((health.uptime || 0) / 60)}분</div>
+            <div className="text-[10px] text-[#6B7A90]">{health.uptime}초</div>
+          </div>
+          <div className="p-3 rounded-lg bg-white/[0.02]">
+            <div className="text-[#6B7A90] mb-1">DB</div>
+            <div className="text-2xl font-bold text-white">{health.checks?.database ? '🟢 OK' : '🔴 DOWN'}</div>
+          </div>
+        </div>
+      </Panel>
+      <Panel>
+        <SectionHeader title="정산 webhook 상태" icon={DollarSign} color="#FFD700" />
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <div className="p-3 rounded-lg bg-white/[0.02]">
+            <div className="text-[10px] text-[#6B7A90]">성공</div>
+            <div className="text-xl font-bold text-emerald-400">{metrics.settlement_webhook_success_total || 0}</div>
+          </div>
+          <div className="p-3 rounded-lg bg-white/[0.02]">
+            <div className="text-[10px] text-[#6B7A90]">실패</div>
+            <div className="text-xl font-bold text-red-400">{metrics.settlement_webhook_failure_total || 0}</div>
+          </div>
+          <div className="p-3 rounded-lg bg-white/[0.02]">
+            <div className="text-[10px] text-[#6B7A90]">대사 이슈</div>
+            <div className="text-xl font-bold text-yellow-400">{metrics.settlement_reconciliation_issues_total || 0}</div>
+          </div>
+        </div>
+      </Panel>
+    </>
+  );
+}
+
+function BotsLivePanel() {
+  const [data, setData] = useState<any>(null);
+  useEffect(() => {
+    const f = async () => {
+      try {
+        const res = await adminFetch('/admin/bots');
+        const json = await res.json();
+        if (json.success) setData(json);
+      } catch {}
+    };
+    f();
+    const t = setInterval(f, 10000);
+    return () => clearInterval(t);
+  }, []);
+  if (!data) return <Panel><div className="text-center py-6 text-[#6B7A90]">봇 통계 로딩...</div></Panel>;
+  const sum = data.distributionSummary || {};
+  return (
+    <>
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        <StatCard label="총 봇" value={String(data.totalBots || 0)} icon={Bot} color="#34D399" />
+        <StatCard label="활성 봇" value={String(data.activeBots || 0)} icon={Activity} color="#26A17B" />
+        <StatCard label="봇 0인 방" value={String(sum.roomsWithoutBots || 0)} icon={AlertTriangle} color={sum.roomsWithoutBots > 5 ? "#EF4444" : "#FBBF24"} />
+        <StatCard label="봇 5+ 인 방" value={String(sum.roomsWithManyBots || 0)} icon={Users} color="#A78BFA" />
+      </div>
+      <Panel>
+        <SectionHeader title="방별 봇 분포" icon={Bot} color="#34D399" />
+        <div className="text-[10px] text-[#6B7A90] mb-2">평균: {sum.avgBotsPerRoom} 봇/방 · 전체 {sum.totalRooms} 방</div>
+        <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
+          <table className="w-full text-xs">
+            <thead className="sticky top-0 bg-[#141820]">
+              <tr className="text-[9px] text-[#4A5A70] uppercase border-b border-white/[0.03]">
+                <th className="text-left py-2 px-2">Room</th>
+                <th className="text-center">Bots</th>
+                <th className="text-center">Humans</th>
+                <th className="text-center">Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {(data.distribution || []).map((d: any) => (
+                <tr key={d.roomId} className="hover:bg-white/[0.01] border-b border-white/[0.02]">
+                  <td className="py-1.5 px-2 text-[10px] text-white truncate max-w-[200px]">{d.roomName}</td>
+                  <td className="text-center font-mono text-[10px] text-[#34D399]">{d.botCount}</td>
+                  <td className="text-center font-mono text-[10px] text-[#60A5FA]">{d.humanCount}</td>
+                  <td className="text-center text-[10px]">
+                    {d.botCount === 0 ? '🟡 비어있음' :
+                     d.botCount >= 5 ? '🔴 과밀' :
+                     '🟢 정상'}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Panel>
+    </>
+  );
+}
+
+function BanListPanel() {
+  const [list, setList] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const refresh = useCallback(async () => {
+    try {
+      const res = await adminFetch('/admin/players/banned');
+      const json = await res.json();
+      if (json.success) setList(json.banned || []);
+    } catch {} finally { setLoading(false); }
+  }, []);
+  useEffect(() => { refresh(); }, [refresh]);
+
+  const unban = async (playerId: string) => {
+    if (!confirm(`${playerId} 차단 해제?`)) return;
+    try {
+      const res = await adminFetch('/admin/players/unban', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json'},
+        body: JSON.stringify({ playerId, type: 'ban' }),
+      });
+      const json = await res.json();
+      if (json.success) { toast.success('차단 해제됨'); refresh(); }
+      else toast.error(json.error || 'Failed');
+    } catch (e: any) { toast.error(e.message); }
+  };
+
+  return (
+    <Panel>
+      <div className="flex items-center justify-between mb-3">
+        <SectionHeader title={`차단 유저 (${list.length})`} icon={Ban} color="#EF4444" />
+        <button onClick={refresh} className="text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1"
+          style={{ background: "rgba(239,68,68,0.1)", color: "#EF4444" }}>
+          <RefreshCw className="h-3 w-3" /> Refresh
+        </button>
+      </div>
+      {loading ? <div className="text-center py-6 text-[#6B7A90]">로딩...</div> : (
+        list.length === 0 ? <div className="text-center py-6 text-[#34D399]">✅ 차단된 유저 없음</div> : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-[9px] text-[#4A5A70] uppercase border-b border-white/[0.03]">
+                  <th className="text-left py-2 px-2">Player ID</th>
+                  <th className="text-left">사유</th>
+                  <th className="text-center">차단 시각</th>
+                  <th className="text-center">기간</th>
+                  <th className="text-center">Action</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/[0.02]">
+                {list.map((b: any) => (
+                  <tr key={b.id || b.player_id} className="hover:bg-white/[0.01]">
+                    <td className="py-2 px-2 text-[10px] font-mono text-white">{b.player_id}</td>
+                    <td className="text-[10px] text-[#6B7A90]">{b.reason || '-'}</td>
+                    <td className="text-center text-[10px] text-[#6B7A90]">{b.banned_at ? new Date(b.banned_at).toLocaleString() : '-'}</td>
+                    <td className="text-center text-[10px] text-[#FBBF24]">{b.until ? `~${new Date(b.until).toLocaleDateString()}` : 'permanent'}</td>
+                    <td className="text-center">
+                      <button onClick={() => unban(b.player_id)}
+                        className="text-[9px] px-2 py-0.5 rounded text-emerald-400 bg-emerald-400/[0.08]">
+                        Unban
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )
+      )}
+    </Panel>
+  );
+}
+
+function ForceCloseRoomPanel() {
+  const [rooms, setRooms] = useState<any[]>([]);
+  const [closeTarget, setCloseTarget] = useState<any>(null);
+  const [reason, setReason] = useState('');
+  const [confirmFinal, setConfirmFinal] = useState(false);
+
+  useEffect(() => {
+    const f = async () => {
+      try {
+        const res = await adminFetch('/admin/tables/active');
+        const json = await res.json();
+        if (json.success) setRooms(json.tables || json.rooms || []);
+      } catch {}
+    };
+    f();
+    const t = setInterval(f, 15000);
+    return () => clearInterval(t);
+  }, []);
+
+  const doClose = async () => {
+    if (!closeTarget || !reason.trim()) return;
+    try {
+      const res = await adminFetch('/admin/tables/close', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json'},
+        body: JSON.stringify({ tableId: closeTarget.id, reason }),
+      });
+      const json = await res.json();
+      if (json.success) {
+        toast.success(`방 종료: ${closeTarget.name || closeTarget.id}`);
+        setCloseTarget(null); setReason(''); setConfirmFinal(false);
+        setRooms(rs => rs.filter(r => r.id !== closeTarget.id));
+      } else toast.error(json.error || 'Failed');
+    } catch (e: any) { toast.error(e.message); }
+  };
+
+  return (
+    <>
+      <Panel>
+        <SectionHeader title={`활성 방 (${rooms.length})`} icon={Eye} color="#A78BFA" />
+        <div className="overflow-x-auto max-h-[400px] overflow-y-auto">
+          <table className="w-full text-xs">
+            <thead className="sticky top-0 bg-[#141820]">
+              <tr className="text-[9px] text-[#4A5A70] uppercase border-b border-white/[0.03]">
+                <th className="text-left py-2 px-2">Room</th>
+                <th className="text-center">Players</th>
+                <th className="text-center">Pot</th>
+                <th className="text-center">Phase</th>
+                <th className="text-center">Force Close</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rooms.map(r => (
+                <tr key={r.id} className="hover:bg-white/[0.01] border-b border-white/[0.02]">
+                  <td className="py-1.5 px-2 text-[10px] text-white truncate max-w-[200px]">{r.name || r.id}</td>
+                  <td className="text-center font-mono text-[10px]">{r.current_players || 0}/{r.max_seats || 9}</td>
+                  <td className="text-center font-mono text-[10px] text-[#FFD700]">₩{Math.round((r.pot || 0) / 100).toLocaleString()}</td>
+                  <td className="text-center text-[10px] text-[#6B7A90]">{r.phase || '-'}</td>
+                  <td className="text-center">
+                    <button onClick={() => { setCloseTarget(r); setReason(''); setConfirmFinal(false); }}
+                      className="text-[9px] px-2 py-0.5 rounded text-red-400 bg-red-400/[0.08]">
+                      ⚠️ Close
+                    </button>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </Panel>
+
+      {/* 2단계 confirm 모달 */}
+      <AnimatePresence>
+        {closeTarget && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80"
+            onClick={() => !confirmFinal && setCloseTarget(null)}>
+            <motion.div initial={{ scale: 0.95 }} animate={{ scale: 1 }}
+              className="w-full max-w-md rounded-2xl p-5"
+              style={{ background: '#141820', border: '1px solid #EF4444' }}
+              onClick={e => e.stopPropagation()}>
+              <h3 className="text-base font-bold text-red-400 mb-2">⚠️ 강제 방 종료</h3>
+              <p className="text-[12px] text-[#8899AB] mb-4">
+                <span className="text-white font-bold">{closeTarget.name || closeTarget.id}</span> 방을 즉시 종료합니다.
+                현재 {closeTarget.current_players || 0}명 플레이어 영향.
+              </p>
+              {!confirmFinal ? (
+                <>
+                  <label className="text-[10px] text-[#6B7A90] block mb-1">종료 사유 (audit log 기록)</label>
+                  <textarea value={reason} onChange={e => setReason(e.target.value)}
+                    placeholder="예: 어뷰징 의심 / 짜고치기 신고 / 운영 이슈"
+                    className="w-full px-3 py-2 rounded-lg text-[12px] bg-black/40 text-white"
+                    style={{ border: '1px solid rgba(255,255,255,0.08)', minHeight: '80px', fontSize: '14px' }} />
+                  <div className="flex gap-2 mt-3">
+                    <button onClick={() => setCloseTarget(null)}
+                      className="flex-1 py-2 rounded-lg text-[12px] font-semibold text-[#6B7A90] bg-white/[0.03]">
+                      취소
+                    </button>
+                    <button onClick={() => setConfirmFinal(true)} disabled={!reason.trim()}
+                      className="flex-1 py-2 rounded-lg text-[12px] font-bold text-white bg-red-500 disabled:opacity-30">
+                      다음 →
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <>
+                  <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/30 mb-3">
+                    <div className="text-[12px] text-red-400 font-bold mb-1">정말 종료하시겠습니까?</div>
+                    <div className="text-[11px] text-[#8899AB]">사유: {reason}</div>
+                    <div className="text-[10px] text-[#6B7A90] mt-2">
+                      이 액션은 audit log 에 영구 기록됩니다.
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => setConfirmFinal(false)}
+                      className="flex-1 py-2 rounded-lg text-[12px] font-semibold text-[#6B7A90] bg-white/[0.03]">
+                      ← 뒤로
+                    </button>
+                    <button onClick={doClose}
+                      className="flex-1 py-2 rounded-lg text-[12px] font-bold text-white bg-red-600">
+                      ⚠️ 종료 확정
+                    </button>
+                  </div>
+                </>
+              )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
+  );
+}
+
+function TelegramStatsPanel() {
+  const [stats, setStats] = useState<any>(null);
+  useEffect(() => {
+    const f = async () => {
+      try {
+        const res = await adminFetch('/admin/telegram/stats');
+        const json = await res.json();
+        if (json.success) setStats(json);
+      } catch {}
+    };
+    f();
+    const t = setInterval(f, 30000);
+    return () => clearInterval(t);
+  }, []);
+  if (!stats) return null;
+  const rate = stats.conversionRate ? Number(stats.conversionRate) : 0;
+  const rateColor = rate >= 50 ? '#34D399' : rate >= 30 ? '#FBBF24' : '#EF4444';
+  return (
+    <Panel>
+      <SectionHeader title="📱 Telegram 연동 현황" icon={Bell} color="#0088CC" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-2">
+        <div className="p-3 rounded-lg bg-white/[0.02]">
+          <div className="text-[10px] text-[#6B7A90]">연동 유저</div>
+          <div className="text-2xl font-bold text-[#0088CC]">{stats.linked.toLocaleString()}</div>
+        </div>
+        <div className="p-3 rounded-lg bg-white/[0.02]">
+          <div className="text-[10px] text-[#6B7A90]">현재 접속</div>
+          <div className="text-2xl font-bold text-white">{stats.totalConnected}</div>
+        </div>
+        <div className="p-3 rounded-lg bg-white/[0.02]">
+          <div className="text-[10px] text-[#6B7A90]">연동률</div>
+          <div className="text-2xl font-bold" style={{ color: rateColor }}>
+            {stats.conversionRate ? `${stats.conversionRate}%` : '-'}
+          </div>
+          <div className="text-[9px] mt-0.5" style={{ color: rateColor }}>
+            {rate >= 50 ? '🟢 우수' : rate >= 30 ? '🟡 보통' : rate > 0 ? '🔴 개선 필요' : ''}
+          </div>
+        </div>
+        <div className="p-3 rounded-lg bg-white/[0.02]">
+          <div className="text-[10px] text-[#6B7A90]">대기 토큰</div>
+          <div className="text-2xl font-bold text-[#FBBF24]">{stats.pendingTokens}</div>
+          <div className="text-[9px] text-[#6B7A90] mt-0.5">5분 만료</div>
+        </div>
+      </div>
+    </Panel>
+  );
+}
+
+function TournamentLivePanel() {
+  const [list, setList] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const refresh = useCallback(async () => {
+    try {
+      const res = await adminFetch('/admin/tournament/list');
+      const data = await res.json();
+      if (data.success) setList(data.tournaments || []);
+    } catch {} finally { setLoading(false); }
+  }, []);
+  useEffect(() => { refresh(); const t = setInterval(refresh, 10000); return () => clearInterval(t); }, [refresh]);
+
+  const cancel = async (id: string) => {
+    if (!confirm(`토너먼트 ${id} 취소? 등록자 환불 처리됨.`)) return;
+    try {
+      const res = await adminFetch(`/admin/tournament/${id}/cancel`, {
+        method: 'POST', headers: { 'Content-Type': 'application/json'},
+      });
+      const data = await res.json();
+      if (data.success) { toast.success('취소됨'); refresh(); }
+      else toast.error(data.error || 'Failed');
+    } catch (e: any) { toast.error(e.message); }
+  };
+
+  return (
+    <Panel>
+      <div className="flex items-center justify-between mb-3">
+        <SectionHeader title="🟢 LIVE Tournaments" icon={Trophy} color="#FFD700" />
+        <button onClick={refresh} className="text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1"
+          style={{ background: 'rgba(255,215,0,0.1)', color: '#FFD700' }}>
+          <RefreshCw className="h-3 w-3" /> Refresh
+        </button>
+      </div>
+      {loading ? <div className="text-center py-6 text-[#6B7A90]">로딩...</div> : (
+        list.length === 0 ? (
+          <div className="text-center py-8 text-[#6B7A90] text-[11px]">활성 토너먼트가 없습니다 — 위에서 생성하세요</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-[9px] text-[#4A5A70] uppercase border-b border-white/[0.03]">
+                  <th className="text-left py-2 px-2">Name</th>
+                  <th className="text-center">Status</th>
+                  <th className="text-center">Buy-in</th>
+                  <th className="text-center">Players</th>
+                  <th className="text-center">Prize Pool</th>
+                  <th className="text-center">Start</th>
+                  <th className="text-center">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-white/[0.02]">
+                {list.map(t => {
+                  const startsIn = (t.startTime || 0) - Date.now();
+                  return (
+                    <tr key={t.id} className="hover:bg-white/[0.01]">
+                      <td className="py-2 px-2">
+                        <div className="text-white font-medium text-[11px]">{t.name}</div>
+                        <div className="text-[9px] text-[#3A4A5A] font-mono">{t.id}</div>
+                      </td>
+                      <td className="text-center">
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${
+                          t.status === 'RUNNING' ? 'text-emerald-400 bg-emerald-400/[0.08]' :
+                          t.status === 'REGISTERING' ? 'text-yellow-400 bg-yellow-400/[0.08]' :
+                          t.status === 'FINISHED' ? 'text-[#6B7A90] bg-white/[0.04]' :
+                          t.status === 'CANCELLED' ? 'text-red-400 bg-red-400/[0.08]' :
+                          'text-blue-400 bg-blue-400/[0.08]'
+                        }`}>{t.status}</span>
+                      </td>
+                      <td className="text-center font-mono text-[10px] text-[#FFD700]">₩{Math.round((t.buyIn || 0) / 100).toLocaleString()}</td>
+                      <td className="text-center font-mono text-[10px] text-white">{t.totalPlayers || 0}/{t.maxPlayers}</td>
+                      <td className="text-center font-mono text-[10px] text-emerald-400">₩{Math.round((t.totalPrizePool || 0) / 100).toLocaleString()}</td>
+                      <td className="text-center text-[10px] text-[#6B7A90]">
+                        {startsIn > 0 ? `+${Math.floor(startsIn / 60000)}분` : '시작됨'}
+                      </td>
+                      <td className="text-center">
+                        {(t.status === 'REGISTERING' || t.status === 'STARTING') && (
+                          <button onClick={() => cancel(t.id)}
+                            className="text-[9px] px-2 py-0.5 rounded text-red-400 bg-red-400/[0.08]">
+                            ⚠️ Cancel
+                          </button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        )
+      )}
+    </Panel>
+  );
+}
+
 // ═══ 메인 컴포넌트 ═══
 export default function AdminDashboard() {
   const { send, connected } = useSocket();
   const rooms = useGameStore(s => s.rooms);
   const [authenticated, setAuthenticated] = useState(false);
   const [password, setPassword] = useState("");
+
+  // 보안 STEP 1: 페이지 로드 시 기존 토큰 검증 (새로고침 후 재로그인 회피)
+  useEffect(() => {
+    const existing = getAdminToken();
+    if (!existing) return;
+    fetch('/admin/auth/me', { headers: { 'X-Admin-Token': existing } })
+      .then(r => r.json())
+      .then(d => { if (d.success) setAuthenticated(true); else setAdminToken(null); })
+      .catch(() => setAdminToken(null));
+  }, []);
+
+  const doAdminLogin = useCallback(async () => {
+    if (!password) { toast.error('Password required'); return; }
+    try {
+      const res = await fetch('/admin/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      });
+      const data = await res.json();
+      if (data.success && data.token) {
+        setAdminToken(data.token);
+        setAuthenticated(true);
+        setPassword('');
+        toast.success('Welcome, Admin');
+      } else if (res.status === 429) {
+        toast.error('너무 많은 실패 — 15분 후 재시도');
+      } else {
+        toast.error(data.error || 'Invalid password');
+        setPassword('');
+      }
+    } catch (e: any) {
+      toast.error(`Login failed: ${e.message}`);
+    }
+  }, [password]);
+
+  const doAdminLogout = useCallback(() => {
+    const token = getAdminToken();
+    if (token) {
+      fetch('/admin/auth/logout', { method: 'POST', headers: { 'X-Admin-Token': token } }).catch(() => {});
+    }
+    setAdminToken(null);
+    setAuthenticated(false);
+    toast.success('Logged out');
+  }, []);
 
   // Phase 1: 실시간 데이터
   const [activeTab, setActiveTab] = useState<string>('overview');
@@ -231,11 +973,13 @@ export default function AdminDashboard() {
 
   const tabs = [
     { key: 'overview', label: 'Overview', icon: BarChart3 },
+    { key: 'partner-docs', label: '📘 Partner Docs', icon: FileText },
     { key: 'tenants', label: 'Tenants', icon: Activity },
     { key: 'rooms', label: 'Rooms', icon: Eye },
     { key: 'players', label: 'Players', icon: Users },
     { key: 'finance', label: 'Finance', icon: CreditCard },
     { key: 'settlement', label: 'Settlement', icon: DollarSign },
+    { key: 'system', label: '⚙️ System', icon: Monitor },
     { key: 'bots', label: 'AI Bots', icon: Bot },
     { key: 'rtp', label: 'RTP', icon: TrendingUp },
     { key: 'hands', label: 'Hands', icon: Hash },
@@ -267,11 +1011,11 @@ export default function AdminDashboard() {
             <div className="relative mb-4">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-[#3A4A5A]" />
               <input type="password" value={password} onChange={e => setPassword(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') { if (password === ADMIN_PASSWORD) { setAuthenticated(true); toast.success('Welcome, Admin'); } else { toast.error('Invalid password'); setPassword(''); } } }}
+                onKeyDown={e => { if (e.key === 'Enter') doAdminLogin(); }}
                 placeholder="Enter admin password"
                 className="w-full pl-10 pr-4 py-3 rounded-xl text-sm text-white placeholder-[#3A4A5A] bg-[#0B1018] border border-[#1A2235] focus:border-[#FF6B35] focus:outline-none" />
             </div>
-            <button onClick={() => { if (password === ADMIN_PASSWORD) { setAuthenticated(true); toast.success('Welcome, Admin'); } else { toast.error('Invalid password'); setPassword(''); } }}
+            <button onClick={doAdminLogin}
               className="w-full py-3 rounded-xl text-sm font-bold text-white"
               style={{ background: "linear-gradient(135deg, #FF6B35, #E85D2C)", boxShadow: "0 4px 15px rgba(255,107,53,0.25)" }}>
               Sign In
@@ -302,7 +1046,7 @@ export default function AdminDashboard() {
           <span className="text-[10px] text-[#6B7A90] font-mono">{connected ? 'Connected' : 'Offline'}</span>
           <span className="text-[10px] text-[#3A4A5A]">|</span>
           <span className="text-[10px] text-[#4A5A70]">{new Date().toLocaleString('ko-KR')}</span>
-          <button onClick={() => setAuthenticated(false)} className="p-1.5 rounded-lg hover:bg-white/[0.03]">
+          <button onClick={doAdminLogout} className="p-1.5 rounded-lg hover:bg-white/[0.03]" title="Logout (token revoke)">
             <LogOut className="h-3.5 w-3.5 text-[#4A5A70]" />
           </button>
         </div>
@@ -410,86 +1154,218 @@ export default function AdminDashboard() {
         {/* ═══════════════════════════════════════════════
             TENANTS — B2B 운영사 관리
             ═══════════════════════════════════════════════ */}
-        {activeTab === 'tenants' && (
+        {activeTab === 'partner-docs' && (
           <div className="space-y-4">
-            {/* 운영사 통계 */}
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-              <StatCard label="Total Tenants" value="2" icon={Activity} color="#26A17B" />
-              <StatCard label="Active" value="1" icon={Check} color="#34D399" />
-              <StatCard label="Trial" value="1" icon={Clock} color="#FBBF24" />
-              <StatCard label="MRR" value="$9,998" icon={DollarSign} color="#FFD700" trend="up" trendValue="+15%" />
+            {/* Hero — B2B 영업 자료 한 곳 */}
+            <Panel>
+              <div className="flex items-center justify-between mb-3">
+                <SectionHeader title="Partner Integration Docs" icon={FileText} color="#26A17B" />
+                <a href="https://github.com/kbs00811-tech/tether-holdem-server/tree/master/docs"
+                  target="_blank" rel="noopener noreferrer"
+                  className="text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1"
+                  style={{ background: "rgba(38,161,123,0.1)", color: "#26A17B", border: "1px solid rgba(38,161,123,0.2)" }}>
+                  GitHub <ArrowUpRight className="h-3 w-3" />
+                </a>
+              </div>
+              <p className="text-[11px] text-[#6B7A90] leading-relaxed">
+                B2B 파트너 영업·온보딩에 필요한 모든 자료를 한 곳에서 관리합니다. 클릭하면 GitHub 으로 이동.
+              </p>
+            </Panel>
+
+            {/* 자료 카드 그리드 */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              {[
+                {
+                  title: '📕 Partner API Guide',
+                  desc: '한글 가이드 — 시퀀스 다이어그램, HMAC, JWT, 보안 §3 전체',
+                  links: [
+                    { label: 'KO', url: 'https://github.com/kbs00811-tech/tether-holdem-server/blob/master/docs/PARTNER_API.md' },
+                    { label: 'EN', url: 'https://github.com/kbs00811-tech/tether-holdem-server/blob/master/docs/PARTNER_API.en.md' },
+                  ],
+                  color: '#FF6B35',
+                },
+                {
+                  title: '📋 OpenAPI 3.0 YAML',
+                  desc: 'Swagger UI / Postman 자동 import 가능한 기계판독 스펙',
+                  links: [
+                    { label: 'KO', url: 'https://github.com/kbs00811-tech/tether-holdem-server/blob/master/docs/openapi.yaml' },
+                    { label: 'EN', url: 'https://github.com/kbs00811-tech/tether-holdem-server/blob/master/docs/openapi.en.yaml' },
+                  ],
+                  color: '#26A17B',
+                },
+                {
+                  title: '📮 Postman Collection',
+                  desc: 'Postman 에 import → 즉시 호출 시뮬 가능 (.json)',
+                  links: [
+                    { label: 'KO', url: 'https://raw.githubusercontent.com/kbs00811-tech/tether-holdem-server/master/docs/tetherbet-holdem-postman.json' },
+                    { label: 'EN', url: 'https://raw.githubusercontent.com/kbs00811-tech/tether-holdem-server/master/docs/tetherbet-holdem-postman.en.json' },
+                  ],
+                  color: '#FFD700',
+                },
+                {
+                  title: '📡 WebSocket Protocol',
+                  desc: '게임 진행 실시간 메시지 명세 (REST 보완)',
+                  links: [
+                    { label: 'View', url: 'https://github.com/kbs00811-tech/tether-holdem-server/blob/master/docs/WEBSOCKET_PROTOCOL.md' },
+                  ],
+                  color: '#A78BFA',
+                },
+                {
+                  title: '📦 Node.js SDK',
+                  desc: 'TypeScript, 0 runtime deps, 32 테스트 통과 (.tgz)',
+                  links: [
+                    { label: 'GitHub', url: 'https://github.com/kbs00811-tech/tether-holdem-server/tree/master/sdk' },
+                    { label: 'README', url: 'https://github.com/kbs00811-tech/tether-holdem-server/blob/master/sdk/README.md' },
+                  ],
+                  color: '#22D3EE',
+                },
+                {
+                  title: '🎯 Pitch Deck',
+                  desc: '영업 미팅 10슬라이드 (브라우저로 열고 Ctrl+P → PDF)',
+                  links: [
+                    { label: 'KO', url: 'https://github.com/kbs00811-tech/tether-holdem-server/blob/master/docs/PITCH_DECK.md' },
+                    { label: 'EN', url: 'https://github.com/kbs00811-tech/tether-holdem-server/blob/master/docs/PITCH_DECK.en.md' },
+                  ],
+                  color: '#34D399',
+                },
+                {
+                  title: '🎫 Sandbox Guide',
+                  desc: '5분 quick start + 테스트 시나리오 4개',
+                  links: [
+                    { label: 'View', url: 'https://github.com/kbs00811-tech/tether-holdem-server/blob/master/docs/SANDBOX_GUIDE.md' },
+                  ],
+                  color: '#60A5FA',
+                },
+                {
+                  title: '📧 Outreach Templates',
+                  desc: '파트너 영업 이메일 — Cold / 소개 / Inbound × KO/EN',
+                  links: [
+                    { label: 'View', url: 'https://github.com/kbs00811-tech/tether-holdem-server/blob/master/docs/OUTREACH_TEMPLATES.md' },
+                  ],
+                  color: '#EF4444',
+                },
+                {
+                  title: '🎯 Admin Manual (내부용)',
+                  desc: '14개 탭 가이드 + 55+ REST API + 보안 FAQ — 운영자/SRE 필독',
+                  links: [
+                    { label: 'View', url: 'https://github.com/kbs00811-tech/tether-holdem-server/blob/master/docs/ADMIN_MANUAL.md' },
+                  ],
+                  color: '#FFD700',
+                },
+                {
+                  title: '🚀 B2B Quick Start v1.1',
+                  desc: '운영사용 5분 시작 가이드 — iframe + /api/auth/token + Webhook',
+                  links: [
+                    { label: 'View', url: 'https://github.com/kbs00811-tech/tether-holdem-server/blob/master/docs/B2B_QUICK_START.md' },
+                  ],
+                  color: '#34D399',
+                },
+              ].map((doc, i) => (
+                <Panel key={i}>
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-bold text-white" style={{ color: doc.color }}>{doc.title}</div>
+                      <div className="text-[10px] text-[#6B7A90] mt-1 leading-relaxed">{doc.desc}</div>
+                    </div>
+                  </div>
+                  <div className="flex gap-1.5 mt-3">
+                    {doc.links.map((l, j) => (
+                      <a key={j} href={l.url} target="_blank" rel="noopener noreferrer"
+                        className="text-[10px] font-bold px-2.5 py-1 rounded-md flex items-center gap-1 transition-all hover:scale-105"
+                        style={{ background: `${doc.color}15`, color: doc.color, border: `1px solid ${doc.color}30` }}>
+                        {l.label} <ArrowUpRight className="h-2.5 w-2.5" />
+                      </a>
+                    ))}
+                  </div>
+                </Panel>
+              ))}
             </div>
 
-            {/* 운영사 목록 */}
+            {/* Sandbox 발급 */}
             <Panel>
-              <div className="flex items-center justify-between mb-4">
-                <SectionHeader title="Tenant Management" icon={Activity} color="#A78BFA" />
-                <button className="text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1"
-                  style={{ background: "rgba(167,139,250,0.1)", color: "#A78BFA", border: "1px solid rgba(167,139,250,0.2)" }}
-                  onClick={() => toast.success('New tenant onboarding')}>
-                  <Plus className="h-3 w-3" /> New Tenant
+              <SectionHeader title="🎫 Sandbox 자격증명 발급" icon={Key} color="#FFD700" />
+              <p className="text-[11px] text-[#6B7A90] leading-relaxed mb-3">
+                파트너 통합 테스트용 자격증명을 즉시 발급합니다. Paper money, 14일 만료.
+              </p>
+              <div className="flex gap-2 items-center">
+                <input
+                  type="text"
+                  placeholder="파트너 회사명 (예: Acme Casino)"
+                  id="sandbox-partner-name"
+                  className="flex-1 px-3 py-2 rounded-lg text-[12px] bg-black/40 text-white placeholder:text-[#4A5A70] focus:outline-none"
+                  style={{ border: "1px solid rgba(255,255,255,0.08)", fontSize: '14px' }}
+                />
+                <button
+                  onClick={async () => {
+                    const input = document.getElementById('sandbox-partner-name') as HTMLInputElement;
+                    const name = (input?.value || '').trim();
+                    if (!name) { toast.error('회사명 입력 필요'); return; }
+                    try {
+                      const res = await adminFetch('/admin/sandbox/issue', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'X-Admin-Key': ADMIN_PASSWORD },
+                        body: JSON.stringify({ partnerName: name }),
+                      });
+                      const data = await res.json();
+                      if (data.success) {
+                        const txt = JSON.stringify(data.sandbox, null, 2);
+                        navigator.clipboard?.writeText(txt).catch(() => {});
+                        toast.success('발급 완료 + 클립보드 복사됨');
+                        if (input) input.value = '';
+                        // alert 로 자격증명 표시 (paste 가능)
+                        alert('Sandbox 자격증명 (이미 클립보드 복사됨):\n\n' + txt);
+                      } else {
+                        toast.error(data.error || '발급 실패');
+                      }
+                    } catch (e: any) {
+                      toast.error(e.message);
+                    }
+                  }}
+                  className="px-4 py-2 rounded-lg text-[12px] font-bold text-white"
+                  style={{ background: "linear-gradient(135deg, #FFD700, #E5A500)" }}
+                >
+                  발급
                 </button>
               </div>
+              <p className="text-[9px] text-[#6B7A90] mt-2">
+                💡 발급 후 자격증명이 자동으로 클립보드에 복사됩니다 (이메일에 바로 붙여넣기).
+              </p>
+            </Panel>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs">
-                  <thead>
-                    <tr className="text-[9px] text-[#4A5A70] uppercase tracking-wider border-b border-white/[0.03]">
-                      <th className="text-left py-2 px-2">Tenant</th>
-                      <th className="text-center py-2">Plan</th>
-                      <th className="text-center py-2">Status</th>
-                      <th className="text-center py-2">Users</th>
-                      <th className="text-center py-2">Hands</th>
-                      <th className="text-center py-2">Rake Share</th>
-                      <th className="text-center py-2">MRR</th>
-                      <th className="text-center py-2">Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-white/[0.02]">
-                    {[
-                      { id: 'tether_bet', name: 'TETHER.BET', plan: 'enterprise', status: 'active', users: 12450, hands: 458920, rakeShare: 70, mrr: 7999, color: '#FF6B35' },
-                      { id: 'demo_partner', name: 'Demo Partner', plan: 'growth', status: 'trial', users: 230, hands: 5680, rakeShare: 60, mrr: 1999, color: '#9333EA' },
-                    ].map(t => (
-                      <tr key={t.id} className="hover:bg-white/[0.01]">
-                        <td className="py-3 px-2">
-                          <div className="flex items-center gap-2">
-                            <div className="w-6 h-6 rounded-full" style={{ background: t.color }} />
-                            <div>
-                              <div className="text-white font-medium">{t.name}</div>
-                              <div className="text-[9px] text-[#3A4A5A]">{t.id}</div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="text-center">
-                          <span className="text-[9px] px-1.5 py-0.5 rounded font-bold uppercase"
-                            style={{ background: 'rgba(167,139,250,0.1)', color: '#A78BFA' }}>
-                            {t.plan}
-                          </span>
-                        </td>
-                        <td className="text-center">
-                          <span className={`text-[9px] px-1.5 py-0.5 rounded font-bold ${
-                            t.status === 'active' ? 'text-emerald-400 bg-emerald-400/[0.08]' :
-                            t.status === 'trial' ? 'text-yellow-400 bg-yellow-400/[0.08]' : 'text-red-400 bg-red-400/[0.08]'
-                          }`}>{t.status}</span>
-                        </td>
-                        <td className="text-center font-mono text-white">{t.users.toLocaleString()}</td>
-                        <td className="text-center font-mono text-[#6B7A90]">{t.hands.toLocaleString()}</td>
-                        <td className="text-center font-mono text-[#FFD700]">{t.rakeShare}%</td>
-                        <td className="text-center font-mono font-bold text-emerald-400">${t.mrr.toLocaleString()}</td>
-                        <td className="text-center">
-                          <div className="flex items-center justify-center gap-1">
-                            <button className="text-[9px] px-2 py-1 rounded text-[#60A5FA] bg-[#60A5FA]/[0.05]"
-                              onClick={() => toast.success(`Detail: ${t.name}`)}>Detail</button>
-                            <button className="text-[9px] px-2 py-1 rounded text-[#26A17B] bg-[#26A17B]/[0.05]"
-                              onClick={() => toast.success(`API key copied`)}>API</button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+            {/* 영업 단계별 액션 */}
+            <Panel>
+              <SectionHeader title="🎯 영업 진행 단계별 자료 보내기" icon={Zap} color="#FF6B35" />
+              <div className="space-y-2 text-[11px]">
+                {[
+                  { step: '1️⃣ Cold outreach', files: 'Pitch Deck PDF (KO/EN)', action: '📧 OUTREACH_TEMPLATES 시나리오 1 복사' },
+                  { step: '2️⃣ NDA 후 기술 검토', files: 'PARTNER_API + OpenAPI + WebSocket Protocol', action: 'GitHub 링크 공유 또는 ZIP 첨부' },
+                  { step: '3️⃣ 통합 시작', files: 'SDK .tgz + Sandbox 자격증명', action: '위 발급 버튼 사용' },
+                  { step: '4️⃣ Production', files: 'Production API key + ToS 계약서', action: '별도 협의' },
+                ].map((s, i) => (
+                  <div key={i} className="flex items-start gap-3 p-2 rounded-lg" style={{ background: 'rgba(255,107,53,0.05)' }}>
+                    <div className="text-[#FF6B35] font-bold shrink-0">{s.step}</div>
+                    <div className="flex-1">
+                      <div className="text-white font-medium">{s.files}</div>
+                      <div className="text-[10px] text-[#6B7A90] mt-0.5">{s.action}</div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </Panel>
+          </div>
+        )}
+
+        {activeTab === 'tenants' && (
+          <div className="space-y-4">
+            {/* 🟢 LIVE — 실 API 데이터 */}
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] px-2 py-1 rounded-md font-bold" style={{ background: 'rgba(52,211,153,0.1)', color: '#34D399', border: '1px solid rgba(52,211,153,0.25)' }}>
+                🟢 LIVE
+              </span>
+              <span className="text-[10px] text-[#6B7A90]">실시간 API 데이터 (30초마다 새로고침)</span>
+            </div>
+
+            <PartnersLivePanel />
 
             {/* 플랜 비교 */}
             <Panel>
@@ -527,8 +1403,33 @@ export default function AdminDashboard() {
         {/* ═══════════════════════════════════════════════
             SETTLEMENT — 정산 시스템
             ═══════════════════════════════════════════════ */}
+        {activeTab === 'system' && (
+          <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] px-2 py-1 rounded-md font-bold" style={{ background: 'rgba(52,211,153,0.1)', color: '#34D399' }}>🟢 LIVE</span>
+              <span className="text-[10px] text-[#6B7A90]">실시간 메트릭 (5초마다)</span>
+            </div>
+            <SystemMetricsPanel />
+            <TelegramStatsPanel />
+          </div>
+        )}
+
         {activeTab === 'settlement' && (
           <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] px-2 py-1 rounded-md font-bold" style={{ background: 'rgba(52,211,153,0.1)', color: '#34D399' }}>🟢 LIVE</span>
+              <span className="text-[10px] text-[#6B7A90]">정산 대사 — 60초마다 자동 갱신</span>
+            </div>
+
+            {/* 🟢 LIVE Reconciliation 추가 */}
+            <ReconciliationLivePanel />
+
+            {/* ⚪ MOCK — 기존 표시 (실 데이터 연결 예정) */}
+            <div className="flex items-center gap-2 mt-6">
+              <span className="text-[9px] px-2 py-1 rounded-md font-bold" style={{ background: 'rgba(255,255,255,0.04)', color: '#6B7A90' }}>⚪ MOCK</span>
+              <span className="text-[10px] text-[#6B7A90]">아래는 데모 데이터 (개선 예정)</span>
+            </div>
+
             {/* 정산 통계 */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
               <StatCard label="Today Rake" value={`${getSymbol()}5,420,000`} icon={DollarSign} color="#FFD700" trend="up" trendValue="+12%" />
@@ -614,6 +1515,12 @@ export default function AdminDashboard() {
             ═══════════════════════════════════════════════ */}
         {activeTab === 'rooms' && (
           <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] px-2 py-1 rounded-md font-bold" style={{ background: 'rgba(52,211,153,0.1)', color: '#34D399' }}>🟢 LIVE</span>
+              <span className="text-[10px] text-[#6B7A90]">강제 방 종료 — 2단계 confirm</span>
+            </div>
+            <ForceCloseRoomPanel />
+
             <Panel>
               <div className="flex items-center justify-between mb-4">
                 <SectionHeader title={`Live Rooms (${rooms.length})`} icon={Eye} color="#26A17B" />
@@ -1030,6 +1937,12 @@ export default function AdminDashboard() {
             ═══════════════════════════════════════════════ */}
         {activeTab === 'bots' && (
           <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] px-2 py-1 rounded-md font-bold" style={{ background: 'rgba(52,211,153,0.1)', color: '#34D399' }}>🟢 LIVE</span>
+              <span className="text-[10px] text-[#6B7A90]">10초마다 자동 갱신</span>
+            </div>
+            <BotsLivePanel />
+
             {/* 봇 즉시 배치 */}
             <Panel>
               <SectionHeader title="AI Bot Deploy" icon={Bot} color="#A78BFA" />
@@ -1541,6 +2454,12 @@ export default function AdminDashboard() {
             ═══════════════════════════════════════════════ */}
         {activeTab === 'security' && (
           <div className="space-y-4">
+            <div className="flex items-center gap-2">
+              <span className="text-[9px] px-2 py-1 rounded-md font-bold" style={{ background: 'rgba(52,211,153,0.1)', color: '#34D399' }}>🟢 LIVE</span>
+              <span className="text-[10px] text-[#6B7A90]">차단 유저 실시간</span>
+            </div>
+            <BanListPanel />
+
             {/* Admin Accounts */}
             <Panel>
               <SectionHeader title="Admin Accounts" icon={Key} color="#FF6B35" />
@@ -1637,15 +2556,102 @@ export default function AdminDashboard() {
             ═══════════════════════════════════════════════ */}
         {activeTab === 'tournament' && (
           <div className="space-y-4">
+            {/* Phase 1: 실 토너먼트 생성 폼 */}
             <Panel>
-              <SectionHeader title="Tournament Management" icon={Trophy} color="#FFD700"
-                action={
-                  <button className="text-[10px] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1"
-                    style={{ background: "rgba(255,215,0,0.1)", color: "#FFD700", border: "1px solid rgba(255,215,0,0.2)" }}
-                    onClick={() => toast.success('Create tournament form opened')}>
-                    <Plus className="h-3 w-3" /> New Tournament
+              <SectionHeader title="🏆 Create New Tournament" icon={Trophy} color="#FFD700" />
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+                <div>
+                  <label className="text-[10px] text-[#6B7A90] mb-1 block">이름</label>
+                  <input id="t-name" placeholder="Daily Turbo"
+                    className="w-full px-2 py-1.5 rounded text-[12px] bg-black/40 text-white"
+                    style={{ border: "1px solid rgba(255,255,255,0.08)" }} />
+                </div>
+                <div>
+                  <label className="text-[10px] text-[#6B7A90] mb-1 block">바이인 (₩)</label>
+                  <input id="t-buyin" type="number" defaultValue="1000"
+                    className="w-full px-2 py-1.5 rounded text-[12px] bg-black/40 text-white font-mono"
+                    style={{ border: "1px solid rgba(255,255,255,0.08)" }} />
+                </div>
+                <div>
+                  <label className="text-[10px] text-[#6B7A90] mb-1 block">스타팅 스택</label>
+                  <input id="t-stack" type="number" defaultValue="10000"
+                    className="w-full px-2 py-1.5 rounded text-[12px] bg-black/40 text-white font-mono"
+                    style={{ border: "1px solid rgba(255,255,255,0.08)" }} />
+                </div>
+                <div>
+                  <label className="text-[10px] text-[#6B7A90] mb-1 block">최대 인원</label>
+                  <input id="t-max" type="number" defaultValue="50"
+                    className="w-full px-2 py-1.5 rounded text-[12px] bg-black/40 text-white font-mono"
+                    style={{ border: "1px solid rgba(255,255,255,0.08)" }} />
+                </div>
+                <div>
+                  <label className="text-[10px] text-[#6B7A90] mb-1 block">시작 (분 후)</label>
+                  <input id="t-startmin" type="number" defaultValue="5"
+                    className="w-full px-2 py-1.5 rounded text-[12px] bg-black/40 text-white font-mono"
+                    style={{ border: "1px solid rgba(255,255,255,0.08)" }} />
+                </div>
+                <div>
+                  <label className="text-[10px] text-[#6B7A90] mb-1 block">Late Reg (초)</label>
+                  <input id="t-latereg" type="number" defaultValue="600"
+                    className="w-full px-2 py-1.5 rounded text-[12px] bg-black/40 text-white font-mono"
+                    style={{ border: "1px solid rgba(255,255,255,0.08)" }} />
+                </div>
+                <div>
+                  <label className="text-[10px] text-[#6B7A90] mb-1 block">Max Rebuys</label>
+                  <input id="t-rebuys" type="number" defaultValue="2"
+                    className="w-full px-2 py-1.5 rounded text-[12px] bg-black/40 text-white font-mono"
+                    style={{ border: "1px solid rgba(255,255,255,0.08)" }} />
+                </div>
+                <div className="flex items-end">
+                  <button
+                    onClick={async () => {
+                      const name = (document.getElementById('t-name') as HTMLInputElement)?.value.trim() || `Tournament ${Date.now()}`;
+                      const buyInKrw = Number((document.getElementById('t-buyin') as HTMLInputElement)?.value) || 1000;
+                      const startingStack = Number((document.getElementById('t-stack') as HTMLInputElement)?.value) || 10000;
+                      const maxPlayers = Number((document.getElementById('t-max') as HTMLInputElement)?.value) || 50;
+                      const startMin = Number((document.getElementById('t-startmin') as HTMLInputElement)?.value) || 5;
+                      const lateRegSeconds = Number((document.getElementById('t-latereg') as HTMLInputElement)?.value) || 600;
+                      const maxRebuys = Number((document.getElementById('t-rebuys') as HTMLInputElement)?.value) || 0;
+                      try {
+                        const res = await adminFetch('/admin/tournament/create', {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json'},
+                          body: JSON.stringify({
+                            name,
+                            buyIn: buyInKrw * 100,
+                            startingStack,
+                            maxPlayers,
+                            startTimeMs: Date.now() + startMin * 60000,
+                            lateRegSeconds,
+                            maxRebuys,
+                          }),
+                        });
+                        const data = await res.json();
+                        if (data.success) {
+                          toast.success(`✅ "${name}" 생성됨 (${data.tournamentId})`);
+                        } else {
+                          toast.error(`❌ ${data.error || '생성 실패'}`);
+                        }
+                      } catch (e: any) {
+                        toast.error(`❌ 네트워크 오류: ${e.message}`);
+                      }
+                    }}
+                    className="w-full py-1.5 rounded font-bold text-[12px] text-[#0A0B10]"
+                    style={{ background: 'linear-gradient(135deg, #FFD700, #E5A500)' }}
+                  >
+                    🏆 생성
                   </button>
-                } />
+                </div>
+              </div>
+              <p className="text-[9px] text-[#6B7A90] mt-3">
+                💡 생성 후 모든 유저에게 자동으로 토너먼트 목록 알림이 갑니다. /tournaments 에서 등록 가능.
+              </p>
+            </Panel>
+
+            <TournamentLivePanel />
+
+            <Panel>
+              <SectionHeader title="Pricing & Examples (Mock)" icon={Trophy} color="#6B7A90" />
 
               {/* Active Tournaments */}
               <div className="space-y-3 mb-4">
