@@ -381,13 +381,28 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, turnDeadline
             )}
           </div>
 
-          {/* Country flag (V22: emoji 국기 지원) */}
+          {/* Country flag (V22 Phase 2+: ISO 코드면 flagcdn.com PNG, emoji 면 fallback)
+              Windows Chrome 은 regional indicator emoji 렌더 못함 → PNG 기반 안정 */}
           {player.country && !isDead && (
             <div style={{
               position: "absolute", top: -4, left: -4, zIndex: 10,
-              fontSize: 16, lineHeight: 1,
               filter: "drop-shadow(0 1px 3px rgba(0,0,0,0.7))",
-            }}>{player.country}</div>
+            }}>
+              {/^[A-Z]{2}$/.test(player.country) ? (
+                <img
+                  src={`https://flagcdn.com/w40/${player.country.toLowerCase()}.png`}
+                  srcSet={`https://flagcdn.com/w80/${player.country.toLowerCase()}.png 2x`}
+                  alt={player.country}
+                  width={20}
+                  height={14}
+                  loading="lazy"
+                  style={{ borderRadius: 2, objectFit: "cover", display: "block" }}
+                  onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }}
+                />
+              ) : (
+                <span style={{ fontSize: 16, lineHeight: 1 }}>{player.country}</span>
+              )}
+            </div>
           )}
 
           {/* Disconnected overlay */}

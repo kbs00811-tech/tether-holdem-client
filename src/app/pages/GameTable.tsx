@@ -15,7 +15,7 @@ import { useGameStore } from "../stores/gameStore";
 import { useSocket } from "../hooks/useSocket";
 import { useWakeLock } from "../hooks/useWakeLock";
 import { playSound, setMuted as setSoundMuted, isMuted as isSoundMuted, startBGM, stopBGM, setBGMVolume, BGM_TRACKS, setBGMTrack, getBGMTrackId, setBGMMuted, isBGMMuted, setSFXVolume, getSFXVolume, setBGMVolumeLevel, getBGMVolumeLevel } from "../hooks/useSound";
-import { useSettingsStore, TABLE_FELTS, getCountryByCode } from "../stores/settingsStore";
+import { useSettingsStore, TABLE_FELTS } from "../stores/settingsStore";
 import { useEmbedMode } from "../hooks/useEmbedMode";
 import { formatMoney, getSymbol } from "../utils/currency";
 import { useT } from "../../i18n";
@@ -86,6 +86,8 @@ export default function GameTable() {
   const [showLeaveConfirm, setShowLeaveConfirm] = useState(false);
   const [showHandHistory, setShowHandHistory] = useState(false);
   const [showInviteModal, setShowInviteModal] = useState(false); // V3 Task 4 Phase A
+  const [telegramInput, setTelegramInput] = useState(''); // V22: 모달 내 텔레그램 초대
+  const [telegramSending, setTelegramSending] = useState(false);
   const [showMenu, setShowMenu] = useState(false); // V18: 헤더 More 드롭다운
   const [bgmTrackId, setBgmTrackId] = useState(getBGMTrackId()); // BGM 선택 상태
   // V19.2: 다른 플레이어 턴 deadline 캡처 (렌더마다 재계산 방지)
@@ -379,15 +381,12 @@ export default function GameTable() {
     if (s.nickname && s.nickname.trim().length >= 2) {
       try { send({ type: 'UPDATE_NICKNAME', nickname: s.nickname.trim() } as any); } catch {}
     }
-    // 방 생성 직후 자동 초대 플래그 확인 (1회 consume)
+    // V22: 방 생성 직후 자동 초대 모달 — 1회 consume
+    // Lobby 의 pendingRoomCreated 감지 시 이미 headsupInvite 세팅됨, 여기선 modal show 만 트리거
     const autoOpen = useGameStore.getState().autoOpenInvite;
     if (autoOpen) {
       useGameStore.setState({ autoOpenInvite: false });
-      // GAME_STATE 가 먼저 들어올 시간 여유 (400ms)
-      setTimeout(() => {
-        try { send({ type: 'CREATE_HEADSUP_INVITE' } as any); } catch {}
-        setShowInviteModal(true);
-      }, 400);
+      setShowInviteModal(true);
     }
   }, [currentRoomId, send]);
 
@@ -468,11 +467,12 @@ export default function GameTable() {
         ? currentAvatarIdx
         : (typeof p.avatarId === 'number' ? p.avatarId : stableAvatarFromId(p.id || `seat-${i}`));
       if (isMySeat) console.log(`[AVATAR] Hero seat=${i} local=${currentAvatarIdx} server=${p.avatarId} used=${avatarToUse}`);
-      // V22: 국가 코드 → 국기 이모지 변환 (Hero 는 settings 에서 읽고, 다른 플레이어는 서버값 사용)
+      // V22 Phase 2+: 국가 ISO 코드 직접 전달 (PlayerSlot 이 이미지 렌더)
+      //   이전: emoji 변환 후 텍스트 표시 → Windows Chrome 렌더링 안 됨
+      //   현재: ISO alpha-2 (KR/JP/...) 그대로, PlayerSlot 이 flagcdn.com 이미지 사용
       const serverCountryCode = (p as any).countryCode as string | null | undefined;
       const localCountryCode = useSettingsStore.getState().countryCode;
       const effectiveCountryCode = isMySeat ? localCountryCode : serverCountryCode;
-      const flagEmoji = getCountryByCode(effectiveCountryCode)?.flag;
       return {
         name: p.nickname,
         stack: p.stack / 100,
@@ -486,7 +486,7 @@ export default function GameTable() {
         isSmallBlind: p.isSB,
         isBigBlind: p.isBB,
         cards: undefined,
-        country: flagEmoji,
+        country: effectiveCountryCode || undefined,
         hudStats: (p as any).hudStats,
       };
     }
@@ -547,6 +547,28 @@ export default function GameTable() {
       toast.error(t('buyInModal.insufficientBalance'));
     } else if (lastError.code === 'RECONNECTED') {
       toast.success(lastError.message, { duration: 5000, icon: '🔄' });
+    } else if (['INVITE_COOLDOWN', 'NO_ROOM'].includes(lastError.code) || lastError.code.startsWith('HEADSUP_')) {
+      // V22: 초대 생성 실패 시 로딩 모달 닫기 + 에러 토스트
+      setShowInviteModal(false);
+      toast.error(lastError.message || lastError.code, { duration: 4000 });
+    } else if (lastError.code === 'TG_SEND_OK') {
+      toast.dismiss('tg-send');
+      toast.success(lastError.message, { duration: 4000 });
+    } else if (lastError.code === 'TG_SEND_FAIL') {
+      toast.dismiss('tg-send');
+      toast.error(lastError.message, { duration: 6000 });
+    } else if (lastError.code === 'TOURNAMENT_BUBBLE') {
+      toast(lastError.message, { duration: 7000, icon: '🫧' });
+    } else if (lastError.code === 'TOURNAMENT_ITM') {
+      toast.success(lastError.message, { duration: 6000, icon: '💰' });
+    } else if (lastError.code === 'TOURNAMENT_HEADS_UP') {
+      toast(lastError.message, { duration: 6000, icon: '⚔️' });
+    } else if (lastError.code === 'TOURNAMENT_WIN') {
+      toast.success(lastError.message, { duration: 10000, icon: '🏆' });
+    } else if (lastError.code === 'TOURNAMENT_OUT') {
+      toast(lastError.message, { duration: 4000, icon: '👋' });
+    } else if (lastError.code === 'TOURNAMENT_NEW') {
+      toast(lastError.message, { duration: 4000, icon: '🏆' });
     }
   }, [lastError]);
   const canCheck = !turnInfo || turnInfo.callAmount <= 0;
@@ -1030,11 +1052,19 @@ export default function GameTable() {
               </span>
             </div>
           )}
-          {/* V3 Task 4 Phase A: 친구 초대 — 박동 애니 + 모바일 아이콘 only */}
+          {/* V3 Task 4 Phase A: 친구 초대 — V22: 로컬 즉시 표시 (서버 호출 없음) */}
           {currentRoomId && (
             <motion.button
               onClick={() => {
-                try { send({ type: 'CREATE_HEADSUP_INVITE' } as any); } catch {}
+                // V22: 서버 요청 없이 로컬에서 roomId 앞 8자로 방 코드 생성
+                useGameStore.setState({
+                  headsupInvite: {
+                    token: currentRoomId.replace(/-/g, '').slice(0, 8).toUpperCase(),
+                    url: '',
+                    expiresAt: Date.now() + 86400000,
+                    createdAt: Date.now(),
+                  },
+                });
                 setShowInviteModal(true);
               }}
               animate={{
@@ -1503,116 +1533,173 @@ export default function GameTable() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             className="fixed inset-0 z-[95] flex items-center justify-center bg-black/80 backdrop-blur-md p-3"
+            style={{
+              paddingTop: 'max(12px, env(safe-area-inset-top, 0px))',
+              paddingBottom: 'max(12px, env(safe-area-inset-bottom, 0px))',
+            }}
             onClick={() => setShowInviteModal(false)}
           >
             <motion.div
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
               exit={{ scale: 0.9, y: 20 }}
-              className="rounded-2xl w-full max-w-[420px] overflow-hidden"
+              className="rounded-2xl w-[min(420px,calc(100vw-24px))] sm:w-[420px] overflow-hidden flex flex-col"
               style={{
                 background: "linear-gradient(180deg, #0F1923, #060B14)",
                 border: "1px solid rgba(34,211,238,0.35)",
                 boxShadow: "0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(34,211,238,0.15)",
+                maxHeight: 'min(720px, calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 24px))',
               }}
               onClick={(e) => e.stopPropagation()}
             >
-              {/* Header */}
-              <div className="px-5 py-4 border-b border-white/[0.06] flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg flex items-center justify-center"
+              {/* Header — shrink-0, 터치 ≥44px */}
+              <div className="px-4 sm:px-5 py-3 sm:py-4 border-b border-white/[0.06] flex items-center justify-between shrink-0">
+                <div className="flex items-center gap-2 min-w-0 flex-1">
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
                     style={{ background: "rgba(34,211,238,0.18)", border: "1px solid rgba(34,211,238,0.4)" }}>
                     <span className="text-base">🎮</span>
                   </div>
-                  <div>
+                  <div className="min-w-0">
                     <h3 className="text-sm font-black text-white">친구 초대</h3>
-                    <p className="text-[10px] text-[#4A5A70]">같은 테이블로 초대합니다 (관전 포함 최대 8명)</p>
+                    <p className="text-[10px] text-[#4A5A70] truncate">같은 테이블로 초대합니다 (관전 포함 최대 8명)</p>
                   </div>
                 </div>
-                <button onClick={() => setShowInviteModal(false)}
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-[#6B7A90]">
+                <button
+                  onClick={() => setShowInviteModal(false)}
+                  aria-label="Close"
+                  className="w-11 h-11 rounded-lg flex items-center justify-center text-[#6B7A90] hover:bg-white/5 shrink-0"
+                >
                   <X className="w-4 h-4" />
                 </button>
               </div>
 
-              {/* Body */}
-              <div className="px-5 py-5">
-                {!headsupInvite ? (
+              {/* Body — 스크롤 가능, 모바일에서 키보드 올라와도 안잘림 */}
+              <div
+                className="px-4 sm:px-5 py-4 sm:py-5 overflow-y-auto flex-1 min-h-0"
+                style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
+              >
+                {!currentRoomId ? (
                   <div className="text-center py-6">
-                    <motion.div
-                      animate={{ rotate: 360 }}
-                      transition={{ duration: 1.5, repeat: Infinity, ease: 'linear' }}
-                      className="mx-auto w-8 h-8 rounded-full border-2 border-t-transparent"
-                      style={{ borderColor: "#22D3EE", borderTopColor: "transparent" }}
-                    />
-                    <div className="text-[11px] text-[#6B7A90] mt-3">초대 링크 생성 중...</div>
+                    <div className="text-[11px] text-[#6B7A90]">방에 먼저 입장해 주세요</div>
                   </div>
                 ) : (
                   <>
-                    {/* 초대 링크 */}
-                    <div className="mb-3">
-                      <div className="text-[9px] text-[#6B7A90] uppercase tracking-wider mb-1">초대 링크</div>
-                      <div className="flex items-center gap-2 p-2 rounded-lg"
-                        style={{ background: "rgba(0,0,0,0.4)", border: "1px solid rgba(34,211,238,0.2)" }}>
-                        <div className="flex-1 text-[10px] font-mono text-[#8899AB] break-all">
-                          {headsupInvite.url}
-                        </div>
-                        <button
-                          onClick={() => {
-                            try {
-                              navigator.clipboard.writeText(headsupInvite.url);
-                              toast.success(t('common.copied'));
-                            } catch {}
-                          }}
-                          className="shrink-0 px-2 py-1 rounded text-[9px] font-black"
-                          style={{
-                            background: "rgba(34,211,238,0.2)",
-                            border: "1px solid rgba(34,211,238,0.45)",
-                            color: "#22D3EE",
-                          }}
-                        >
-                          복사
-                        </button>
-                      </div>
-                    </div>
+                    {/* V22: 방 코드 = roomId 앞 8자 (영구, 토큰 시스템 제거) */}
+                    {(() => {
+                      const code = (currentRoomId || '').replace(/-/g, '').slice(0, 8).toUpperCase();
+                      const roomName = (gameState as any)?.roomName || '홀덤 방';
+                      // P2 업그레이드: 봇 딥링크 — 친구가 링크만 탭하면 /start 자동 프리필
+                      const deepLink = `https://t.me/tetherinfo_bot?start=room_${code}`;
+                      const msg = `🃏 홀덤 친구 초대!\n\n방 이름: ${roomName}\n방 코드: ${code}\n\n👇 아래 링크 탭 한 번으로 바로 입장!\n${deepLink}`;
+                      return (
+                        <>
+                          <div className="mb-3 p-3 rounded-xl text-center"
+                            style={{ background: "linear-gradient(135deg, rgba(34,211,238,0.12), rgba(34,211,238,0.06))", border: "1px solid rgba(34,211,238,0.3)" }}>
+                            <div className="text-[9px] text-[#6B7A90] uppercase tracking-wider mb-1">방 코드 (영구)</div>
+                            <div className="text-[28px] font-mono font-black text-[#22D3EE] tracking-[0.15em]">
+                              {code}
+                            </div>
+                          </div>
 
-                    {/* 토큰 + 만료 */}
-                    <div className="grid grid-cols-2 gap-2 mb-3">
-                      <div className="p-2 rounded-lg" style={{ background: "rgba(255,255,255,0.03)" }}>
-                        <div className="text-[8px] text-[#4A5A70] uppercase tracking-wider">Token</div>
-                        <div className="text-[13px] font-mono font-black text-[#22D3EE]">{headsupInvite.token}</div>
-                      </div>
-                      <div className="p-2 rounded-lg" style={{ background: "rgba(255,255,255,0.03)" }}>
-                        <div className="text-[8px] text-[#4A5A70] uppercase tracking-wider">만료</div>
-                        <div className="text-[11px] font-mono font-black text-[#FBBF24]">
-                          {(() => {
-                            const remain = Math.max(0, Math.floor((headsupInvite.expiresAt - Date.now()) / 1000));
-                            const m = Math.floor(remain / 60);
-                            const s = remain % 60;
-                            return `${m}:${String(s).padStart(2, '0')}`;
-                          })()}
-                        </div>
-                      </div>
-                    </div>
+                          <div className="mb-2 p-3 rounded-lg text-[11px] leading-relaxed text-[#8899AB] whitespace-pre-line"
+                            style={{ background: "rgba(0,0,0,0.4)", border: "1px solid rgba(255,255,255,0.06)" }}>
+                            {msg}
+                          </div>
+                          {/* P1+P2: 복사 + 텔레그램 공유 (/start 없이도 친구가 받음) */}
+                          <div className="grid grid-cols-2 gap-2 mb-3">
+                            <button
+                              onClick={() => {
+                                try {
+                                  navigator.clipboard.writeText(msg);
+                                  toast.success('초대 문구 복사됨');
+                                } catch {
+                                  toast.error('복사 실패');
+                                }
+                              }}
+                              className="py-3 rounded-xl text-center text-[12px] font-black transition-all"
+                              style={{
+                                background: "linear-gradient(135deg, #FF6B35, #E85D2C)",
+                                color: "#FFFFFF",
+                                boxShadow: "0 4px 16px rgba(255,107,53,0.35)",
+                              }}
+                            >
+                              📋 복사
+                            </button>
+                            <a
+                              href={`https://t.me/share/url?url=${encodeURIComponent(deepLink)}&text=${encodeURIComponent(`🃏 홀덤 방 초대 — ${roomName}\n방 코드: ${code}\n\n링크 탭 한 번으로 바로 입장!`)}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="py-3 rounded-xl text-center text-[12px] font-black transition-all block"
+                              style={{
+                                background: "linear-gradient(135deg, #0088CC, #0066AA)",
+                                color: "#FFFFFF",
+                                boxShadow: "0 4px 16px rgba(0,136,204,0.35)",
+                                textDecoration: "none",
+                              }}
+                            >
+                              📤 텔레그램 공유
+                            </a>
+                          </div>
 
-                    {/* Telegram share */}
-                    <a
-                      href={`https://t.me/share/url?url=${encodeURIComponent(headsupInvite.url)}&text=${encodeURIComponent('🃏 홀덤 친구 초대 — 같이 한판?')}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="block w-full py-3 rounded-xl text-center text-[12px] font-black mb-2"
-                      style={{
-                        background: "linear-gradient(135deg, #229ED9, #2AABEE)",
-                        color: "#FFFFFF",
-                        boxShadow: "0 4px 16px rgba(34,158,217,0.35)",
-                      }}
-                    >
-                      ✈️ Telegram 으로 공유
-                    </a>
+                          {/* P1: 공식 채널 구독 유도 */}
+                          <a
+                            href="https://t.me/+EvLlkdY7mAFkMjdl"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl mb-2 transition-all hover:scale-[1.01]"
+                            style={{
+                              background: "linear-gradient(135deg, rgba(0,136,204,0.12), rgba(0,136,204,0.04))",
+                              border: "1px solid rgba(0,136,204,0.25)",
+                              textDecoration: "none",
+                            }}
+                          >
+                            <span className="text-base shrink-0">📢</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="text-[11px] font-bold text-[#0088CC] leading-tight">공식 채널 구독</div>
+                              <div className="text-[9px] text-[#6B7A90] leading-tight mt-0.5">
+                                새 방 오픈·VIP 이벤트 자동 알림
+                              </div>
+                            </div>
+                            <span className="shrink-0 px-2.5 py-1 rounded-md text-[10px] font-black text-white"
+                              style={{ background: "linear-gradient(135deg, #0088CC, #0066AA)" }}>
+                              JOIN
+                            </span>
+                          </a>
 
-                    <p className="text-[9px] text-[#4A5A70] text-center leading-tight">
-                      💡 하루 1회 생성 · 5분 내 사용 · 최대 8명 입장
-                    </p>
+                          {/* P2 업그레이드: 딥링크 복사 (친구가 링크만 탭하면 바로 입장) */}
+                          <div className="p-3 rounded-xl mb-2" style={{ background: "rgba(0,136,204,0.08)", border: "1px solid rgba(0,136,204,0.25)" }}>
+                            <div className="text-[10px] font-bold text-[#0088CC] mb-2">🔗 원탭 초대 링크 (/start 불필요)</div>
+                            <div className="flex gap-2 items-center">
+                              <code className="flex-1 min-h-[44px] px-3 py-2 rounded-lg text-[10px] bg-black/40 text-[#22D3EE] font-mono truncate flex items-center" style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
+                                {deepLink}
+                              </code>
+                              <button
+                                onClick={() => {
+                                  try {
+                                    navigator.clipboard.writeText(deepLink);
+                                    toast.success('딥링크 복사됨 — 친구에게 보내세요');
+                                  } catch {
+                                    toast.error('복사 실패');
+                                  }
+                                }}
+                                className="min-w-[56px] min-h-[44px] px-3 rounded-lg text-[11px] font-black text-white transition-all shrink-0"
+                                style={{ background: "linear-gradient(135deg, #0088CC, #0066AA)" }}
+                              >
+                                복사
+                              </button>
+                            </div>
+                            <p className="text-[9px] text-[#6B7A90] mt-2 leading-relaxed">
+                              💡 친구가 링크 탭 → <b className="text-[#22D3EE]">시작</b> 한 번 누르면 자동 입장.<br/>
+                              (별도 계정 연동·/start 수동 입력 필요 없음)
+                            </p>
+                          </div>
+
+                          <p className="text-[9px] text-[#4A5A70] text-center leading-tight mt-2">
+                            💡 방이 살아있는 동안 유효 · 비공개 방은 로비 목록에 안 보입니다
+                          </p>
+                        </>
+                      );
+                    })()}
                   </>
                 )}
               </div>
