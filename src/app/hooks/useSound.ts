@@ -5,16 +5,17 @@
  * 해결: 그냥 new Audio().play(). 끝.
  */
 
-let muted = false;
-let masterVolume = 0.7;
+let muted = false;        // 전체 뮤트
+let bgmMuted = false;     // BGM만 뮤트
+let sfxVolume = 0.7;      // V21.6: 효과음 볼륨 (독립)
+let bgmVolume = 0.5;      // V21.6: BGM 볼륨 (독립)
 
-/** 핵심 — 사운드 1개 재생 + 에러 상세 로그 */
+/** 효과음 재생 — sfxVolume 사용 (bgmVolume과 독립) */
 function play(file: string, vol: number = 0.5): void {
-  if (muted) { console.log(`[SND] MUTED skip: ${file}`); return; }
-  console.log(`[SND] play: ${file} vol=${vol}`);
+  if (muted) { return; }
   try {
     const a = new Audio(`/sounds/${file}`);
-    a.volume = Math.min(1, vol * masterVolume);
+    a.volume = Math.min(1, vol * sfxVolume);
     a.play().then(() => {
       console.log(`[SND] ✅ OK: ${file}`);
     }).catch((e) => {
@@ -58,25 +59,39 @@ export const sounds = {
 };
 
 export function playSound(name: keyof typeof sounds) { if (!muted) sounds[name](); }
-export function setMuted(v: boolean) { muted = v; if (v) stopBGM(); }
+// V21.5: 전체 뮤트 (효과음 + BGM 모두)
+export function setMuted(v: boolean) { muted = v; if (v) { stopBGM(); stopLobbyBGM(); } }
 export function isMuted() { return muted; }
-export function setMasterVolume(v: number) { masterVolume = Math.max(0, Math.min(1, v)); }
-export function getMasterVolume() { return masterVolume; }
+// V21.6: BGM만 뮤트
+export function setBGMMuted(v: boolean) { bgmMuted = v; if (v) { stopBGM(); stopLobbyBGM(); } }
+export function isBGMMuted() { return bgmMuted; }
+// V21.6: 효과음 볼륨 (독립)
+export function setSFXVolume(v: number) { sfxVolume = Math.max(0, Math.min(1, v)); }
+export function getSFXVolume() { return sfxVolume; }
+// V21.6: BGM 볼륨 (독립)
+export function setBGMVolumeLevel(v: number) {
+  bgmVolume = Math.max(0, Math.min(1, v));
+  if (bgmAudio) bgmAudio.volume = Math.min(0.3, bgmVolume * 0.4);
+  if (lobbyAudio) (lobbyAudio as any).volume = Math.min(0.3, bgmVolume * 0.3);
+}
+export function getBGMVolumeLevel() { return bgmVolume; }
+// 레거시 호환
+export function setMasterVolume(v: number) { sfxVolume = Math.max(0, Math.min(1, v)); }
+export function getMasterVolume() { return sfxVolume; }
 
 // ── BGM (다중 장르 지원) ──
 export const BGM_TRACKS = [
   { id: 'casino', name: '🎰 카지노 재즈', file: '/sounds/bgm_casino.mp3' },
-  { id: 'chill', name: '😌 편안한 라운지', file: '/sounds/bgm_chill.mp3' },
   { id: 'tension', name: '😰 긴박감', file: '/sounds/bgm_tension.mp3' },
   { id: 'latin', name: '💃 라틴 재즈', file: '/sounds/bgm_latin.mp3' },
   { id: 'upbeat', name: '🎸 신나는 펑크', file: '/sounds/bgm_upbeat.mp3' },
-  { id: 'paradise', name: '🏝️ 파라다이스', file: '/sounds/bgm_paradise.mp3' },
-  { id: 'lounge', name: '🍸 클래식 라운지', file: '/sounds/bgm.mp3' },
+  { id: 'hiphop', name: '🔥 멕시코 힙합', file: '/sounds/bgm_hiphop.mp3' },
+  { id: 'groove', name: '🎵 펑키 그루브', file: '/sounds/bgm_groove.mp3' },
 ];
 
 let bgmAudio: HTMLAudioElement | null = null;
 let bgmPlaying = false;
-let currentBGMId = 'casino';
+let currentBGMId = 'upbeat';
 
 export function getBGMTrackId() { return currentBGMId; }
 
@@ -91,13 +106,13 @@ export function setBGMTrack(trackId: string) {
 }
 
 export function startBGM() {
-  if (muted) return;
+  if (muted || bgmMuted) return;
   try {
     if (!bgmAudio) {
       const track = BGM_TRACKS.find(t => t.id === currentBGMId) ?? BGM_TRACKS[0]!;
       bgmAudio = new Audio(track.file);
       bgmAudio.loop = true;
-      bgmAudio.volume = 0.12 * masterVolume;
+      bgmAudio.volume = Math.min(0.3, bgmVolume * 0.4);
     }
     bgmAudio.play().then(() => { bgmPlaying = true; }).catch(() => {});
   } catch {}
@@ -107,5 +122,51 @@ export function stopBGM() {
 }
 export function isBGMPlaying() { return bgmPlaying; }
 export function setBGMVolume(v: number) {
-  if (bgmAudio) bgmAudio.volume = Math.min(0.3, v * masterVolume);
+  bgmVolume = v;
+  if (bgmAudio) bgmAudio.volume = Math.min(0.3, v * 0.4);
 }
+
+// ── Lobby BGM (로비 전용, 게임 BGM과 독립) ──
+// 로비는 조용한 분위기 — 게임 테이블(신나는 BGM_TRACKS)과 분리
+export const LOBBY_BGM_TRACKS = [
+  { id: 'lounge', name: '🍸 클래식 라운지', file: '/sounds/bgm.mp3' },
+  { id: 'casino', name: '🎰 카지노 재즈', file: '/sounds/bgm_casino.mp3' },
+  { id: 'latin', name: '💃 라틴 재즈', file: '/sounds/bgm_latin.mp3' },
+];
+
+let lobbyAudio: HTMLAudioElement | null = null;
+let lobbyPlaying = false;
+let lobbyBGMId = 'casino'; // 로비 기본: 카지노 재즈 (유저 요청 2026-04-24)
+
+export function getLobbyBGMId() { return lobbyBGMId; }
+export function setLobbyBGMTrack(trackId: string) {
+  const track = LOBBY_BGM_TRACKS.find(t => t.id === trackId);
+  if (!track) return;
+  const wasPlaying = lobbyPlaying;
+  stopLobbyBGM();
+  lobbyBGMId = trackId;
+  lobbyAudio = null;
+  if (wasPlaying) startLobbyBGM();
+}
+
+export function startLobbyBGM() {
+  if (muted || bgmMuted) return;
+  try {
+    if (!lobbyAudio) {
+      const track = LOBBY_BGM_TRACKS.find(t => t.id === lobbyBGMId) ?? LOBBY_BGM_TRACKS[0]!;
+      lobbyAudio = new Audio(track.file);
+      lobbyAudio.loop = true;
+      lobbyAudio.volume = Math.min(0.3, bgmVolume * 0.3);
+    }
+    lobbyAudio.play().then(() => { lobbyPlaying = true; console.log('[SND] 🎵 Lobby BGM started'); }).catch(() => {});
+  } catch {}
+}
+
+export function stopLobbyBGM() {
+  if (lobbyAudio) { lobbyAudio.pause(); lobbyPlaying = false; }
+}
+
+export function isLobbyBGMPlaying() { return lobbyPlaying; }
+
+/** 사운드 뮤트 상태인지 (isMuted와 다른 이름) */
+export function isSoundMuted() { return muted; }

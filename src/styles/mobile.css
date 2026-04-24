@@ -23,7 +23,7 @@ html, body {
   padding-top: env(safe-area-inset-top, 0px);
 }
 
-/* Touch-friendly buttons (minimum 44px touch target) */
+/* Touch-friendly buttons (minimum 44px — WCAG 2.1 AA / Apple HIG) */
 @media (max-width: 768px) {
   .touch-target {
     min-height: 44px;
@@ -36,7 +36,15 @@ html, body {
     font-size: 14px !important;
   }
 
-  /* Prevent zoom on input focus (iOS) */
+  /*
+   * V22 Phase 2+: 모바일 글로벌 버튼 최소 44px.
+   * opt-out: `.no-touch-min` 클래스 추가 (아바타 그리드, 국기 셀 등 컴팩트 UI 용)
+   */
+  button:not(.no-touch-min):not([data-compact]) {
+    min-height: 44px;
+  }
+
+  /* Prevent zoom on input focus (iOS) — 16px 이하면 iOS 자동 zoom */
   input, select, textarea {
     font-size: 16px !important;
   }
@@ -45,6 +53,18 @@ html, body {
   ::-webkit-scrollbar {
     display: none;
   }
+}
+
+/* V22: Tablet 특화 (768-1023px) — 태블릿은 터치+여유공간 혼합 */
+@media (min-width: 768px) and (max-width: 1023px) {
+  button:not(.no-touch-min) {
+    min-height: 40px;
+  }
+}
+
+/* V22: Very narrow (iPhone SE 375px 이하) */
+@media (max-width: 380px) {
+  .narrow-hide { display: none !important; }
 }
 
 /* Landscape mode — hide address bar hint */
