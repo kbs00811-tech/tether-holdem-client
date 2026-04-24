@@ -89,6 +89,17 @@ interface GameStore {
   // V3 P1: 서버 기준 정확한 dealing 시작/종료 시각 (DEALING_START 이벤트 수신 시 set)
   //        클라는 이 값을 보고 정확한 타이밍에 애니메이션 재생
   dealingInfo: { startAt: number; durationMs: number; endAt: number; handNumber: number } | null;
+  // P3: Telegram 연동 상태
+  tgLink: {
+    linked: boolean;
+    username?: string;
+    linkedAt?: number;
+    optIns?: { turn: boolean; win: boolean; allIn: boolean; invite: boolean };
+    pendingUrl?: string | null;
+  };
+  // Phase 1: 토너먼트 state (TOURNAMENT_STATE 메시지)
+  tournamentState: any | null;
+  pendingTournamentJoin: string | null;
 
   setConnected: (v: boolean) => void;
   handleServerMessage: (msg: ServerMessage) => void;
@@ -107,6 +118,9 @@ export const useGameStore = create<GameStore>((set, get) => ({
   emptySeats: [],
   runItBoards: null,
   chatMessagesUnread: 0,
+  tgLink: { linked: false, pendingUrl: null },
+  tournamentState: null,
+  pendingTournamentJoin: null,
   myPlayerId: null,
   lastError: null,
   lastActions: {},
@@ -202,13 +216,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
         // 놓칠 수 있으므로 GAME_STATE 에 내장된 dealingStartAt/dealingDurationMs 로부터
         // dealingInfo 를 재구성한다.
         const st: any = msg.state;
-        // V18.1: showResult 활성(핸드 결과 표시 중) 이면 winners/showResult 보존
-        //   → HAND_RESULT 직후 도착하는 GAME_STATE 가 승자 표시를 덮어쓰는 race condition 방지
-        // V20: GAME_STATE 수신 시 항상 winners/showResult 클리어
-        // 이전: showResult=true면 보존 → 카드 안 걷히는 버그
+        // V21: GAME_STATE 수신 시 isMyTurn 보존 로직
+        // 이전 버그: 무조건 isMyTurn=false → 서버 GAME_STATE 주기 전송 시 내 턴 타이머 사라짐
+        // 수정: 서버 currentTurnSeat이 내 seat이면 isMyTurn 유지, 아니면 false
+        const myId = get().myPlayerId;
+        const myPlayer = st?.players?.find((p: any) => p.id === myId);
+        const myTurnFromServer = myPlayer && st?.currentTurnSeat >= 0 && st?.currentTurnSeat === myPlayer.seat;
+        // V21: currentTurnSeat === -1 (전환 중) 이면 isMyTurn 유지하되,
+        // 다른 사람 좌석이면 확실히 false
         const updates: any = {
           gameState: msg.state,
-          isMyTurn: false,
+          isMyTurn: st?.currentTurnSeat === -1 ? get().isMyTurn : (myTurnFromServer ? get().isMyTurn : false),
           equities: null,
           winners: null,
           showResult: false,
@@ -356,13 +374,17 @@ export const useGameStore = create<GameStore>((set, get) => ({
         break;
       }
       case 'PLAYER_ACTION': {
-        set({ isMyTurn: false, timeBankActive: null });
+        // V21: 내 액션일 때만 isMyTurn false (상대 액션에는 내 턴 상태 유지)
+        const myIdForAction = get().myPlayerId;
+        if (msg.playerId === myIdForAction) {
+          set({ isMyTurn: false, timeBankActive: null });
+        }
         const myId = get().myPlayerId;
-        // V19: Hero 액션은 handleCheck/handleCall 등에서 이미 사운드 재생 → 중복 방지
-        // 다른 플레이어 액션만 사운드 재생
-        // V20: 사운드 — 모든 액션 + 디버그 로그
-        // V20: SoundManager 통합 — 한 줄로 사운드 처리
-        SoundManager.onAction(Number(msg.action));
+        // V21.5: Hero 액션은 GameTable에서 이미 재생 → 중복 방지
+        // 다른 플레이어 액션만 SoundManager로 재생
+        if (!myId || msg.playerId !== myId) {
+          SoundManager.onAction(Number(msg.action));
+        }
 
         // ★ 내가 폴드했으면 hole cards 즉시 클리어 (관전 모드 카드 잔존 버그 수정)
         if (msg.action === 0 && myId && msg.playerId === myId) {
@@ -454,11 +476,10 @@ export const useGameStore = create<GameStore>((set, get) => ({
           const w = msg.winners[0] as any;
           speakWinner(w.nickname || 'Winner', w.handResult?.description);
         }
-        // V19: 쇼다운 결과 표시 후 카드 전부 클리어 (다음 판에 잔존 방지)
-        // V20: 카드 2초 표시 후 강제 클리어
+        // V21.6: 결과 1.5초 표시 → 카드 수거 → 다음 핸드 준비
         setTimeout(() => {
-          set({ showResult: false, shownCards: {}, rabbitCards: [], winners: null });
-        }, 2000);
+          set({ showResult: false, shownCards: {}, rabbitCards: [], winners: null, myCards: [] });
+        }, 1500);
 
         // 내 통계 기록 (statsStore) + 카드 클리어
         // 핸드 종료 시 hole cards 클리어 (다음 딜링까지 빈 상태)
@@ -535,6 +556,44 @@ export const useGameStore = create<GameStore>((set, get) => ({
         });
         break;
       }
+      case 'TELEGRAM_INVITE_RESULT' as any: {
+        // V22: 단건 텔레그램 초대 응답 (모달에서 직접 전송한 것)
+        const m = msg as any;
+        if (m.success) {
+          set({ lastError: { code: 'TG_SEND_OK', message: `✅ ${m.username || ''} 에게 전송됨`, ts: Date.now() } });
+        } else {
+          const errMsg = (m.error || '').includes('chat not found')
+            ? `${m.username || ''} — 봇과 /start 먼저 해야 합니다`
+            : `${m.username || ''} — ${m.error || '전송 실패'}`;
+          set({ lastError: { code: 'TG_SEND_FAIL', message: errMsg, ts: Date.now() } });
+        }
+        break;
+      }
+      case 'TELEGRAM_INVITE_BATCH_RESULT' as any: {
+        // V22: 텔레그램 자동 초대 결과 통지 — 방장에게 성공/실패 토스트
+        const m = msg as any;
+        const results: { username: string; success: boolean; error?: string }[] = m.results || [];
+        const okList = results.filter(r => r.success).map(r => r.username);
+        const failList = results.filter(r => !r.success);
+        // toast import 불가 (gameStore 안) → lastError 로 전달 후 컴포넌트에서 표시
+        const msgParts: string[] = [];
+        if (okList.length > 0) {
+          msgParts.push(`✅ 전송 성공: ${okList.join(', ')}`);
+        }
+        if (failList.length > 0) {
+          const failDetails = failList.map(f => {
+            if ((f.error || '').includes('chat not found')) {
+              return `${f.username} (봇과 /start 필요)`;
+            }
+            return `${f.username} (${f.error || 'fail'})`;
+          }).join(', ');
+          msgParts.push(`⚠️ 전송 실패: ${failDetails}`);
+        }
+        if (msgParts.length > 0) {
+          set({ lastError: { code: 'TELEGRAM_BATCH', message: msgParts.join('\n'), ts: Date.now() } });
+        }
+        break;
+      }
       case 'HEADSUP_INVITE_CREATED' as any: {
         // V3 Task 4 Phase A: 초대 토큰 생성 응답
         const m = msg as any;
@@ -559,6 +618,141 @@ export const useGameStore = create<GameStore>((set, get) => ({
           });
         } else {
           set({ lastError: { code: 'INVITE_FAIL', message: m.error || '초대 사용 실패', ts: Date.now() } });
+        }
+        break;
+      }
+      case 'LINK_TELEGRAM_STATUS_RESULT' as any: {
+        const m = msg as any;
+        set({ tgLink: { linked: !!m.linked, username: m.username, linkedAt: m.linkedAt, optIns: m.optIns, pendingUrl: m.linked ? null : get().tgLink.pendingUrl } });
+        break;
+      }
+      case 'LINK_TELEGRAM_REQUEST_RESULT' as any: {
+        // iOS Safari 팝업 차단 회피 — window.open 제거, anchor 태그로 사용자가 직접 탭
+        const m = msg as any;
+        if (m.success && m.url) {
+          set(s => ({ tgLink: { ...s.tgLink, pendingUrl: m.url } }));
+        } else {
+          set({ lastError: { code: 'TG_LINK_FAIL', message: m.error || '연동 링크 생성 실패', ts: Date.now() } });
+        }
+        break;
+      }
+      case 'LINK_TELEGRAM_OPT_INS_RESULT' as any: {
+        const m = msg as any;
+        if (m.success) {
+          set(s => ({ tgLink: { ...s.tgLink, optIns: m.optIns } }));
+          set({ lastError: { code: 'TG_OPTINS_OK', message: '알림 설정 저장됨', ts: Date.now() } });
+        } else {
+          set({ lastError: { code: 'TG_OPTINS_FAIL', message: m.error || '설정 저장 실패', ts: Date.now() } });
+        }
+        break;
+      }
+      case 'LINK_TELEGRAM_UNLINK_RESULT' as any: {
+        const m = msg as any;
+        if (m.success) {
+          set({ tgLink: { linked: false, pendingUrl: null } });
+          set({ lastError: { code: 'TG_UNLINK_OK', message: '텔레그램 연동 해제됨', ts: Date.now() } });
+        }
+        break;
+      }
+      case 'TOURNAMENT_STATE' as any: {
+        // Phase 1: 토너먼트 헤더 데이터
+        set({ tournamentState: msg as any });
+        break;
+      }
+      case 'TOURNAMENT_REGISTERED' as any: {
+        // Phase 1 fix: 등록 성공 → /tournament/:id 로 이동 (router 가 감지)
+        const m = msg as any;
+        if (m.success && m.tournamentId) {
+          set({ pendingTournamentJoin: m.tournamentId } as any);
+          set({ lastError: { code: 'TOURNAMENT_REGISTERED', message: m.alreadyRegistered ? `🏆 이미 등록됨 — 입장` : `🏆 등록 완료 — 입장`, ts: Date.now() } });
+        }
+        break;
+      }
+      // V22 Phase 2: 토너 시작 → 서버가 유저를 테이블에 배정.
+      //  - currentRoomId = tableId 세팅 (TournamentTable 내부 GameTable 이 이 방 state 로 렌더)
+      //  - tournamentId 가 현재 route 와 같으면 별도 navigate 불필요 (GameTable 이 자동 구독)
+      case 'PLAYER_ASSIGNED_TO_TABLE' as any: {
+        const m = msg as any;
+        if (m.tableId) {
+          set({ currentRoomId: m.tableId } as any);
+          // Late Reg 로 이미 진행 중 토너에 입장 시 → /tournament/:id 로 이동 필요
+          if (m.tournamentId) set({ pendingTournamentJoin: m.tournamentId } as any);
+          set({ lastError: { code: 'TABLE_ASSIGNED', message: m.isFinalTable ? '🏆 파이널 테이블 입장' : m.isLateReg ? '⏰ Late Reg 테이블 배정' : `🎰 테이블 배정: Seat ${m.seat + 1}`, ts: Date.now() } });
+        }
+        break;
+      }
+      // V22 Phase 2: 밸런싱/파이널 consolidation 으로 테이블 이동
+      case 'PLAYER_MOVED_TO_TABLE' as any: {
+        const m = msg as any;
+        if (m.toTableId) {
+          set({ currentRoomId: m.toTableId } as any);
+          set({ lastError: { code: 'TABLE_MOVED', message: `🔀 테이블 이동: Seat ${m.seat + 1}`, ts: Date.now() } });
+        }
+        break;
+      }
+      // V22 Phase 2: 재접속 시 서버가 진행 중 토너 테이블 복원
+      case 'PLAYER_REJOINED_TABLE' as any: {
+        const m = msg as any;
+        if (m.tableId && m.tournamentId) {
+          set({ currentRoomId: m.tableId, pendingTournamentJoin: m.tournamentId } as any);
+          set({ lastError: { code: 'TABLE_REJOINED', message: `♻️ 토너 복귀: 테이블 자동 입장`, ts: Date.now() } });
+        }
+        break;
+      }
+      // Phase 2: Bubble / 탈락 알림
+      case 'TOURNAMENT_ELIMINATION' as any: {
+        const m = msg as any;
+        const tState = (get() as any).tournamentState;
+        if (!tState) break;
+        const remaining = m.remaining;
+        const totalPayoutSpots = (tState.totalPlayers || 0) > 100 ? 15 :
+                                 (tState.totalPlayers || 0) > 50 ? 9 :
+                                 (tState.totalPlayers || 0) > 20 ? 5 : 3;
+        if (remaining === totalPayoutSpots + 1) {
+          set({ lastError: { code: 'TOURNAMENT_BUBBLE', message: `🫧 BUBBLE! 다음 탈락자가 무상금 — ${remaining}명 남음`, ts: Date.now() } });
+        } else if (remaining === totalPayoutSpots) {
+          set({ lastError: { code: 'TOURNAMENT_ITM', message: `💰 ITM! 모두 상금권 진입 (${remaining}명 남음)`, ts: Date.now() } });
+        } else if (m.position === 1) {
+          set({ lastError: { code: 'TOURNAMENT_WIN', message: `🏆 ${m.nickname} 우승! ₩${Math.round((m.prize || 0) / 100).toLocaleString()}`, ts: Date.now() } });
+        } else {
+          set({ lastError: { code: 'TOURNAMENT_OUT', message: `${m.nickname} 탈락 (${m.position}위)`, ts: Date.now() } });
+        }
+        break;
+      }
+      case 'TOURNAMENT_HEADS_UP' as any: {
+        set({ lastError: { code: 'TOURNAMENT_HEADS_UP', message: '⚔️ HEADS-UP! 결승 1:1 시작', ts: Date.now() } });
+        break;
+      }
+      case 'TOURNAMENT_FINISHED' as any: {
+        // Phase 2: 결과 모달 트리거 (TournamentTable 이 감지해서 모달 표시)
+        set({ tournamentState: { ...((get() as any).tournamentState || {}), status: 'FINISHED', results: (msg as any).results } as any });
+        set({ lastError: { code: 'TOURNAMENT_END', message: `🏆 토너먼트 종료`, ts: Date.now() } });
+        break;
+      }
+      case 'CREATE_TOURNAMENT_RESULT' as any: {
+        const m = msg as any;
+        if (m.success) {
+          set({ lastError: { code: 'TOURNAMENT_CREATED', message: `토너먼트 생성: ${m.tournamentId}`, ts: Date.now() } });
+        } else {
+          set({ lastError: { code: 'TOURNAMENT_CREATE_FAIL', message: m.error || '생성 실패', ts: Date.now() } });
+        }
+        break;
+      }
+      case 'TOURNAMENT_CREATED' as any: {
+        // 다른 클라이언트가 토너먼트 만들면 broadcast — 토너먼트 lobby 새로고침 트리거
+        set({ lastError: { code: 'TOURNAMENT_NEW', message: `🏆 새 토너먼트: ${(msg as any).name}`, ts: Date.now() } });
+        break;
+      }
+      case 'JOIN_BY_CODE_RESULT' as any: {
+        // V22: 방 코드 입장 응답 — 성공 시 pendingInviteJoin 에 roomId 저장 (기존 네비 재사용)
+        const m = msg as any;
+        if (m.success && m.roomId) {
+          set({
+            pendingInviteJoin: m.roomId,
+            lastError: { code: 'JOIN_BY_CODE_OK', message: '방에 입장합니다', ts: Date.now() },
+          });
+        } else {
+          set({ lastError: { code: 'JOIN_BY_CODE_FAIL', message: m.error || '방 코드 확인 실패', ts: Date.now() } });
         }
         break;
       }
@@ -645,19 +839,25 @@ export const useGameStore = create<GameStore>((set, get) => ({
         set({ handHistoryRecords: (msg as any).records ?? [] });
         break;
       case 'SHOW_MUCK_PROMPT':
-        set({ showMuckPrompt: true });
-        setTimeout(() => set({ showMuckPrompt: false }), 8000); // 8초 후 자동 Muck
+      case 'SHOW_OR_MUCK':
+        // V21.2: 내가 승자일 때만 Show/Muck 프롬프트 표시
+        if ((msg as any).playerId === get().myPlayerId) {
+          set({ showMuckPrompt: true });
+          setTimeout(() => set({ showMuckPrompt: false }), 4000);
+        }
         break;
       case 'RUN_IT_TWICE':
         // 서버에서 두 번째 보드 결과 수신
         break;
       case 'CASH_OUT_OFFER':
+      case 'CASHOUT_OFFER':
+        if ((msg as any).playerId && (msg as any).playerId !== get().myPlayerId) break; // 내 오퍼만
         set({ cashOutOffer: {
           equity: (msg as any).equity,
-          potShare: (msg as any).potShare,
-          offerAmount: (msg as any).offerAmount,
-          feeRate: (msg as any).feeRate,
-          expiresAt: (msg as any).expiresAt,
+          potShare: (msg as any).pot,
+          offerAmount: (msg as any).cashoutAmount ?? (msg as any).offerAmount,
+          feeRate: ((msg as any).fee ?? 1.5) / 100,
+          expiresAt: Date.now() + 10000,
         }});
         playSound('myTurn');
         break;
