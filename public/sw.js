@@ -26,14 +26,21 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Activate — 이전 캐시 정리
+// Activate — 이전 캐시 정리 + 활성 client 강제 새로고침 (V22 Phase 2+)
 self.addEventListener('activate', (event) => {
-  event.waitUntil(
-    caches.keys().then(keys =>
-      Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)))
-    )
-  );
-  self.clients.claim();
+  event.waitUntil((async () => {
+    // 1. 이전 캐시 모두 삭제
+    const keys = await caches.keys();
+    await Promise.all(keys.filter(k => k !== CACHE_NAME).map(k => caches.delete(k)));
+    // 2. 새 SW 가 즉시 모든 페이지 통제
+    await self.clients.claim();
+    // 3. 활성 client 들에 새 버전 알림 → location.reload() 트리거
+    const clientList = await self.clients.matchAll({ type: 'window' });
+    for (const client of clientList) {
+      try { client.postMessage({ type: 'SW_UPDATED', version: CACHE_NAME }); } catch {}
+    }
+    console.log('[SW] Activated', CACHE_NAME, '— notified', clientList.length, 'clients');
+  })());
 });
 
 // Fetch — 네트워크 우선, 실패 시 캐시
