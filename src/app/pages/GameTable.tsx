@@ -9,6 +9,7 @@ import { PokerChip, getChipColorByValue } from "../components/PokerChip";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger } from "../components/ui/sheet";
 import { ChatPanel } from "../components/ChatPanel";
 import { BuyInModal } from "../components/BuyInModal";
+import { HostFriendsSection } from "../components/HostFriendsSection";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "motion/react";
 import { useGameStore } from "../stores/gameStore";
@@ -1708,6 +1709,14 @@ export default function GameTable() {
                               (별도 계정 연동·/start 수동 입력 필요 없음)
                             </p>
                           </div>
+
+                          {/* P5: 호스트 친구 빠른 초대 (텔레그램 share intent) */}
+                          <HostFriendsSection
+                            send={send}
+                            roomCode={code}
+                            roomName={roomName}
+                            deepLink={deepLink}
+                          />
 
                           <p className="text-[9px] text-[#4A5A70] text-center leading-tight mt-2">
                             💡 방이 살아있는 동안 유효 · 비공개 방은 로비 목록에 안 보입니다

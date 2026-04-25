@@ -97,6 +97,8 @@ interface GameStore {
     optIns?: { turn: boolean; win: boolean; allIn: boolean; invite: boolean };
     pendingUrl?: string | null;
   };
+  // P5: 호스트 친구 목록 (텔레그램 share 링크용 — 봇 정책 우회 없음)
+  hostFriends: Array<{ username: string; addedAt: number }>;
   // Phase 1: 토너먼트 state (TOURNAMENT_STATE 메시지)
   tournamentState: any | null;
   pendingTournamentJoin: string | null;
@@ -119,6 +121,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   runItBoards: null,
   chatMessagesUnread: 0,
   tgLink: { linked: false, pendingUrl: null },
+  hostFriends: [],
   tournamentState: null,
   pendingTournamentJoin: null,
   myPlayerId: null,
@@ -876,6 +879,18 @@ export const useGameStore = create<GameStore>((set, get) => ({
         // SIT_FAILED 등 즉시 표시 가능한 에러는 lastError 로 노출 (UI에서 toast)
         set({ lastError: { code: msg.code, message: msg.message, ts: Date.now() } });
         break;
+      // P5: Host friends (텔레그램 share 링크 생성용)
+      case 'HOST_FRIEND_LIST_RESULT' as any:
+        set({ hostFriends: Array.isArray((msg as any).friends) ? (msg as any).friends : [] });
+        break;
+      case 'HOST_FRIEND_ADD_RESULT' as any: {
+        // 추가 후 자동 재조회는 호출 측이 LIST 발송 — 여기선 skip
+        break;
+      }
+      case 'HOST_FRIEND_REMOVE_RESULT' as any: {
+        // 동일 — UI 가 LIST 재요청
+        break;
+      }
     }
   },
 }));
