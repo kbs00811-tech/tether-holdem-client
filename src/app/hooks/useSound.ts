@@ -79,10 +79,9 @@ export function getBGMVolumeLevel() { return bgmVolume; }
 export function setMasterVolume(v: number) { sfxVolume = Math.max(0, Math.min(1, v)); }
 export function getMasterVolume() { return sfxVolume; }
 
-// ── BGM (다중 장르 지원) ──
+// ── BGM (다중 장르 지원) — V22 Phase 2+: '긴박감' 제거 (유저 요청 2026-04-25)
 export const BGM_TRACKS = [
   { id: 'casino', name: '🎰 카지노 재즈', file: '/sounds/bgm_casino.mp3' },
-  { id: 'tension', name: '😰 긴박감', file: '/sounds/bgm_tension.mp3' },
   { id: 'latin', name: '💃 라틴 재즈', file: '/sounds/bgm_latin.mp3' },
   { id: 'upbeat', name: '🎸 신나는 펑크', file: '/sounds/bgm_upbeat.mp3' },
   { id: 'hiphop', name: '🔥 멕시코 힙합', file: '/sounds/bgm_hiphop.mp3' },

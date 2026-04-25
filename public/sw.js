@@ -7,7 +7,7 @@
  * - 백그라운드 동기화
  */
 
-const CACHE_NAME = 'holdem-v40';
+const CACHE_NAME = 'holdem-v41';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
