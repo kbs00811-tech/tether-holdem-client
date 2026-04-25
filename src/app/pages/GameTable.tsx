@@ -3428,24 +3428,34 @@ export default function GameTable() {
       </div>
 
       <ChatPanel open={showChat} onOpenChange={setShowChat} />
-      {/* V21.5: Buy-in — rooms + gameState 양쪽에서 방 정보 조회 (fallback 체인) */}
+      {/* V22 Phase 2+ V2.7: Buy-in — rooms + gameState 양쪽에서 방 정보 조회.
+          fallback 단위 mismatch 방지를 위해 ROOM_LIST 의 정확한 값만 사용.
+          정보 부족 시 BuyInModal 띄우되 사용자에게 경고. */}
       {(() => {
         const currentRoom = rooms.find(r => r.id === currentRoomId);
-        // gameState에서도 방 정보 가져오기 (rooms에 없는 경우 — 새로 만든 방 등)
         const gs = gameState as any;
-        const cfgMinCents = currentRoom?.minBuyIn ?? gs?.minBuyIn ?? gs?.config?.minBuyIn ?? 5000000;
-        const cfgMaxCents = currentRoom?.maxBuyIn ?? gs?.maxBuyIn ?? gs?.config?.maxBuyIn ?? cfgMinCents * 2;
-        const cfgBbCents = currentRoom?.bigBlind ?? gs?.bigBlind ?? gs?.config?.bigBlind ?? 10000;
-        const cfgSbCents = currentRoom?.smallBlind ?? gs?.smallBlind ?? gs?.config?.smallBlind ?? Math.floor(cfgBbCents / 2);
+        // 단일 source of truth: currentRoom (서버 ROOM_LIST 정확한 값)
+        // currentRoom 없으면 gameState fallback. fallback 도 없으면 안전한 큰 값 사용 (서버가 어차피 거부)
+        const cfgMinCents = currentRoom?.minBuyIn ?? gs?.minBuyIn ?? gs?.config?.minBuyIn;
+        const cfgMaxCents = currentRoom?.maxBuyIn ?? gs?.maxBuyIn ?? gs?.config?.maxBuyIn;
+        const cfgBbCents = currentRoom?.bigBlind ?? gs?.bigBlind ?? gs?.config?.bigBlind;
+        const cfgSbCents = currentRoom?.smallBlind ?? gs?.smallBlind ?? gs?.config?.smallBlind ?? Math.floor((cfgBbCents ?? 10000) / 2);
+
+        // 방 정보가 아직 안 도착했으면 modal 안 띄움 (잘못된 값으로 SIT 방지)
+        if (!cfgMinCents || !cfgMaxCents || !cfgBbCents) {
+          if (showBuyInModal) {
+            console.warn('[BuyIn] Room info incomplete — refusing to open modal', { cfgMinCents, cfgMaxCents, cfgBbCents });
+          }
+          return null;
+        }
+
         const minBuyInKrw = Math.floor(cfgMinCents / 100);
-        const maxBuyInKrw = Math.max(minBuyInKrw * 2, Math.floor(cfgMaxCents / 100), Math.floor(cfgBbCents * 200 / 100));
-        const blindsLabel = (cfgSbCents > 0 || cfgBbCents > 0)
-          ? `${Math.floor(cfgSbCents/100).toLocaleString()}/${Math.floor(cfgBbCents/100).toLocaleString()}`
-          : "50/100";
+        const maxBuyInKrw = Math.floor(cfgMaxCents / 100);  // ★ 서버 maxBuyIn 만 신뢰 (이전: max() 로 강제 → 단위 오류 시 ₩100K 까지 노출)
+        const blindsLabel = `${Math.floor(cfgSbCents/100).toLocaleString()}/${Math.floor(cfgBbCents/100).toLocaleString()}`;
         return (
           <BuyInModal open={showBuyInModal} onOpenChange={setShowBuyInModal}
             minBuyIn={minBuyInKrw} maxBuyIn={maxBuyInKrw} currentBalance={realBalance}
-            tableName={currentRoom?.name ?? "NL Hold'em"} blinds={blindsLabel} onJoinTable={handleBuyIn} />
+            tableName={currentRoom?.name ?? "Hold'em"} blinds={blindsLabel} onJoinTable={handleBuyIn} />
         );
       })()}
 
