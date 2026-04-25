@@ -10,7 +10,7 @@ import { motion, AnimatePresence } from "motion/react";
 import { useGameStore } from "../stores/gameStore";
 import { useSocket } from "../hooks/useSocket";
 import { useStatsStore } from "../stores/statsStore";
-import { useSettingsStore, AVATAR_IMAGES } from "../stores/settingsStore";
+import { useSettingsStore, AVATAR_IMAGES, TABLE_FELTS } from "../stores/settingsStore";
 import { CountryPicker } from "../components/CountryPicker";
 import { useEmbedMode } from "../hooks/useEmbedMode";
 import {
@@ -174,6 +174,9 @@ export default function Lobby() {
   const setAvatar = useSettingsStore(s => s.setAvatar);
   const countryCode = useSettingsStore(s => s.countryCode);
   const setCountryCode = useSettingsStore(s => s.setCountryCode);
+  // V22 Phase 2+: ProfilePanel 에서 Table Felt 직접 변경
+  const tableFelt = useSettingsStore(s => s.tableFelt);
+  const setTableFelt = useSettingsStore(s => s.setTableFelt);
   const { user: embedUser } = useEmbedMode();
   const localStatsTotal = useStatsStore(s => s.totalHands);
   const localStatsWon = useStatsStore(s => s.handsWon);
@@ -1175,6 +1178,42 @@ export default function Lobby() {
                   columns={6}
                   maxHeight={140}
                 />
+              </div>
+
+              {/* 🎨 Table Felt — V22 Phase 2+: ProfilePanel 안에 직접 노출 */}
+              <div className="px-5 py-4 border-b border-white/5">
+                <div className="text-[10px] font-bold text-[#6B7A90] uppercase tracking-wider mb-2 flex items-center gap-2">
+                  <span>🎨 TABLE FELT · 테이블 색상</span>
+                </div>
+                <div className="grid grid-cols-3 gap-2">
+                  {Object.entries(TABLE_FELTS).map(([id, felt]) => {
+                    const idNum = Number(id);
+                    const selected = tableFelt === idNum;
+                    return (
+                      <button
+                        key={id}
+                        onClick={() => {
+                          setTableFelt(idNum);
+                          toast.success(`테이블 색상: ${felt.name}`);
+                        }}
+                        className="p-2.5 rounded-xl text-center transition-all no-touch-min"
+                        style={{
+                          background: selected ? "rgba(255,107,53,0.10)" : "rgba(255,255,255,0.02)",
+                          border: selected ? "1px solid rgba(255,107,53,0.40)" : "1px solid rgba(255,255,255,0.05)",
+                        }}
+                      >
+                        {/* 펠트 미니 프리뷰 */}
+                        <div
+                          className="h-12 rounded-lg mb-2"
+                          style={{ background: felt.gradient, border: "1px solid rgba(255,255,255,0.10)" }}
+                        />
+                        <div className="text-[10px] font-bold leading-tight" style={{ color: selected ? "#FF6B35" : "#6B7A90" }}>
+                          {felt.name}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
 
               {/* P3: Telegram 연동 */}
