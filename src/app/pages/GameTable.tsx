@@ -351,19 +351,22 @@ export default function GameTable() {
 
       if (currentRooms.length > 0) {
         const target = currentRooms.find(r => r.id === tableId);
+        // V22 Phase 2+: 초대 입장 race fix —
+        //   private 방이 GET_ROOMS 응답에 race 로 빠질 수 있음.
+        //   못 찾아도 일단 JOIN_ROOM 보내본다 (서버가 tables.get(roomId) 로 직접 찾음).
         if (target) {
           console.log(`[GAME] Joining room: ${target.id} (${target.name})`);
-          // V3 Task 4 Phase B: Private 방이면 pendingJoinPassword 사용 (1회)
-          const pwd = useGameStore.getState().pendingJoinPassword;
-          send({ type: 'JOIN_ROOM', roomId: target.id, buyIn: 0, password: pwd ?? undefined } as any);
-          if (pwd) useGameStore.setState({ pendingJoinPassword: null }); // consume
         } else {
-          console.warn(`[GAME] Room ${tableId} not found`);
-          toast.error('Room not found');
+          console.warn(`[GAME] Room ${tableId} not in list — try JOIN anyway (private/race)`);
         }
+        const pwd = useGameStore.getState().pendingJoinPassword;
+        send({ type: 'JOIN_ROOM', roomId: tableId, buyIn: 0, password: pwd ?? undefined } as any);
+        if (pwd) useGameStore.setState({ pendingJoinPassword: null });
         clearInterval(timer);
       } else if (attempts > 10) {
-        console.warn('[GAME] No rooms after 5s, giving up');
+        // 5초 내 GET_ROOMS 응답 없음 — 그래도 JOIN_ROOM 시도
+        console.warn('[GAME] GET_ROOMS timeout — JOIN anyway');
+        send({ type: 'JOIN_ROOM', roomId: tableId, buyIn: 0 } as any);
         clearInterval(timer);
       }
     }, 500);
@@ -728,9 +731,18 @@ export default function GameTable() {
   }, [seated]);
 
   const handleBuyIn = useCallback((amount: number) => {
-    if (!currentRoomId) {
-      toast.error('Connecting to table... try again in a moment');
+    // V22 Phase 2+: 초대 입장 race fix —
+    //   currentRoomId 가 아직 셋 안 됐으면 URL tableId 사용 (자동 JOIN_ROOM 이 진행 중)
+    //   사용자 경험: invite 링크 클릭 → GameTable 진입 → 빠르게 Quick Sit 누름 → 이전엔 'Connecting...' 에러
+    const effectiveRoomId = currentRoomId || tableId;
+    if (!effectiveRoomId) {
+      toast.error('Room not found in URL');
       return;
+    }
+    if (!currentRoomId) {
+      // JOIN_ROOM 아직 안 끝남 — 즉시 보냄 (서버가 ROOM_JOINED + SIT_DOWN 순차 처리)
+      console.log('[GAME] handleBuyIn: currentRoomId null → JOIN_ROOM 선전송');
+      send({ type: 'JOIN_ROOM', roomId: effectiveRoomId, buyIn: 0 } as any);
     }
 
     // 빈 좌석 찾기
@@ -742,7 +754,7 @@ export default function GameTable() {
       }
     }
 
-    console.log(`[GAME] SIT_DOWN seat=${targetSeat} room=${currentRoomId}`);
+    console.log(`[GAME] SIT_DOWN seat=${targetSeat} room=${effectiveRoomId}`);
 
     // 즉시 로컬에 아바타 표시 — 내가 선택한 아바타 사용 (하드코딩 금지)
     setLocalPlayers(prev => ({
@@ -757,7 +769,7 @@ export default function GameTable() {
     // ★ setSeated 는 useEffect로 자동 — 서버 PLAYER_JOINED 도착 시 heroSeat 갱신되며 동기화
     setShowBuyInModal(false);
     toast.success(`Bought in for ${getSymbol()}${amount.toLocaleString()}`);
-  }, [send, clickedSeat, serverPlayers, maxSeats, currentRoomId, currentAvatarIdx]);
+  }, [send, clickedSeat, serverPlayers, maxSeats, currentRoomId, tableId, currentAvatarIdx]);
 
   const handleLeave = useCallback(() => {
     // V19: 관전자도 착석자도 항상 확인 모달 표시 (실수 나가기 방지)
