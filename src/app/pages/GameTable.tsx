@@ -2913,7 +2913,8 @@ export default function GameTable() {
 
       {/* ====== HERO CARDS — 액션 패널 바로 위 공간에 배치 (겹침 방지) ======
            데스크탑(xl 카드 ~157px) 에서도 안 겹치도록 bottom 여유 충분히 확보
-           V17: 딜링 종료 직후 페이드인+scale 등장 (뚝 나타나는 현상 제거) */}
+           V17: 딜링 종료 직후 페이드인+scale 등장 (뚝 나타나는 현상 제거)
+           V22 Phase 2+ Phase B: PLO (myHoleCards.length >= 4) 시 4장 가로 배치 */}
       {myHoleCards.length >= 2 && forceDealAnim === 0 && (
         <motion.div style={{
           position: "fixed",
@@ -2927,11 +2928,43 @@ export default function GameTable() {
           animate={{ opacity: 1, scale: 1, x: "-50%", y: 0 }}
           transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1], delay: 0.05 }}
         >
-          <CardSqueeze
-            key={`hero-${myHoleCards[0]?.suit}-${myHoleCards[0]?.rank}-${myHoleCards[1]?.suit}-${myHoleCards[1]?.rank}`}
-            card1={{ suit: myHoleCards[0]!.suit as any, rank: myHoleCards[0]!.rank as any }}
-            card2={{ suit: myHoleCards[1]!.suit as any, rank: myHoleCards[1]!.rank as any }}
-          />
+          {myHoleCards.length >= 4 ? (
+            // PLO: 4장 가로 배치 (CardSqueeze 는 2장 전용이라 별도 렌더)
+            <div className="flex gap-1.5 px-2 py-1.5 rounded-xl"
+              style={{
+                background: "rgba(11,14,20,0.7)",
+                border: "1px solid rgba(255,215,0,0.3)",
+                boxShadow: "0 8px 24px rgba(0,0,0,0.5)",
+              }}>
+              {myHoleCards.slice(0, 4).map((c, i) => (
+                <div key={`plo-${i}-${c.suit}-${c.rank}`}
+                  className="rounded-lg flex flex-col items-center justify-center"
+                  style={{
+                    width: 56, height: 80,
+                    background: "linear-gradient(180deg,#FFFFFF,#F5F5F5)",
+                    color: c.suit === 2 || c.suit === 3 ? "#D32F2F" : "#0B0B0B",
+                    fontFamily: "ui-sans-serif",
+                    fontWeight: 800,
+                    border: "1px solid #DDDDDD",
+                  }}>
+                  <span style={{ fontSize: 22, lineHeight: 1 }}>
+                    {c.rank === 14 ? 'A' : c.rank === 13 ? 'K' : c.rank === 12 ? 'Q' : c.rank === 11 ? 'J' : c.rank}
+                  </span>
+                  <span style={{ fontSize: 18 }}>
+                    {c.suit === 1 ? '♠' : c.suit === 2 ? '♥' : c.suit === 3 ? '♦' : '♣'}
+                  </span>
+                </div>
+              ))}
+              <div className="absolute -top-2 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded-full text-[9px] font-black"
+                style={{ background: "#FFD700", color: "#0B0B0B" }}>PLO</div>
+            </div>
+          ) : (
+            <CardSqueeze
+              key={`hero-${myHoleCards[0]?.suit}-${myHoleCards[0]?.rank}-${myHoleCards[1]?.suit}-${myHoleCards[1]?.rank}`}
+              card1={{ suit: myHoleCards[0]!.suit as any, rank: myHoleCards[0]!.rank as any }}
+              card2={{ suit: myHoleCards[1]!.suit as any, rank: myHoleCards[1]!.rank as any }}
+            />
+          )}
           {/* GG포커 스타일 — 현재 족보 표시 */}
           {(() => {
             const cc = communityCards?.map((c: any) => ({ suit: c.suit, rank: c.rank })) ?? [];
