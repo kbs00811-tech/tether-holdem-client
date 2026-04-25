@@ -29,7 +29,6 @@ const PLANS = [
       '3 stake levels (Micro/Low/Mid)',
       'Basic admin dashboard',
       '50/50 rake share',
-      'Standard AI bots (V4)',
       'Email support (48h response)',
       'Free setup',
     ],
@@ -49,7 +48,6 @@ const PLANS = [
       'Unlimited cash game tables',
       '4-tier agent system (본사/부본사/총판/매장)',
       '60/40 rake share',
-      'Advanced AI bots (V5 GTO+)',
       'Tournament mode (MTT/SnG)',
       'Custom branding & domain',
       'Priority support (12h response)',
@@ -104,7 +102,7 @@ const FEATURES = [
   { icon: Trophy, title: 'Tournament System', desc: 'MTT, SnG, Bounty, PKO' },
   { icon: Shield, title: 'Provably Fair', desc: 'SHA256 verifiable shuffles' },
   { icon: Globe, title: 'Multi-Language', desc: 'KR, EN, JP, VN, TH' },
-  { icon: Sparkles, title: 'AI Bots V5', desc: 'GGPoker-level AI' },
+  { icon: Sparkles, title: 'White-Label Ready', desc: 'Custom branding & domain' },
 ];
 
 export default function PricingPage() {
@@ -126,7 +124,7 @@ export default function PricingPage() {
             </span>
           </h1>
           <p className="text-base text-[#8899AB] max-w-2xl mx-auto">
-            Premium Texas Hold'em platform powered by GGPoker-level AI.
+            Premium Texas Hold'em platform for B2B operators.
             <br />
             White-label ready, fully customizable, instant deployment.
           </p>
@@ -260,7 +258,6 @@ export default function PricingPage() {
               { q: "What is the rake share model?", a: "Starter: 50/50, Growth: 60/40, Enterprise: 70/30 (operator/platform). Plus minimum guarantee commitments available for high-volume operators." },
               { q: "Do you support white-label source licensing?", a: "Yes. White Label plan includes full source code, on-premise deployment rights, and perpetual license starting at $25,000 setup + negotiable monthly support fee." },
               { q: "Is there a minimum contract term?", a: "Starter: Month-to-month. Growth: 6-month minimum. Enterprise: 12-month minimum with 10% discount. White Label: 24-month minimum." },
-              { q: "What AI technology powers the bots?", a: "V5 AI uses GTO solver ranges (Pluribus/Libratus reference), Monte Carlo equity calculation, opponent modeling (VPIP/PFR/AF), and human timing profiles — benchmarked at GGPoker skill level." },
             ].map((faq, i) => (
               <details key={i} className="rounded-xl p-4 cursor-pointer" style={{ background: "#141820", border: "1px solid rgba(255,255,255,0.06)" }}>
                 <summary className="text-sm font-bold text-white">{faq.q}</summary>

@@ -16,7 +16,7 @@ interface SettingsModalProps {
 
 const cardSkinList = [
   { id: 1, name: "Classic", desc: "Traditional red & black", colors: ["#CC0000", "#111111"] },
-  { id: 2, name: "4-Color", desc: "GGPoker style", colors: ["#CC0000", "#1D4ED8", "#059669", "#111111"] },
+  { id: 2, name: "4-Color", desc: "Suit-distinct", colors: ["#CC0000", "#1D4ED8", "#059669", "#111111"] },
   { id: 3, name: "Neon", desc: "Cyberpunk glow", colors: ["#FF6B35", "#26A17B", "#A78BFA", "#FFD700"] },
 ];
 
