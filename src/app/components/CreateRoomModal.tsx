@@ -45,8 +45,7 @@ export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModal
   const [isPrivate, setIsPrivate] = useState(false);
   // V22 Phase 2+: Show/Muck 선택 (default true, 유저 권고)
   const [showMuckChoice, setShowMuckChoice] = useState(true);
-  // V22 Phase 2+ Phase B: 게임 타입 (NLHE / PLO)
-  const [gameType, setGameType] = useState<'NLHE' | 'PLO'>('NLHE');
+  // V22 Phase 2+ V2.8: PLO 토글 제거. gameType 항상 'NLHE'.
 
   const blind = blindPresets[blindIdx]!;
   const minBuyIn = blind.big * 20;
@@ -64,9 +63,9 @@ export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModal
       maxBuyIn: maxBuyIn * 100,
       isPrivate,
       showMuckChoice, // V22 Phase 2+
-      gameType,        // V22 Phase 2+ Phase B
+      gameType: 'NLHE' as const,  // V22 Phase 2+ V2.8: PLO 제거 → NLHE 강제
     } as any);
-    setRoomName(""); setIsPrivate(false); setShowMuckChoice(true); setGameType('NLHE');
+    setRoomName(""); setIsPrivate(false); setShowMuckChoice(true);
     onClose();
   };
 
@@ -123,39 +122,7 @@ export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModal
             />
           </div>
 
-          {/* V22 Phase 2+ Phase B: Game Type (NLHE / PLO) 선택 */}
-          <div>
-            <label className="text-[11px] text-[#8899AB] uppercase tracking-wider mb-2 block">
-              Game Type · 게임 종류
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              {([
-                { id: 'NLHE' as const, name: 'NLHE', desc: '텍사스 홀덤', emoji: '🃏' },
-                { id: 'PLO' as const, name: 'PLO', desc: '오마하 4장', emoji: '🎴' },
-              ]).map(g => {
-                const selected = gameType === g.id;
-                return (
-                  <button key={g.id}
-                    onClick={() => setGameType(g.id)}
-                    className="py-3 rounded-xl text-center transition-all"
-                    style={{
-                      background: selected ? "rgba(255,107,53,0.10)" : "rgba(255,255,255,0.02)",
-                      border: selected ? "2px solid #FF6B35" : "1px solid rgba(255,255,255,0.06)",
-                      minHeight: 56,
-                    }}>
-                    <div style={{ fontSize: 18 }}>{g.emoji}</div>
-                    <div className="text-[12px] font-bold" style={{ color: selected ? "#FF6B35" : "#8899AB" }}>{g.name}</div>
-                    <div className="text-[9px] text-[#6B7A90] mt-0.5">{g.desc}</div>
-                  </button>
-                );
-              })}
-            </div>
-            {gameType === 'PLO' && (
-              <div className="mt-1.5 text-[10px] text-[#FBBF24]">
-                ℹ️ PLO 는 hole 4장 + Pot Limit 베팅
-              </div>
-            )}
-          </div>
+          {/* V22 Phase 2+ V2.8: PLO 토글 제거 (사용자 결정 — NLHE 만 운영). gameType 은 항상 'NLHE' 강제. */}
 
           {/* Blinds — 모바일 가로 스크롤, 데스크탑 균등 분할 */}
           <div>
