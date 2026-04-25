@@ -1,5 +1,6 @@
 import { Component, type ReactNode } from 'react';
 import { RefreshCw } from 'lucide-react';
+import { t } from '../../i18n';
 
 interface Props {
   children: ReactNode;
@@ -49,24 +50,24 @@ export class GameErrorBoundary extends Component<Props, State> {
               style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.3)' }}>
               <span style={{ fontSize: 32 }}>⚠️</span>
             </div>
-            <h2 className="text-lg font-bold text-white mb-2">게임 오류</h2>
+            <h2 className="text-lg font-bold text-white mb-2">{t('error.crashTitle')}</h2>
             <p className="text-xs text-gray-500 mb-1">
-              {this.state.error?.message?.slice(0, 100) || '알 수 없는 오류'}
+              {this.state.error?.message?.slice(0, 100) || t('error.crashMessage')}
             </p>
             <p className="text-[10px] text-gray-600 mb-6">
-              게임이 일시적으로 중단되었습니다
+              {t('error.crashMessage')}
             </p>
             <div className="flex gap-3 justify-center">
               <button onClick={this.handleRetry}
                 className="px-5 py-2.5 rounded-lg text-sm font-bold text-white flex items-center gap-2"
                 style={{ background: 'linear-gradient(135deg, #FF6B35, #E85D2C)' }}>
                 <RefreshCw className="w-4 h-4" />
-                다시 시도
+                {t('error.retry')}
               </button>
               <button onClick={this.handleReload}
                 className="px-5 py-2.5 rounded-lg text-sm font-semibold text-gray-400"
                 style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)' }}>
-                새로고침
+                {t('error.goToLobby')}
               </button>
             </div>
           </div>

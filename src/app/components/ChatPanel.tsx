@@ -3,6 +3,7 @@ import { Send, MessageCircle, X } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useGameStore } from "../stores/gameStore";
 import { useSocket } from "../hooks/useSocket";
+import { useT } from "../../i18n";
 
 interface ChatPanelProps {
   open?: boolean;
@@ -12,6 +13,7 @@ interface ChatPanelProps {
 const quickEmojis = ["👍", "😂", "😡", "🤔", "💪", "🔥", "💀", "🎉", "😎", "🃏"];
 
 export function ChatPanel({ open: controlledOpen, onOpenChange }: ChatPanelProps = {}) {
+  const t = useT();
   const [internalOpen, setInternalOpen] = useState(false);
   const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setIsOpen = onOpenChange || setInternalOpen;
@@ -37,9 +39,9 @@ export function ChatPanel({ open: controlledOpen, onOpenChange }: ChatPanelProps
 
   return (
     <>
-      {/* Toggle */}
+      {/* Toggle — 데스크탑만 표시 (모바일은 액션 패널 내 인라인 버튼) */}
       <button onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full flex items-center justify-center shadow-lg"
+        className="fixed bottom-6 right-6 z-40 w-12 h-12 rounded-full items-center justify-center shadow-lg hidden sm:flex"
         style={{
           background: isOpen ? "rgba(239,68,68,0.15)" : "linear-gradient(135deg, #FF6B35, #E85D2C)",
           border: isOpen ? "1px solid rgba(239,68,68,0.2)" : "none",
@@ -72,7 +74,7 @@ export function ChatPanel({ open: controlledOpen, onOpenChange }: ChatPanelProps
             {/* Header */}
             <div className="px-4 py-3 flex items-center justify-between"
               style={{ borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-              <span className="text-sm font-bold text-white">Chat</span>
+              <span className="text-sm font-bold text-white">{t('chat.title')}</span>
               <span className="text-[10px] text-[#4A5A70]">{chatMessages.length} messages</span>
             </div>
 
@@ -121,7 +123,7 @@ export function ChatPanel({ open: controlledOpen, onOpenChange }: ChatPanelProps
                 <input value={inputValue}
                   onChange={e => setInputValue(e.target.value)}
                   onKeyDown={e => e.key === 'Enter' && handleSend()}
-                  placeholder="Type a message..."
+                  placeholder={t('chat.placeholder')}
                   maxLength={200}
                   className="flex-1 px-3 py-2 rounded-lg text-xs text-white placeholder-[#3A4A5A]
                     bg-[#0B1018] border border-[#1A2235] focus:border-[#FF6B35] focus:outline-none" />
