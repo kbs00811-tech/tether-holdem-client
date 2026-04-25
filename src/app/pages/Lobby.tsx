@@ -997,21 +997,30 @@ export default function Lobby() {
 
       <CreateRoomModal open={showCreateRoom} onClose={() => setShowCreateRoom(false)} onCreateRoom={handleCreateRoom} />
 
-      {/* ═══════ 내 정보 패널 ═══════ */}
+      {/* ═══════ 내 정보 패널 — V22 Phase 2+ 반응형 fix ═══════
+          - 모바일: 화면 거의 풀폭, dvh 기반 max-h
+          - 태블릿(md): max-w-lg
+          - 데스크탑(lg+): max-w-xl, 좌우 dead space 줄임
+          - 본문 스크롤 분리 (헤더는 sticky, 본문만 overflow-y-auto)
+          - safe-area-inset-top/bottom 반영 (notch 회피) */}
       <AnimatePresence>
         {showProfilePanel && (
           <motion.div
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
             onClick={() => setShowProfilePanel(false)}
-            className="fixed inset-0 z-[9999] flex items-center justify-center p-4"
+            className="fixed inset-0 z-[9999] flex items-center justify-center p-3 sm:p-4"
             style={{ background: "rgba(0,0,0,0.75)", backdropFilter: "blur(10px)" }}>
             <motion.div
               initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
               onClick={(e) => e.stopPropagation()}
-              className="w-full max-w-md rounded-2xl overflow-hidden"
-              style={{ background: "linear-gradient(180deg, #141820, #0B0E14)", border: "1px solid rgba(255,215,0,0.2)" }}>
-              {/* 헤더 */}
-              <div className="relative p-5 pb-3" style={{ background: "linear-gradient(135deg, rgba(255,107,53,0.1), rgba(255,215,0,0.05))" }}>
+              className="w-full max-w-md md:max-w-lg lg:max-w-xl rounded-2xl flex flex-col overflow-hidden"
+              style={{
+                background: "linear-gradient(180deg, #141820, #0B0E14)",
+                border: "1px solid rgba(255,215,0,0.2)",
+                maxHeight: 'min(92dvh, calc(100vh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 24px))',
+              }}>
+              {/* 헤더 — shrink-0 (sticky 효과) */}
+              <div className="relative p-5 pb-3 shrink-0" style={{ background: "linear-gradient(135deg, rgba(255,107,53,0.1), rgba(255,215,0,0.05))" }}>
                 <button onClick={() => setShowProfilePanel(false)}
                   className="absolute top-3 right-3 w-8 h-8 rounded-full flex items-center justify-center text-[#6B7A90] hover:text-white"
                   style={{ background: "rgba(255,255,255,0.05)" }}>✕</button>
@@ -1082,6 +1091,8 @@ export default function Lobby() {
               </div>
 
               {/* 빠른 통계 */}
+              {/* 본문 스크롤 영역 — 헤더/푸터 제외, V22 Phase 2+ 반응형 */}
+              <div className="flex-1 min-h-0 overflow-y-auto" style={{ overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}>
               <div className="grid grid-cols-4 gap-2 px-5 py-4 border-y border-white/5">
                 {[
                   { label: 'Hands', value: localStatsTotal.toLocaleString(), color: '#FF6B35' },
@@ -1290,8 +1301,10 @@ export default function Lobby() {
                 )}
               </div>
 
-              {/* 액션 버튼 */}
-              <div className="grid grid-cols-2 gap-2 p-4">
+              </div>{/* /본문 스크롤 영역 */}
+
+              {/* 액션 버튼 — shrink-0 (footer sticky) */}
+              <div className="grid grid-cols-2 gap-2 p-4 shrink-0 border-t border-white/5" style={{ background: 'rgba(11,14,20,0.95)' }}>
                 <button onClick={() => { setShowProfilePanel(false); navigate('/profile'); }}
                   className="py-2.5 rounded-xl text-xs font-bold text-[#FF6B35]"
                   style={{ background: "rgba(255,107,53,0.1)", border: "1px solid rgba(255,107,53,0.25)" }}>
