@@ -6,6 +6,7 @@ import { Input } from "./ui/input";
 import { Switch } from "./ui/switch";
 import { motion, AnimatePresence } from "motion/react";
 import { toast } from "sonner";
+import { useT } from "../../i18n";
 
 interface CreateRoomModalProps {
   open: boolean;
@@ -35,97 +36,97 @@ const blindPresets = [
 ];
 
 export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModalProps) {
+  const t = useT();
   const [roomName, setRoomName] = useState("");
   const [blindIdx, setBlindIdx] = useState(1);
   const [maxPlayers, setMaxPlayers] = useState(9);
-  const [usePassword, setUsePassword] = useState(false);
-  const [password, setPassword] = useState("");
-  // V12: 초대 기능 — 방 생성 시에만 가능
-  const [inviteInput, setInviteInput] = useState("");
-  const [invites, setInvites] = useState<string[]>([]);
+  // V22: 비밀번호 제거 — isPrivate 토글만 유지 (방 코드 공유 방식)
+  // V22: 텔레그램 초대는 방 생성 후 친구 초대 모달에서 처리
+  const [isPrivate, setIsPrivate] = useState(false);
+  // V22 Phase 2+: Show/Muck 선택 (default true, 유저 권고)
+  const [showMuckChoice, setShowMuckChoice] = useState(true);
 
   const blind = blindPresets[blindIdx]!;
   const minBuyIn = blind.big * 20;
   const maxBuyIn = blind.big * 100;
 
-  const addInvite = () => {
-    let v = inviteInput.trim().replace(/^@+/, '@'); // 앞 @ 정리
-    if (!v) return;
-    // @ 자동 prefix (사용자가 안 붙이면 추가)
-    if (!v.startsWith('@')) v = '@' + v;
-    // Telegram username 규칙: 5~32자, 영숫자+_
-    if (!/^@[a-zA-Z0-9_]{5,32}$/.test(v)) {
-      toast.error('Telegram ID 형식: @username (5~32자 영숫자/_)');
-      return;
-    }
-    if (invites.includes(v)) { toast.error("이미 추가된 초대"); return; }
-    if (invites.length >= 8) { toast.error("최대 8명"); return; }
-    setInvites([...invites, v]);
-    setInviteInput("");
-  };
-
-  const removeInvite = (name: string) => {
-    setInvites(invites.filter(n => n !== name));
-  };
-
   const handleCreate = () => {
-    if (!roomName.trim()) { toast.error("Enter a table name"); return; }
+    if (!roomName.trim()) { toast.error(t('createRoom.enterName')); return; }
+    // V22: 비밀번호 제거 + 텔레그램 초대는 방 생성 후 친구 초대 모달에서 처리
     onCreateRoom({
-      name: roomName, smallBlind: blind.small, bigBlind: blind.big,
-      maxPlayers, minBuyIn, maxBuyIn,
-      password: usePassword ? password : undefined,
-      invites: invites.length > 0 ? invites : undefined,
-    });
-    setRoomName(""); setPassword(""); setUsePassword(false);
-    setInvites([]); setInviteInput("");
+      name: roomName,
+      smallBlind: blind.small * 100,
+      bigBlind: blind.big * 100,
+      maxPlayers,
+      minBuyIn: minBuyIn * 100,
+      maxBuyIn: maxBuyIn * 100,
+      isPrivate,
+      showMuckChoice, // V22 Phase 2+
+    } as any);
+    setRoomName(""); setIsPrivate(false); setShowMuckChoice(true);
     onClose();
   };
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
-      {/* V12: 모바일 dvh 사용 — iOS 주소바 포함 해결 + footer 절대 안 가려짐 */}
+      {/* 모바일 반응형 V3 (2026-04-23 재감사):
+          - dvh + safe-area + 720px cap
+          - 🔴 CRITICAL FIX: overflow-y-hidden 명시 (Radix Dialog 기본 overflow-y-auto 제거)
+          - 🔴 gap-0 명시 (기본 gap-4 제거 → Header/Body/Footer 간격 정확히 0)
+          - 내부 Body 만 스크롤 (flex-1 min-h-0 + overflow-y-auto) */}
       <DialogContent
-        className="max-w-[440px] w-[calc(100vw-16px)] p-0 overflow-hidden border-0 flex flex-col"
-        style={{ maxHeight: 'min(80vh, 80dvh, calc(100dvh - 2rem - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)))' }}
+        className="w-[min(440px,calc(100vw-16px))] sm:w-[440px] max-w-none p-0 gap-0 overflow-hidden overflow-y-hidden border-0 flex flex-col"
+        style={{
+          maxHeight: 'min(720px, calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px) - 16px))',
+          marginTop: 'env(safe-area-inset-top, 0px)',
+          marginBottom: 'env(safe-area-inset-bottom, 0px)',
+        }}
         hideClose
       >
-        {/* Header */}
-        <div className="relative px-5 sm:px-6 pt-4 sm:pt-5 pb-3 sm:pb-4 shrink-0" style={{
+        {/* Header — shrink-0, 터치타겟 ≥44px */}
+        <div className="relative px-4 sm:px-6 pt-3.5 sm:pt-5 pb-3 sm:pb-4 shrink-0" style={{
           background: "linear-gradient(135deg, #0F1923, #162033)",
           borderBottom: "1px solid rgba(255,107,53,0.1)",
         }}>
           <div className="absolute top-0 left-0 right-0 h-[2px]"
             style={{ background: "linear-gradient(90deg, transparent, #FF6B35, #26A17B, transparent)" }} />
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-[15px] font-bold text-white">테이블 생성</h2>
-              <span className="text-[11px] text-[#6B7A90]">나만의 홀덤 테이블을 만드세요</span>
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0 flex-1">
+              <h2 className="text-[15px] sm:text-base font-bold text-white truncate">{t('createRoom.title')}</h2>
+              <span className="text-[11px] text-[#6B7A90] block truncate">{t('createRoom.subtitle')}</span>
             </div>
             <button onClick={onClose}
-              className="w-7 h-7 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 text-[#6B7A90] hover:text-white transition">
+              aria-label="Close"
+              className="w-11 h-11 rounded-full flex items-center justify-center bg-white/5 hover:bg-white/10 text-[#6B7A90] hover:text-white transition shrink-0 text-lg">
               ×
             </button>
           </div>
         </div>
 
-        {/* Body — 모바일은 스크롤 (min-h-0 필수: flex 자식 overflow 활성화) */}
-        <div className="px-4 sm:px-6 py-3 sm:py-5 space-y-3 sm:space-y-5 overflow-y-auto flex-1 min-h-0" style={{ background: "#141A24" }}>
+        {/* Body — 스크롤, overscroll 제어, 키보드시 input 자동 스크롤 */}
+        <div
+          className="px-4 sm:px-6 py-3 sm:py-5 space-y-3 sm:space-y-5 overflow-y-auto flex-1 min-h-0"
+          style={{ background: "#141A24", overscrollBehavior: 'contain', WebkitOverflowScrolling: 'touch' }}
+        >
 
-          {/* Table Name */}
+          {/* Table Name — input font-size 16px (iOS zoom 회피) + 터치 44px */}
           <div>
-            <label className="text-[11px] text-[#8899AB] uppercase tracking-wider mb-1.5 block">테이블 이름</label>
-            <Input placeholder="예: VIP 라운지" value={roomName}
+            <label className="text-[11px] text-[#8899AB] uppercase tracking-wider mb-1.5 block">{t('createRoom.roomName')}</label>
+            <Input placeholder={t('createRoom.namePlaceholder')} value={roomName}
               onChange={e => setRoomName(e.target.value)}
-              className="bg-[#0B1018] border-[#1A2235] focus:border-[#FF6B35] h-11 text-sm" />
+              onFocus={e => setTimeout(() => e.target.scrollIntoView({ block: 'center', behavior: 'smooth' }), 250)}
+              className="bg-[#0B1018] border-[#1A2235] focus:border-[#FF6B35] h-11"
+              style={{ fontSize: '16px' }}
+            />
           </div>
 
           {/* Blinds — 모바일 가로 스크롤, 데스크탑 균등 분할 */}
           <div>
-            <label className="text-[11px] text-[#8899AB] uppercase tracking-wider mb-2 block">블라인드</label>
+            <label className="text-[11px] text-[#8899AB] uppercase tracking-wider mb-2 block">{t('createRoom.blinds')}</label>
             <div className="flex gap-1.5 overflow-x-auto pb-1 -mx-1 px-1" style={{ scrollbarWidth: 'none' }}>
               {blindPresets.map((p, i) => (
                 <button key={i} onClick={() => setBlindIdx(i)}
-                  className="shrink-0 min-w-[72px] py-2 rounded-lg text-center transition-all"
+                  className="shrink-0 min-w-[76px] min-h-[48px] py-2.5 rounded-lg text-center transition-all flex flex-col items-center justify-center"
                   style={{
                     background: blindIdx === i ? `${p.color}12` : "rgba(255,255,255,0.02)",
                     border: blindIdx === i ? `1px solid ${p.color}30` : "1px solid rgba(255,255,255,0.04)",
@@ -139,7 +140,7 @@ export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModal
 
           {/* Max Players */}
           <div>
-            <label className="text-[11px] text-[#8899AB] uppercase tracking-wider mb-2 block">인원</label>
+            <label className="text-[11px] text-[#8899AB] uppercase tracking-wider mb-2 block">{t('createRoom.maxPlayers')}</label>
             <div className="flex gap-2">
               {[
                 { n: 2, label: "Heads-Up", icon: Zap },
@@ -147,7 +148,7 @@ export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModal
                 { n: 9, label: "Full Ring", icon: Crown },
               ].map(opt => (
                 <button key={opt.n} onClick={() => setMaxPlayers(opt.n)}
-                  className="flex-1 py-2.5 rounded-lg flex flex-col items-center gap-0.5 transition-all"
+                  className="flex-1 min-h-[60px] py-2.5 rounded-lg flex flex-col items-center justify-center gap-0.5 transition-all"
                   style={{
                     background: maxPlayers === opt.n ? "rgba(255,107,53,0.08)" : "rgba(255,255,255,0.02)",
                     border: maxPlayers === opt.n ? "1px solid rgba(255,107,53,0.2)" : "1px solid rgba(255,255,255,0.04)",
@@ -163,8 +164,8 @@ export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModal
           {/* Buy-in Info */}
           <div className="p-3 rounded-lg" style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)" }}>
             <div className="flex items-center justify-between mb-1">
-              <span className="text-[10px] text-[#8899AB]">바이인 범위</span>
-              <span className="text-[9px] text-[#6B7A90]">자동: 20BB ~ 100BB</span>
+              <span className="text-[10px] text-[#8899AB]">{t('createRoom.buyIn')}</span>
+              <span className="text-[9px] text-[#6B7A90]">{t('createRoom.buyInAuto')}</span>
             </div>
             <div className="flex items-center justify-between">
               <span className="font-mono text-xs text-[#8899AB]">{getSymbol()}{minBuyIn.toLocaleString()}</span>
@@ -173,92 +174,54 @@ export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModal
             </div>
           </div>
 
-          {/* Password */}
+          {/* V22: 비공개 방 — 비밀번호 제거, 방 코드 공유로 제어 */}
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="flex items-center gap-1.5 text-[11px] text-[#8899AB]">
-                <Lock className="h-3 w-3" /> 비공개 방
+                <Lock className="h-3 w-3" /> 비공개 방 (방 코드로만 입장)
               </label>
-              <Switch checked={usePassword} onCheckedChange={setUsePassword} />
+              <Switch checked={isPrivate} onCheckedChange={setIsPrivate} />
             </div>
-            <AnimatePresence>
-              {usePassword && (
-                <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }}>
-                  <Input type="password" placeholder="비밀번호 입력" value={password}
-                    onChange={e => setPassword(e.target.value)}
-                    className="bg-[#0B1018] border-[#1A2235] focus:border-[#FF6B35] h-10 text-sm" />
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {isPrivate && (
+              <p className="text-[10px] text-[#6B7A90] leading-relaxed mt-1">
+                ⚙️ 로비 목록에 숨겨집니다. 친구 초대 모달의 <b className="text-[#22D3EE]">방 코드</b>를 받은 사람만 입장 가능합니다.
+              </p>
+            )}
           </div>
 
-          {/* V12: 초대 (방 생성 시에만) — 텔레그램 ID 기반 */}
-          <div>
-            <label className="flex items-center gap-1.5 text-[11px] text-[#8899AB] uppercase tracking-wider mb-2">
-              <UserPlus className="h-3 w-3" /> 텔레그램 초대 (선택 · 최대 8명)
-            </label>
-            <div className="flex gap-2 mb-2">
-              <Input
-                placeholder="@telegram_username"
-                value={inviteInput}
-                onChange={e => setInviteInput(e.target.value)}
-                onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addInvite(); } }}
-                autoComplete="off"
-                autoCapitalize="off"
-                autoCorrect="off"
-                spellCheck={false}
-                name="invite-telegram-id"
-                inputMode="text"
-                className="bg-[#0B1018] border-[#1A2235] focus:border-[#FF6B35] h-10 text-sm"
-              />
-              <button
-                onClick={addInvite}
-                disabled={!inviteInput.trim() || invites.length >= 8}
-                className="px-3 rounded-lg text-[11px] font-bold text-white disabled:opacity-30"
-                style={{ background: 'linear-gradient(135deg, #0088CC, #0066AA)' }}
-                title="텔레그램 알림 전송"
-              >
-                추가
-              </button>
+          {/* V22: 텔레그램 초대는 방 생성 후 "친구 초대" 모달에서 직접 입력·전송 */}
+          <div className="rounded-lg px-3 py-2.5" style={{ background: 'rgba(34,211,238,0.06)', border: '1px solid rgba(34,211,238,0.15)' }}>
+            <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#22D3EE] mb-1">
+              <UserPlus className="h-3 w-3" /> 친구 초대
             </div>
-            {invites.length > 0 && (
-              <div className="flex flex-wrap gap-1.5">
-                {invites.map(n => (
-                  <span key={n} className="inline-flex items-center gap-1 px-2 py-1 rounded-full text-[10px] font-semibold"
-                    style={{ background: 'rgba(34,211,238,0.12)', border: '1px solid rgba(34,211,238,0.3)', color: '#22D3EE' }}>
-                    {n}
-                    <button onClick={() => removeInvite(n)} className="hover:text-white">
-                      <XIcon className="w-2.5 h-2.5" />
-                    </button>
-                  </span>
-                ))}
-              </div>
-            )}
-            <p className="text-[9px] text-[#6B7A90] mt-1.5">
-              ⚠️ 텔레그램 봇이 @username 으로 방 링크를 DM 발송합니다
-              <br />
-              ⚠️ 초대는 방 생성 시에만 가능합니다
+            <p className="text-[10px] text-[#8899AB] leading-relaxed">
+              방 생성 후 자동으로 열리는 <b className="text-[#22D3EE]">"친구 초대"</b> 모달에서 방 코드 복사 + 텔레그램 자동 전송 가능.
             </p>
           </div>
         </div>
 
-        {/* Footer */}
-        <div className="flex gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-5 pb-4 sm:pb-5 shrink-0 border-t border-white/[0.05]" style={{ background: "#141A24" }}>
+        {/* Footer — 안전영역 하단 패딩 + 터치타겟 48px */}
+        <div
+          className="flex gap-2 sm:gap-3 px-4 sm:px-6 pt-3 sm:pt-4 shrink-0 border-t border-white/[0.05]"
+          style={{
+            background: "#141A24",
+            paddingBottom: 'max(16px, calc(env(safe-area-inset-bottom, 0px) + 12px))',
+          }}>
           <button onClick={onClose}
-            className="flex-1 py-2.5 rounded-lg text-[13px] font-semibold text-[#6B7A90]
+            className="flex-1 min-h-[48px] py-3 rounded-lg text-[14px] font-semibold text-[#6B7A90]
               bg-white/[0.03] border border-white/[0.06] hover:bg-white/[0.06] hover:text-white transition-all">
-            취소
+            {t('common.cancel')}
           </button>
           <button onClick={handleCreate}
             disabled={!roomName.trim()}
-            className="flex-1 py-2.5 rounded-lg text-[13px] font-bold text-white relative overflow-hidden group
+            className="flex-1 min-h-[48px] py-3 rounded-lg text-[14px] font-bold text-white relative overflow-hidden group
               disabled:opacity-30 disabled:cursor-not-allowed"
             style={{
               background: roomName.trim() ? "linear-gradient(135deg, #FF6B35, #E85D2C)" : "#2A3040",
               boxShadow: roomName.trim() ? "0 4px 15px rgba(255,107,53,0.25)" : "none",
             }}>
             <span className="relative z-10 flex items-center justify-center gap-1.5">
-              <Zap className="h-3.5 w-3.5" /> 테이블 생성
+              <Zap className="h-3.5 w-3.5" /> {t('createRoom.create')}
             </span>
             {roomName.trim() && (
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent

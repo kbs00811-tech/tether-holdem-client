@@ -1005,16 +1005,19 @@ export default function GameTable() {
           )}
         </div>
 
-        {/* Stage */}
-        <div className="flex gap-0.5 sm:gap-1 rounded-lg p-1" style={{ background: "rgba(0,0,0,0.4)" }}>
+        {/* Stage — V22 Phase 2+: 모바일 점 4개 (압축), sm+ 풀 PFTR */}
+        <div className="flex gap-0.5 sm:gap-1 rounded-lg p-1 shrink-0" style={{ background: "rgba(0,0,0,0.4)" }}>
           {["P","F","T","R"].map((l,i) => {
             const active = i <= getStageIndex();
             const current = i === getStageIndex();
             return (
               <div key={l} className="relative">
-                <div className="w-6 h-5 sm:w-9 sm:h-7 md:w-10 md:h-8 flex items-center justify-center rounded text-[9px] sm:text-[11px] md:text-xs font-bold"
+                {/* 모바일: 작은 점 / 데스크탑: 글자 */}
+                <div className="hidden sm:flex w-9 h-7 md:w-10 md:h-8 items-center justify-center rounded text-[11px] md:text-xs font-bold"
                   style={{ background: active ? "rgba(52,211,153,0.18)" : "transparent", color: active ? "#34D399" : "#2A3545" }}>{l}</div>
-                {current && <motion.div className="absolute -bottom-0.5 left-1/2 w-1.5 h-0.5 rounded-full"
+                <div className="sm:hidden w-2 h-2 rounded-full mx-1 my-1.5"
+                  style={{ background: active ? "#34D399" : "rgba(255,255,255,0.1)" }} />
+                {current && <motion.div className="hidden sm:block absolute -bottom-0.5 left-1/2 w-1.5 h-0.5 rounded-full"
                   style={{ background: "#34D399", transform: "translateX(-50%)" }} layoutId="stage-dot" />}
               </div>
             );
@@ -3186,7 +3189,19 @@ export default function GameTable() {
                     <span style={{ fontSize: 12 }}>💬</span>
                   </button>
                   <div className="flex-1" />
-                  <button
+                  {/* V22 Phase 2+: Top Up 버튼 — 크게 + 시인성 강화 (Tara/Luke 권고)
+                      이전: text-[11px] px-3 py-1 (너무 작아 자주 놓침)
+                      현재: text-[13px] px-4 py-2.5 + 골드/그린 강조 + 좌측 화살표 (탑업 = 위로) */}
+                  <motion.button
+                    whileTap={{ scale: 0.94 }}
+                    animate={{
+                      boxShadow: [
+                        "0 2px 8px rgba(52,211,153,0.15)",
+                        "0 4px 16px rgba(52,211,153,0.45)",
+                        "0 2px 8px rgba(52,211,153,0.15)",
+                      ],
+                    }}
+                    transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
                     onClick={() => {
                       const inHand = phase !== "WAITING" && phase !== "RESULT";
                       if (inHand) {
@@ -3194,17 +3209,17 @@ export default function GameTable() {
                       }
                       setShowTopUpModal(true);
                     }}
-                    className="px-3 py-1 rounded-lg text-[11px] font-black flex items-center gap-1 active:scale-95"
+                    className="px-4 py-2.5 rounded-xl text-[13px] font-black flex items-center gap-1.5"
                     style={{
-                      background: "linear-gradient(180deg, rgba(52,211,153,0.18), rgba(52,211,153,0.08))",
-                      color: "#34D399",
-                      border: "1px solid rgba(52,211,153,0.35)",
-                      boxShadow: "0 2px 8px rgba(52,211,153,0.15)",
+                      background: "linear-gradient(135deg, #1F8A5A 0%, #34D399 100%)",
+                      color: "#FFFFFF",
+                      border: "1px solid rgba(52,211,153,0.6)",
+                      minHeight: 44, // touch target
                     }}
                   >
-                    <Plus className="h-3 w-3" />
-                    Chips
-                  </button>
+                    <Plus className="h-4 w-4" strokeWidth={3} />
+                    <span className="uppercase tracking-wider">+ 칩</span>
+                  </motion.button>
                 </div>
               )}
 

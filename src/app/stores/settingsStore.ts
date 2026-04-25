@@ -267,13 +267,24 @@ export const CARD_SKINS = {
   3: { name: "Neon", spades: "#A78BFA", hearts: "#FF6B35", diamonds: "#26A17B", clubs: "#FFD700" },
 };
 
-// Table felt — V22 단일 다크 톤 (프로 포커 앱 스타일, 색상 선택지 제거)
-// 카드/칩·베팅 UI 가시성 최대화가 목적. 사용자가 felt 색상을 선택할 수 없도록 UI 도 제거됨.
+// Table felt — V22 Phase 2+ (2026-04-25): 사용자 요청으로 3색 picker 복구
+// 1=Emerald (default, 클래식 카지노), 2=Navy (눈편함), 3=Crimson (대담)
+// 카드/칩 가시성 유지 위해 모두 다크 톤 + 중앙 radial gradient 패턴 유지
 export const TABLE_FELTS = {
   1: {
     name: "Emerald Pro",
     primary: "#1E8A5C",
     gradient: "radial-gradient(ellipse at 50% 40%, #1E8A5C 0%, #13613F 55%, #0A3A25 100%)",
+  },
+  2: {
+    name: "Midnight Navy",
+    primary: "#1E5A8A",
+    gradient: "radial-gradient(ellipse at 50% 40%, #1E5A8A 0%, #143E61 55%, #0A2438 100%)",
+  },
+  3: {
+    name: "Crimson Royale",
+    primary: "#8A1E2F",
+    gradient: "radial-gradient(ellipse at 50% 40%, #8A1E2F 0%, #611420 55%, #380A14 100%)",
   },
 };
 

@@ -4,7 +4,8 @@ import { Switch } from "./ui/switch";
 import { motion } from "motion/react";
 import { Volume2, Music, Sparkles, Check } from "lucide-react";
 import { setMuted } from "../hooks/useSound";
-import { useSettingsStore, AVATAR_IMAGES, AVATAR_NAMES, CARD_SKINS, COUNTRIES } from "../stores/settingsStore";
+import { useSettingsStore, AVATAR_IMAGES, AVATAR_NAMES, CARD_SKINS, TABLE_FELTS } from "../stores/settingsStore";
+import { CountryPicker } from "./CountryPicker";
 import { useGameStore } from "../stores/gameStore";
 import { wsSend } from "../hooks/useSocket";
 
@@ -21,8 +22,8 @@ const cardSkinList = [
 
 export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const {
-    avatar, cardSkin, soundEnabled, musicEnabled, cardAnimations, runItMode, nickname, countryCode,
-    setAvatar, setCardSkin, setSoundEnabled, setMusicEnabled, setCardAnimations, setRunItMode, setNickname, setCountryCode,
+    avatar, cardSkin, soundEnabled, musicEnabled, cardAnimations, runItMode, nickname, countryCode, tableFelt,
+    setAvatar, setCardSkin, setSoundEnabled, setMusicEnabled, setCardAnimations, setRunItMode, setNickname, setCountryCode, setTableFelt,
   } = useSettingsStore();
 
   // V3 P2C1: 로컬 input state — 타이핑 중엔 store 동기화 하지 않고, blur/Enter 에서 저장
@@ -179,39 +180,32 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
             </div>
           </div>
 
-          {/* ═══ Country / 국가 (V22 hotfix: Avatar 바로 아래로 이동 — 정체성 설정 그룹화) ═══ */}
+          {/* ═══ Country / 국가 (CountryPicker 컴포넌트 — ProfilePanel 과 공유) ═══ */}
+          <CountryPicker
+            value={countryCode}
+            onChange={setCountryCode}
+            label={<>Country <span className="text-[#4A5A70] normal-case tracking-normal">· 국가 (선택, 내 아바타 옆 국기)</span></>}
+          />
+
+          {/* ═══ Table Felt — V22 Phase 2+ 3색 picker 복구 ═══ */}
           <div>
             <h3 className="text-xs font-bold text-white mb-3 uppercase tracking-wider">
-              Country <span className="text-[#4A5A70] normal-case tracking-normal">· 국가 (선택, 내 아바타 옆 국기)</span>
+              Table Felt <span className="text-[#4A5A70] normal-case tracking-normal">· 테이블 색상</span>
             </h3>
-            <div className="grid grid-cols-6 gap-2 max-h-[200px] overflow-y-auto p-1">
-              {/* None (미선택) */}
-              <button
-                onClick={() => setCountryCode(null)}
-                className="flex flex-col items-center gap-1 py-2 rounded-lg transition-all"
-                title="None"
-                aria-label="국가 미선택"
-                style={{
-                  background: countryCode === null ? "rgba(255,107,53,0.15)" : "rgba(255,255,255,0.02)",
-                  border: countryCode === null ? "2px solid #FF6B35" : "2px solid transparent",
-                }}>
-                <span className="text-xl leading-none">🌍</span>
-                <span className="text-[9px] font-bold text-[#6B7A90]">None</span>
-              </button>
-              {COUNTRIES.map(c => {
-                const label = c.nameLocal ? `${c.name} (${c.nameLocal})` : c.name;
+            <div className="grid grid-cols-3 gap-2">
+              {Object.entries(TABLE_FELTS).map(([id, felt]) => {
+                const idNum = Number(id);
+                const selected = tableFelt === idNum;
                 return (
-                  <button key={c.code}
-                    onClick={() => setCountryCode(c.code)}
-                    className="flex flex-col items-center gap-1 py-2 rounded-lg transition-all"
-                    title={label}
-                    aria-label={label}
+                  <button key={id} onClick={() => setTableFelt(idNum)}
+                    className="p-3 rounded-xl text-center transition-all no-touch-min"
                     style={{
-                      background: countryCode === c.code ? "rgba(255,107,53,0.15)" : "rgba(255,255,255,0.02)",
-                      border: countryCode === c.code ? "2px solid #FF6B35" : "2px solid transparent",
+                      background: selected ? "rgba(255,107,53,0.08)" : "rgba(255,255,255,0.02)",
+                      border: selected ? "1px solid rgba(255,107,53,0.35)" : "1px solid rgba(255,255,255,0.04)",
                     }}>
-                    <span className="text-xl leading-none">{c.flag}</span>
-                    <span className="text-[9px] font-bold" style={{ color: countryCode === c.code ? "#FF6B35" : "#6B7A90" }}>{c.code}</span>
+                    {/* 펠트 미니 프리뷰 */}
+                    <div className="h-10 rounded-lg mb-2" style={{ background: felt.gradient, border: "1px solid rgba(255,255,255,0.1)" }} />
+                    <div className="text-[11px] font-bold" style={{ color: selected ? "#FF6B35" : "#6B7A90" }}>{felt.name}</div>
                   </button>
                 );
               })}
