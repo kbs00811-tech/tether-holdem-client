@@ -3444,7 +3444,20 @@ export default function GameTable() {
         // 방 정보가 아직 안 도착했으면 modal 안 띄움 (잘못된 값으로 SIT 방지)
         if (!cfgMinCents || !cfgMaxCents || !cfgBbCents) {
           if (showBuyInModal) {
-            console.warn('[BuyIn] Room info incomplete — refusing to open modal', { cfgMinCents, cfgMaxCents, cfgBbCents });
+            console.warn('[BuyIn] Room info incomplete — closing modal', { cfgMinCents, cfgMaxCents, cfgBbCents });
+            toast.error('방 정보 로딩 중... 잠시 후 다시 시도해주세요');
+            setShowBuyInModal(false);
+          }
+          return null;
+        }
+
+        // ★ V22 Phase 2+ V2.7: 비현실적인 buyIn 값 sanity check
+        // Beginner 룸도 minBuyIn = bb*20 = 50K*20 = 1M cents = ₩10K. 100K cents 미만 = 의심.
+        if (cfgMinCents < 100_000) {
+          if (showBuyInModal) {
+            console.error('[BuyIn] minBuyIn suspiciously small — likely unit mismatch', { cfgMinCents });
+            toast.error('방 설정 오류 — 다시 시도해주세요');
+            setShowBuyInModal(false);
           }
           return null;
         }
