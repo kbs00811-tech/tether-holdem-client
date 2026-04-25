@@ -152,7 +152,7 @@ export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModal
             </div>
             {gameType === 'PLO' && (
               <div className="mt-1.5 text-[10px] text-[#FBBF24]">
-                ℹ️ PLO 는 hole 4장 + Pot Limit 베팅 (V22 Phase 2+, PLO50 reg 봇 지원)
+                ℹ️ PLO 는 hole 4장 + Pot Limit 베팅
               </div>
             )}
           </div>
