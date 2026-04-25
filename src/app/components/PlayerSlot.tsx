@@ -197,8 +197,8 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, turnDeadline
                 };
               })()),
             }}>
-            {/* V3 P2C: 쇼다운 시 shownCards 가 있으면 face-up, 아니면 face-down */}
-            {shownCards && shownCards.length === 2 ? (
+            {/* V3 P2C + V22 Phase 2+ V2.7: 쇼다운 시 shownCards face-up (NLHE 2장 / PLO 4장 자동 분기) */}
+            {shownCards && shownCards.length >= 2 ? (
               <motion.div
                 key={`shown-${player.name}`}
                 initial={{ opacity: 0, rotateY: 180, scale: 0.8 }}
@@ -213,18 +213,35 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, turnDeadline
                   } : {}),
                 }}
               >
-                <div style={{
-                  transform: "rotate(-6deg) translateX(1px)",
-                  ...(isWinner ? { border: '2px solid rgba(255,215,0,0.5)', borderRadius: 6 } : {}),
-                }}>
-                  <PokerCard suit={shownCards[0]!.suit} rank={shownCards[0]!.rank as any} size={isLargeDesktop ? "lg" : isDesktop ? "md" : "xs"} />
-                </div>
-                <div style={{
-                  transform: "rotate(6deg) translateX(-1px)", marginLeft: isLargeDesktop ? -10 : isDesktop ? -7 : -4,
-                  ...(isWinner ? { border: '2px solid rgba(255,215,0,0.5)', borderRadius: 6 } : {}),
-                }}>
-                  <PokerCard suit={shownCards[1]!.suit} rank={shownCards[1]!.rank as any} size={isLargeDesktop ? "lg" : isDesktop ? "md" : "xs"} />
-                </div>
+                {shownCards.length === 2 ? (
+                  // NLHE 2장: 기존 V 자 펼침
+                  <>
+                    <div style={{
+                      transform: "rotate(-6deg) translateX(1px)",
+                      ...(isWinner ? { border: '2px solid rgba(255,215,0,0.5)', borderRadius: 6 } : {}),
+                    }}>
+                      <PokerCard suit={shownCards[0]!.suit} rank={shownCards[0]!.rank as any} size={isLargeDesktop ? "lg" : isDesktop ? "md" : "xs"} />
+                    </div>
+                    <div style={{
+                      transform: "rotate(6deg) translateX(-1px)", marginLeft: isLargeDesktop ? -10 : isDesktop ? -7 : -4,
+                      ...(isWinner ? { border: '2px solid rgba(255,215,0,0.5)', borderRadius: 6 } : {}),
+                    }}>
+                      <PokerCard suit={shownCards[1]!.suit} rank={shownCards[1]!.rank as any} size={isLargeDesktop ? "lg" : isDesktop ? "md" : "xs"} />
+                    </div>
+                  </>
+                ) : (
+                  // PLO 4장: 가로 일렬 (overlap 으로 폭 절약)
+                  <div style={{ display: 'flex', gap: -4 }}>
+                    {shownCards.slice(0, 4).map((c, i) => (
+                      <div key={`shown-plo-${i}`} style={{
+                        marginLeft: i === 0 ? 0 : (isLargeDesktop ? -16 : isDesktop ? -12 : -8),
+                        ...(isWinner ? { border: '2px solid rgba(255,215,0,0.5)', borderRadius: 6 } : {}),
+                      }}>
+                        <PokerCard suit={c.suit} rank={c.rank as any} size={isDesktop ? "sm" : "xs"} />
+                      </div>
+                    ))}
+                  </div>
+                )}
               </motion.div>
             ) : (
               <div className="flex" style={{ gap: 0 }}>

@@ -2986,14 +2986,12 @@ export default function GameTable() {
               card2={{ suit: myHoleCards[1]!.suit as any, rank: myHoleCards[1]!.rank as any }}
             />
           )}
-          {/* GG포커 스타일 — 현재 족보 표시 */}
+          {/* GG포커 스타일 — 현재 족보 표시 (V22 Phase 2+ V2.7: PLO 면 4장 모두 전달) */}
           {(() => {
             const cc = communityCards?.map((c: any) => ({ suit: c.suit, rank: c.rank })) ?? [];
-            const hand = evaluateHeroHand(
-              [{ suit: myHoleCards[0]!.suit, rank: myHoleCards[0]!.rank },
-               { suit: myHoleCards[1]!.suit, rank: myHoleCards[1]!.rank }],
-              cc
-            );
+            // PLO (hole 4장) 또는 NLHE (hole 2장) 자동 분기
+            const heroCards = myHoleCards.map(c => ({ suit: c.suit, rank: c.rank }));
+            const hand = evaluateHeroHand(heroCards, cc);
             if (!hand) return null;
             const colors = {
               weak: { bg: 'rgba(100,116,139,0.25)', border: 'rgba(100,116,139,0.4)', text: '#94A3B8' },
