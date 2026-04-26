@@ -7,7 +7,8 @@
  * - 백그라운드 동기화
  */
 
-const CACHE_NAME = 'holdem-v44';
+// Beta-G Day 4 (2026-04-26): 글로벌 베타 출시 — 강제 캐시 갱신
+const CACHE_NAME = 'holdem-v45';
 const STATIC_ASSETS = [
   '/',
   '/manifest.json',
