@@ -8,6 +8,7 @@ import { useSettingsStore, AVATAR_IMAGES, AVATAR_NAMES, CARD_SKINS, TABLE_FELTS 
 import { CountryPicker } from "./CountryPicker";
 import { useGameStore } from "../stores/gameStore";
 import { wsSend } from "../hooks/useSocket";
+import { useT } from "../../i18n";
 
 interface SettingsModalProps {
   open: boolean;
@@ -21,6 +22,7 @@ const cardSkinList = [
 ];
 
 export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
+  const t = useT();
   const {
     avatar, cardSkin, soundEnabled, musicEnabled, cardAnimations, runItMode, nickname, countryCode, tableFelt,
     setAvatar, setCardSkin, setSoundEnabled, setMusicEnabled, setCardAnimations, setRunItMode, setNickname, setCountryCode, setTableFelt,
@@ -76,7 +78,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                 onChange={(e) => setNickDraft(e.target.value)}
                 onBlur={commitNick}
                 onKeyDown={(e) => { if (e.key === 'Enter') { commitNick(); (e.currentTarget as HTMLInputElement).blur(); } }}
-                placeholder="2~16자 (한글/영어/숫자)"
+                placeholder={t('settings.nicknamePlaceholder')}
                 maxLength={16}
                 className="flex-1 px-3 py-2 rounded-lg text-sm text-white outline-none"
                 style={{
@@ -97,7 +99,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
               </button>
             </div>
             <p className="text-[9px] text-[#5A6A7E] mt-1.5 leading-tight">
-              한글, 영어, 숫자, 공백, 점/밑줄/하이픈 허용 · 2~16자 · 저장 시 즉시 반영
+              {t('settings.nicknameHelper')}
             </p>
           </div>
 
@@ -105,8 +107,8 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
           {ownerRakeback && (ownerRakeback.totalEarned > 0 || ownerRakeback.pending > 0) && (
             <div>
               <h3 className="text-xs font-bold text-white mb-2 uppercase tracking-wider flex items-center gap-1.5">
-                <span>👑</span> 방장 Rakeback
-                <span className="text-[9px] font-normal text-[#4A5A70] ml-1">({ownerRakeback.percent}% 자동 적립)</span>
+                <span>👑</span> {t('settings.ownerRakeback.title')}
+                <span className="text-[9px] font-normal text-[#4A5A70] ml-1">{t('settings.ownerRakeback.autoEarn', { percent: ownerRakeback.percent })}</span>
               </h3>
               <div className="p-3 rounded-xl space-y-2.5"
                 style={{
@@ -115,19 +117,19 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                 }}>
                 <div className="grid grid-cols-3 gap-2">
                   <div className="p-2 rounded-lg text-center" style={{ background: "rgba(0,0,0,0.3)" }}>
-                    <div className="text-[8px] text-[#6B7A90] uppercase tracking-wider">미청구</div>
+                    <div className="text-[8px] text-[#6B7A90] uppercase tracking-wider">{t('settings.ownerRakeback.pending')}</div>
                     <div className="text-[14px] font-mono font-black text-[#FBBF24]">
                       ₩{Math.floor(ownerRakeback.pending / 100).toLocaleString()}
                     </div>
                   </div>
                   <div className="p-2 rounded-lg text-center" style={{ background: "rgba(0,0,0,0.25)" }}>
-                    <div className="text-[8px] text-[#6B7A90] uppercase tracking-wider">청구 완료</div>
+                    <div className="text-[8px] text-[#6B7A90] uppercase tracking-wider">{t('settings.ownerRakeback.claimed')}</div>
                     <div className="text-[12px] font-mono font-bold text-[#8899AB]">
                       ₩{Math.floor(ownerRakeback.claimed / 100).toLocaleString()}
                     </div>
                   </div>
                   <div className="p-2 rounded-lg text-center" style={{ background: "rgba(0,0,0,0.25)" }}>
-                    <div className="text-[8px] text-[#6B7A90] uppercase tracking-wider">총 적립</div>
+                    <div className="text-[8px] text-[#6B7A90] uppercase tracking-wider">{t('settings.ownerRakeback.total')}</div>
                     <div className="text-[12px] font-mono font-bold text-[#34D399]">
                       ₩{Math.floor(ownerRakeback.totalEarned / 100).toLocaleString()}
                     </div>
@@ -145,10 +147,10 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                     boxShadow: ownerRakeback.pending >= 100000 ? "0 4px 14px rgba(251,191,36,0.3)" : "none",
                   }}
                 >
-                  💰 지갑으로 청구 {ownerRakeback.pending < 100000 && `(최소 ₩1,000 필요)`}
+                  {t('settings.ownerRakeback.claim')} {ownerRakeback.pending < 100000 && t('settings.ownerRakeback.claimMin')}
                 </button>
                 <p className="text-[9px] text-[#5A6A7E] text-center leading-tight">
-                  내가 만든 방에서 발생한 레이크의 {ownerRakeback.percent}% 가 자동 적립됩니다
+                  {t('settings.ownerRakeback.helper', { percent: ownerRakeback.percent })}
                 </p>
               </div>
             </div>
@@ -184,13 +186,13 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
           <CountryPicker
             value={countryCode}
             onChange={setCountryCode}
-            label={<>Country <span className="text-[#4A5A70] normal-case tracking-normal">· 국가 (선택, 내 아바타 옆 국기)</span></>}
+            label={<>{t('settings.country')} <span className="text-[#4A5A70] normal-case tracking-normal">{t('settings.countrySub')}</span></>}
           />
 
           {/* ═══ Table Felt — V22 Phase 2+ 3색 picker 복구 ═══ */}
           <div>
             <h3 className="text-xs font-bold text-white mb-3 uppercase tracking-wider">
-              Table Felt <span className="text-[#4A5A70] normal-case tracking-normal">· 테이블 색상</span>
+              {t('settings.tableFelt')} <span className="text-[#4A5A70] normal-case tracking-normal">{t('settings.tableFeltSub')}</span>
             </h3>
             <div className="grid grid-cols-3 gap-2">
               {Object.entries(TABLE_FELTS).map(([id, felt]) => {
@@ -270,7 +272,7 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                 <div className="flex items-center gap-2 mb-2">
                   <Sparkles className="h-4 w-4 text-[#FBBF24]" />
                   <span className="text-xs text-[#8899AB]">Run It Twice</span>
-                  <span className="ml-auto text-[9px] text-[#4A5A70] uppercase tracking-wider">올인 시 보드 N회</span>
+                  <span className="ml-auto text-[9px] text-[#4A5A70] uppercase tracking-wider">{t('settings.runItOnAllIn')}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-1.5">
                   {(['off', 'twice', 'thrice'] as const).map(m => (

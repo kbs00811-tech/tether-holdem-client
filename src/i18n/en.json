@@ -175,7 +175,11 @@
     "telegramBotNotice": "Telegram bot will DM the room link to @username",
     "inviteOnlyOnCreate": "Invites are only available when creating a room",
     "buyInAuto": "Auto: 20BB ~ 100BB",
-    "telegramIdFormat": "Telegram ID format: @username (5-32 chars, alphanumeric/_)"
+    "telegramIdFormat": "Telegram ID format: @username (5-32 chars, alphanumeric/_)",
+    "privateLabel": "Private Room (entry by code only)",
+    "privateHelper": "⚙️ Hidden from the lobby list. Only people with the <b>room code</b> from the invite modal can enter.",
+    "inviteFriendsLabel": "Invite Friends",
+    "inviteFriendsHelper": "After creating, the <b>\"Invite Friends\"</b> modal opens automatically — copy the room code and share via Telegram."
   },
   "buyInModal": {
     "title": "Buy In",
@@ -210,7 +214,24 @@
     "lobbyMusic": "Lobby Music",
     "volume": "Volume",
     "language": "Language",
-    "theme": "Theme"
+    "theme": "Theme",
+    "nicknamePlaceholder": "2-16 chars (Korean/English/digits)",
+    "nicknameHelper": "Korean, English, digits, space, dot/underscore/hyphen allowed · 2-16 chars · saved instantly",
+    "ownerRakeback": {
+      "title": "Owner Rakeback",
+      "autoEarn": "({percent}% auto-credited)",
+      "pending": "Pending",
+      "claimed": "Claimed",
+      "total": "Total Earned",
+      "claim": "💰 Claim to Wallet",
+      "claimMin": "(min ₩1,000 required)",
+      "helper": "{percent}% of rake from rooms you created is auto-credited"
+    },
+    "country": "Country",
+    "countrySub": "(optional, flag next to your avatar)",
+    "tableFelt": "Table Felt",
+    "tableFeltSub": "(table color)",
+    "runItOnAllIn": "Boards on All-in"
   },
   "chat": {
     "title": "Chat",

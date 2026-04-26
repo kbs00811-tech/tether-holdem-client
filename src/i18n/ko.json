@@ -175,7 +175,11 @@
     "telegramBotNotice": "텔레그램 봇이 @username 으로 방 링크를 DM 발송합니다",
     "inviteOnlyOnCreate": "초대는 방 생성 시에만 가능합니다",
     "buyInAuto": "자동: 20BB ~ 100BB",
-    "telegramIdFormat": "Telegram ID 형식: @username (5~32자 영숫자/_)"
+    "telegramIdFormat": "Telegram ID 형식: @username (5~32자 영숫자/_)",
+    "privateLabel": "비공개 방 (방 코드로만 입장)",
+    "privateHelper": "⚙️ 로비 목록에 숨겨집니다. 친구 초대 모달의 <b>방 코드</b>를 받은 사람만 입장 가능합니다.",
+    "inviteFriendsLabel": "친구 초대",
+    "inviteFriendsHelper": "방 생성 후 자동으로 열리는 <b>\"친구 초대\"</b> 모달에서 방 코드 복사 + 텔레그램 자동 전송 가능."
   },
   "buyInModal": {
     "title": "바이인",
@@ -210,7 +214,24 @@
     "lobbyMusic": "로비 음악",
     "volume": "볼륨",
     "language": "언어",
-    "theme": "테마"
+    "theme": "테마",
+    "nicknamePlaceholder": "2~16자 (한글/영어/숫자)",
+    "nicknameHelper": "한글, 영어, 숫자, 공백, 점/밑줄/하이픈 허용 · 2~16자 · 저장 시 즉시 반영",
+    "ownerRakeback": {
+      "title": "방장 Rakeback",
+      "autoEarn": "({percent}% 자동 적립)",
+      "pending": "미청구",
+      "claimed": "청구 완료",
+      "total": "총 적립",
+      "claim": "💰 지갑으로 청구",
+      "claimMin": "(최소 ₩1,000 필요)",
+      "helper": "내가 만든 방에서 발생한 레이크의 {percent}% 가 자동 적립됩니다"
+    },
+    "country": "Country",
+    "countrySub": "· 국가 (선택, 내 아바타 옆 국기)",
+    "tableFelt": "Table Felt",
+    "tableFeltSub": "· 테이블 색상",
+    "runItOnAllIn": "올인 시 보드 N회"
   },
   "chat": {
     "title": "채팅",

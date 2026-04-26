@@ -182,25 +182,25 @@ export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModal
           <div>
             <div className="flex items-center justify-between mb-2">
               <label className="flex items-center gap-1.5 text-[11px] text-[#8899AB]">
-                <Lock className="h-3 w-3" /> 비공개 방 (방 코드로만 입장)
+                <Lock className="h-3 w-3" /> {t('createRoom.privateLabel')}
               </label>
               <Switch checked={isPrivate} onCheckedChange={setIsPrivate} />
             </div>
             {isPrivate && (
-              <p className="text-[10px] text-[#6B7A90] leading-relaxed mt-1">
-                ⚙️ 로비 목록에 숨겨집니다. 친구 초대 모달의 <b className="text-[#22D3EE]">방 코드</b>를 받은 사람만 입장 가능합니다.
-              </p>
+              <p className="text-[10px] text-[#6B7A90] leading-relaxed mt-1"
+                dangerouslySetInnerHTML={{ __html: t('createRoom.privateHelper').replace(/<b>/g, '<b class="text-[#22D3EE]">') }}
+              />
             )}
           </div>
 
           {/* V22: 텔레그램 초대는 방 생성 후 "친구 초대" 모달에서 직접 입력·전송 */}
           <div className="rounded-lg px-3 py-2.5" style={{ background: 'rgba(34,211,238,0.06)', border: '1px solid rgba(34,211,238,0.15)' }}>
             <div className="flex items-center gap-1.5 text-[11px] font-bold text-[#22D3EE] mb-1">
-              <UserPlus className="h-3 w-3" /> 친구 초대
+              <UserPlus className="h-3 w-3" /> {t('createRoom.inviteFriendsLabel')}
             </div>
-            <p className="text-[10px] text-[#8899AB] leading-relaxed">
-              방 생성 후 자동으로 열리는 <b className="text-[#22D3EE]">"친구 초대"</b> 모달에서 방 코드 복사 + 텔레그램 자동 전송 가능.
-            </p>
+            <p className="text-[10px] text-[#8899AB] leading-relaxed"
+              dangerouslySetInnerHTML={{ __html: t('createRoom.inviteFriendsHelper').replace(/<b>/g, '<b class="text-[#22D3EE]">') }}
+            />
           </div>
         </div>
 
