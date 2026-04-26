@@ -18,6 +18,7 @@ import {
   LOBBY_BGM_TRACKS, setLobbyBGMTrack, getLobbyBGMId,
 } from "../hooks/useSound";
 import { useT, useLocale, SUPPORTED_LOCALES, type LocaleCode } from "../../i18n";
+import { getBuyInTier, splitBuyInDisplay } from "../utils/buyInTier";
 
 interface PokerRoom {
   id: string;
@@ -767,8 +768,8 @@ export default function Lobby() {
         {viewMode === 'list' && (
           <div className="rounded-xl overflow-hidden"
             style={{ background: "#141820", border: "1px solid rgba(255,255,255,0.04)" }}>
-            {/* 헤더 */}
-            <div className="grid grid-cols-[1.5fr_0.8fr_0.8fr_0.7fr_0.7fr] gap-2 px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-[#4A5A70]"
+            {/* 헤더 — Beta-G+ : Buy-in 컬럼 0.8fr → 1fr 확장 (전문가 합의) */}
+            <div className="grid grid-cols-[1.4fr_0.8fr_1fr_0.7fr_0.7fr] gap-2 px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-[#4A5A70]"
               style={{ background: "rgba(0,0,0,0.25)", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
               <div>{t('lobby.table.header.table')}</div>
               <div className="text-right">{t('lobby.table.header.blinds')}</div>
@@ -785,7 +786,7 @@ export default function Lobby() {
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }}
                   transition={{ delay: idx * 0.02 }}
                   onClick={() => !isFull && handleJoinTable(room.id)}
-                  className="grid grid-cols-[1.5fr_0.8fr_0.8fr_0.7fr_0.7fr] gap-2 px-3 py-2.5 text-xs items-center cursor-pointer hover:bg-white/[0.03] transition-colors"
+                  className="grid grid-cols-[1.4fr_0.8fr_1fr_0.7fr_0.7fr] gap-2 px-3 py-2.5 text-xs items-center cursor-pointer hover:bg-white/[0.03] transition-colors"
                   style={{ borderBottom: "1px solid rgba(255,255,255,0.02)" }}>
                   <div className="flex items-center gap-2 min-w-0">
                     <div className="w-1 h-8 rounded-full shrink-0"
@@ -806,8 +807,20 @@ export default function Lobby() {
                     <span className="text-[#4A5A70]">/</span>
                     <span className="text-[#34D399]">{formatMoney(room.bigBlind)}</span>
                   </div>
-                  <div className="text-right font-mono text-[#FF6B35] font-bold">
-                    {formatMoney(room.minBuyIn)}
+                  {/* Buy-in — Beta-G+: Pill 배경 + tier 컬러 + 단위 분리 (전문가 합의) */}
+                  <div className="text-right">
+                    {(() => {
+                      const tier = getBuyInTier(room.minBuyIn);
+                      const split = splitBuyInDisplay(room.minBuyIn, '₩');
+                      return (
+                        <span className={`inline-flex items-baseline gap-0.5 px-2.5 py-1 rounded-md tabular-nums ${tier.bgClass} ${tier.ringClass}`}
+                          style={{ color: tier.textColor }}>
+                          <span className="text-[10px] opacity-70">{split.prefix}</span>
+                          <span className="text-[15px] font-extrabold tracking-tight">{split.amount}</span>
+                          {split.suffix && <span className="text-[11px] font-bold opacity-85 ml-0.5">{split.suffix}</span>}
+                        </span>
+                      );
+                    })()}
                   </div>
                   <div className="text-center">
                     <div className="inline-flex items-center gap-1.5">
@@ -884,9 +897,19 @@ export default function Lobby() {
                   </div>
                   <div className="text-right shrink-0">
                     <div className="text-[8px] sm:text-xs text-[#6B7A90] mb-0.5 font-semibold hidden sm:block">Buy-in</div>
-                    <div className="text-[10px] sm:text-xl font-mono font-black text-[#FF6B35]">
-                      {formatMoney(room.minBuyIn)}
-                    </div>
+                    {/* Beta-G+: Pill 배경 + tier 컬러 + 단위 분리 (전문가 합의) */}
+                    {(() => {
+                      const tier = getBuyInTier(room.minBuyIn);
+                      const split = splitBuyInDisplay(room.minBuyIn, '₩');
+                      return (
+                        <span className={`inline-flex items-baseline gap-0.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md tabular-nums ${tier.bgClass} ${tier.ringClass}`}
+                          style={{ color: tier.textColor }}>
+                          <span className="text-[8px] sm:text-[10px] opacity-70">{split.prefix}</span>
+                          <span className="text-[12px] sm:text-[18px] font-extrabold tracking-tight">{split.amount}</span>
+                          {split.suffix && <span className="text-[9px] sm:text-[12px] font-bold opacity-85 ml-0.5">{split.suffix}</span>}
+                        </span>
+                      );
+                    })()}
                   </div>
                 </div>
 
