@@ -46,7 +46,7 @@ const PLANS = [
       'Up to 10,000 registered users',
       '500 concurrent players',
       'Unlimited cash game tables',
-      '4-tier agent system (본사/부본사/총판/매장)',
+      '4-tier agent system (Master / Sub / Distributor / Shop)',
       '60/40 rake share',
       'Tournament mode (MTT/SnG)',
       'Custom branding & domain',

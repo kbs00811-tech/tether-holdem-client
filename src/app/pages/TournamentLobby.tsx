@@ -260,7 +260,7 @@ export default function TournamentLobby() {
 
       {/* ═══ Back Navigation (V22 hotfix) ═══ */}
       <div className="flex items-center px-3 sm:px-5 pt-3">
-        <Link to="/" aria-label="뒤로 가기" className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs text-[#8899AB] hover:text-white hover:bg-white/5 transition-colors">
+        <Link to="/" aria-label={tr('common.back')} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs text-[#8899AB] hover:text-white hover:bg-white/5 transition-colors">
           <ArrowLeft className="h-4 w-4" />
           <span className="font-semibold">{tr('common.back') || 'Back'}</span>
         </Link>
