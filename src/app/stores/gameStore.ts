@@ -663,12 +663,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
         break;
       }
       case 'EXCHANGE_RATES' as any: {
-        // Beta-G+ (2026-04-27): 서버 환율 push (빗썸/CoinGecko)
+        // Beta-G++ (2026-04-27): 글로벌 표준 환율 push (Binance/Kraken/open.er-api)
         const m = msg as any;
-        // dynamic import → store 순환 의존 방지
         import('./rateStore').then(({ useRateStore }) => {
           useRateStore.getState().setRates({
             usdtKrw: m.usdtKrw, usdtUsd: m.usdtUsd, usdtEur: m.usdtEur, usdtJpy: m.usdtJpy,
+            sources: m.sources,
           });
         }).catch(() => {});
         break;

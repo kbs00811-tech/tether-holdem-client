@@ -126,7 +126,7 @@ export function Header() {
               <div className={`w-2 h-2 rounded-full ${connected ? "bg-emerald-400" : "bg-red-500"}`}
                 style={{ boxShadow: connected ? "0 0 6px rgba(52,211,153,0.4)" : "0 0 6px rgba(239,68,68,0.4)" }} />
 
-              {/* USDT 시세 인디케이터 (Beta-G+ 2026-04-27) — 클릭 시 통화 cycle */}
+              {/* USDT 시세 인디케이터 (Beta-G++ 2026-04-27) — 글로벌 표준 소스, 클릭 시 cycle */}
               {(() => {
                 const rates = useRateStore(s => s.rates);
                 const displayCurrency = useRateStore(s => s.displayCurrency);
@@ -141,11 +141,15 @@ export function Header() {
                     case 'USDT': return `(USDT mode)`;
                   }
                 })();
+                // 글로벌 소스 표기 (DevTools/검사 시 한국 거래소 흔적 0)
+                const sourceTitle = rates.sources
+                  ? `USDT peg: ${rates.sources.USDT_PEG}\nFX: ${rates.sources.FX}\nClick to cycle currency`
+                  : `Click to cycle currency · ${isFresh ? 'Live' : 'Cached'}`;
                 return (
                   <button
                     onClick={cycle}
                     className="hidden md:flex items-center gap-1 px-2 py-1 rounded-md text-[9px] font-mono hover:bg-[#26A17B]/15 transition-colors"
-                    title={`Click to cycle currency · ${isFresh ? 'Live' : 'Cached'}`}
+                    title={sourceTitle}
                     style={{
                       background: 'rgba(38,161,123,0.08)',
                       border: '1px solid rgba(38,161,123,0.15)',

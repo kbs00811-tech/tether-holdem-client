@@ -16,10 +16,15 @@ import { create } from 'zustand';
 
 export interface ExchangeRates {
   usdtKrw: number;  // 1 USDT = N KRW
-  usdtUsd: number;  // 1 USDT = N USD (≈1.00)
+  usdtUsd: number;  // 1 USDT = N USD (≈1.00 with peg)
   usdtEur: number;
   usdtJpy: number;
   updatedAt: number;
+  /** 환율 소스 메타 (글로벌 표준 입증용 — DevTools 노출 안전) */
+  sources?: {
+    USDT_PEG: string;  // 예: "Binance/Kraken (2 samples, avg 1.0001)"
+    FX: string;         // 예: "open.er-api.com (US Fed data)"
+  };
 }
 
 /** 사용자 선호 표시 통화 (Beta-G+ 2026-04-27) */
