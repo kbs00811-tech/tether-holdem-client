@@ -810,26 +810,28 @@ export default function Lobby() {
                     <span className="text-[#4A5A70]">/</span>
                     <span className="text-[#34D399]">{formatMoney(room.bigBlind)}</span>
                   </div>
-                  {/* Buy-in — Beta-G+: Pill + Tier 컬러 + 듀얼 표시 (메인 fiat + USDT 보조) */}
+                  {/* Buy-in — Beta-G++: USDT main (settlement asset) + fiat sub (informational) */}
                   <div className="text-right">
                     {(() => {
                       const tier = getBuyInTier(room.minBuyIn);
-                      const hostSplit = splitBuyInDisplay(room.minBuyIn, getSymbol());
-                      // USDT conversion (1 USDT = N display unit, source: global FX rates)
+                      // USDT primary — actual settlement amount
                       const usdtAmount = room.minBuyIn / (usdtKrw || 1400);
-                      const usdtCompact = usdtAmount >= 1000
-                        ? `₮${(usdtAmount / 1000).toFixed(usdtAmount >= 10000 ? 0 : 1)}K`
-                        : usdtAmount >= 100 ? `₮${Math.round(usdtAmount)}`
-                        : `₮${usdtAmount.toFixed(2)}`;
+                      const usdtAmtStr = usdtAmount >= 1000
+                        ? (usdtAmount / 1000).toFixed(usdtAmount >= 10000 ? 0 : 1)
+                        : usdtAmount >= 100 ? String(Math.round(usdtAmount))
+                        : usdtAmount.toFixed(2);
+                      const usdtSuffix = usdtAmount >= 1000 ? 'K' : '';
+                      // Fiat secondary — user's display currency (informational)
+                      const fiatSplit = splitBuyInDisplay(room.minBuyIn, getSymbol());
                       return (
                         <span className={`inline-flex flex-col items-end gap-0 px-2.5 py-1 rounded-md tabular-nums ${tier.bgClass} ${tier.ringClass}`}
                           style={{ color: tier.textColor }}>
                           <span className="inline-flex items-baseline gap-0.5">
-                            <span className="text-[10px] opacity-70">{hostSplit.prefix}</span>
-                            <span className="text-[15px] font-extrabold tracking-tight">{hostSplit.amount}</span>
-                            {hostSplit.suffix && <span className="text-[11px] font-bold opacity-85 ml-0.5">{hostSplit.suffix}</span>}
+                            <span className="text-[10px] opacity-70">₮</span>
+                            <span className="text-[15px] font-extrabold tracking-tight">{usdtAmtStr}</span>
+                            {usdtSuffix && <span className="text-[11px] font-bold opacity-85 ml-0.5">{usdtSuffix}</span>}
                           </span>
-                          <span className="text-[9px] opacity-60 leading-none mt-0.5">{usdtCompact}</span>
+                          <span className="text-[9px] opacity-60 leading-none mt-0.5">≈ {fiatSplit.prefix}{fiatSplit.amount}{fiatSplit.suffix}</span>
                         </span>
                       );
                     })()}
@@ -909,24 +911,25 @@ export default function Lobby() {
                   </div>
                   <div className="text-right shrink-0">
                     <div className="text-[8px] sm:text-xs text-[#6B7A90] mb-0.5 font-semibold hidden sm:block">Buy-in</div>
-                    {/* Beta-G+: Pill + Tier + 듀얼 표시 (fiat 메인 + USDT 보조) */}
+                    {/* Beta-G++: USDT main (settlement asset) + fiat sub (informational) */}
                     {(() => {
                       const tier = getBuyInTier(room.minBuyIn);
-                      const split = splitBuyInDisplay(room.minBuyIn, getSymbol());
                       const usdtAmount = room.minBuyIn / (usdtKrw || 1400);
-                      const usdtCompact = usdtAmount >= 1000
-                        ? `₮${(usdtAmount / 1000).toFixed(usdtAmount >= 10000 ? 0 : 1)}K`
-                        : usdtAmount >= 100 ? `₮${Math.round(usdtAmount)}`
-                        : `₮${usdtAmount.toFixed(2)}`;
+                      const usdtAmtStr = usdtAmount >= 1000
+                        ? (usdtAmount / 1000).toFixed(usdtAmount >= 10000 ? 0 : 1)
+                        : usdtAmount >= 100 ? String(Math.round(usdtAmount))
+                        : usdtAmount.toFixed(2);
+                      const usdtSuffix = usdtAmount >= 1000 ? 'K' : '';
+                      const fiatSplit = splitBuyInDisplay(room.minBuyIn, getSymbol());
                       return (
                         <span className={`inline-flex flex-col items-end gap-0 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md tabular-nums ${tier.bgClass} ${tier.ringClass}`}
                           style={{ color: tier.textColor }}>
                           <span className="inline-flex items-baseline gap-0.5">
-                            <span className="text-[8px] sm:text-[10px] opacity-70">{split.prefix}</span>
-                            <span className="text-[12px] sm:text-[18px] font-extrabold tracking-tight">{split.amount}</span>
-                            {split.suffix && <span className="text-[9px] sm:text-[12px] font-bold opacity-85 ml-0.5">{split.suffix}</span>}
+                            <span className="text-[8px] sm:text-[10px] opacity-70">₮</span>
+                            <span className="text-[12px] sm:text-[18px] font-extrabold tracking-tight">{usdtAmtStr}</span>
+                            {usdtSuffix && <span className="text-[9px] sm:text-[12px] font-bold opacity-85 ml-0.5">{usdtSuffix}</span>}
                           </span>
-                          <span className="text-[7px] sm:text-[10px] opacity-60 leading-none mt-0.5">{usdtCompact}</span>
+                          <span className="text-[7px] sm:text-[10px] opacity-60 leading-none mt-0.5">≈ {fiatSplit.prefix}{fiatSplit.amount}{fiatSplit.suffix}</span>
                         </span>
                       );
                     })()}

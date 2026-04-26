@@ -58,10 +58,9 @@ function loadDisplayCurrency(): DisplayCurrency {
   try {
     const saved = localStorage.getItem('display_currency');
     if (saved && (CURRENCY_CYCLE as string[]).includes(saved)) return saved as DisplayCurrency;
-    // First load — locale-derived default
-    const lang = navigator.language?.toLowerCase() || '';
-    if (lang.startsWith('ko')) return 'KRW';
-    return 'USDT'; // global default
+    // Default for all users (regardless of locale): USDT (settlement asset).
+    // Users may opt into fiat display via header rate-indicator click.
+    return 'USDT';
   } catch { return 'USDT'; }
 }
 
