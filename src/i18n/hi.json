@@ -1,0 +1,787 @@
+{
+  "common": {
+    "confirm": "पुष्टि करें",
+    "cancel": "रद्द करें",
+    "close": "बंद करें",
+    "save": "सेव करें",
+    "loading": "लोड हो रहा है...",
+    "error": "त्रुटि",
+    "success": "सफलता",
+    "back": "वापस",
+    "next": "अगला",
+    "yes": "हाँ",
+    "no": "नहीं",
+    "copy": "कॉपी",
+    "copied": "कॉपी हो गया",
+    "search": "खोजें",
+    "all": "सभी",
+    "none": "कोई नहीं"
+  },
+  "action": {
+    "fold": "Fold",
+    "check": "Check",
+    "call": "Call",
+    "raise": "Raise",
+    "allIn": "All In",
+    "bet": "Bet",
+    "sitOut": "Sit Out",
+    "sitIn": "Sit In",
+    "standUp": "उठें",
+    "topUp": "Top Up",
+    "buyIn": "Buy-in"
+  },
+  "game": {
+    "waiting": "प्रतीक्षा कर रहे हैं...",
+    "playing": "खेल रहे हैं",
+    "dealing": "Deal हो रहा है...",
+    "showdown": "Showdown",
+    "result": "परिणाम",
+    "nextHand": "अगला hand शुरू हो रहा है...",
+    "yourTurn": "आपकी बारी",
+    "spectating": "देख रहे हैं · खाली seat पर click करें",
+    "quickSit": "Quick Sit",
+    "waitingForPlayers": "Players का इंतजार...",
+    "waitingForAction": "Action का इंतजार...",
+    "handNumber": "Hand",
+    "pot": "Pot",
+    "mainPot": "Main Pot",
+    "sidePot": "Side Pot",
+    "winner": "विजेता",
+    "rake": "Rake",
+    "preflop": "Preflop",
+    "flop": "Flop",
+    "turn": "Turn",
+    "river": "River",
+    "dealer": "Dealer",
+    "smallBlind": "SB",
+    "bigBlind": "BB",
+    "ante": "Ante"
+  },
+  "lobby": {
+    "title": "Hold'em Tables",
+    "tablesAvailable": "{count} tables उपलब्ध",
+    "create": "बनाएँ",
+    "join": "Join",
+    "full": "Full",
+    "online": "online",
+    "tables": "Tables",
+    "active": "Active",
+    "quickPlay": "Quick Play",
+    "tournament": "Tournament",
+    "gameManual": "Game Manual",
+    "tournamentManual": "Tournament Manual",
+    "comingSoon": "जल्द ही",
+    "spectateEnter": "देखें",
+    "roomCreated": "Room सफलतापूर्वक बना",
+    "tableIsFull": "Table भरा है",
+    "noRoomsAvailable": "कोई rooms उपलब्ध नहीं",
+    "listView": "List View",
+    "gridView": "Grid View",
+    "beginner": "Beginner",
+    "standard": "Standard",
+    "highRoller": "High Roller",
+    "headsUp": "Heads-Up",
+    "vip": "VIP",
+    "labels": {
+      "roomCode": "🔑 Room Code",
+      "country": "🌍 देश",
+      "tableFelt": "🎨 Table Felt",
+      "telegramNotifications": "📱 Telegram Alerts"
+    },
+    "placeholder": {
+      "roomCode": "8 अक्षरों का invite code"
+    },
+    "helper": {
+      "countryHint": "(avatar के बगल में झंडे के रूप में)"
+    },
+    "table": {
+      "header": {
+        "table": "Table",
+        "blinds": "Blinds",
+        "buyIn": "Buy-In",
+        "players": "Players",
+        "action": "Action"
+      }
+    },
+    "status": {
+      "live": "● LIVE"
+    },
+    "titles": {
+      "bgmOff": "BGM Off",
+      "bgmOn": "BGM On",
+      "selectMusic": "Music चुनें",
+      "listView": "List View",
+      "gridView": "Grid View",
+      "editNickname": "Nickname बदलें"
+    },
+    "telegram": {
+      "channelTitle": "Telegram channel subscribe करें · नए tables की तुरंत सूचना",
+      "channelDesc": "VIP tables · Events की घोषणाएँ पहले",
+      "linkedWith": "● Linked {username}",
+      "desc": "App बंद होने पर भी Telegram पर turn / win / invite alerts पाएँ",
+      "linkButton": "📲 Telegram App से link करें",
+      "linkHint": "Tap → Telegram खुलेगा → [Start] tap करें\nProfile दोबारा खोलें ताकि link confirm हो",
+      "generatingLink": "🔄 Link generate हो रहा है...",
+      "unlinkConfirm": "Telegram account unlink करें?",
+      "unlinkButton": "Unlink",
+      "notif": {
+        "turn": "⏰ मेरी turn (AFK 15s+)",
+        "win": "🏆 जीत / बड़ा pot",
+        "allIn": "🔥 All-in स्थिति",
+        "invite": "🎯 Room join request (host)"
+      }
+    },
+    "toast": {
+      "telegramChannelPrompt": "📢 Telegram channel join करें!",
+      "telegramChannelDesc": "नए rooms और VIP events की alerts सबसे पहले पाएँ",
+      "privateRoomOnly": "🔒 Private room — entry के लिए code चाहिए",
+      "spectateEnter": "👁 {name} को देख रहे हैं",
+      "roomCreatingInvite": "\"{name}\" · invite तैयार हो रहा है...",
+      "invalidRoomCode": "Room code 8 alphanumeric (0-9, a-f) होना चाहिए",
+      "serverConnecting": "Server connection का इंतजार...",
+      "searchingRoom": "Room खोज रहे हैं...",
+      "invalidCode": "❌ {message}",
+      "invalidCodeFallback": "Invalid room code — check करके फिर से try करें",
+      "countrySet": "🌍 देश → {code}",
+      "countryUnset": "🌍 देश हटाया गया",
+      "feltChanged": "Table felt: {name}"
+    },
+    "buttons": {
+      "join": "Join",
+      "fullProfile": "Full Profile",
+      "handHistory": "Hand History",
+      "changeAvatar": "Avatar बदलें"
+    }
+  },
+  "createRoom": {
+    "title": "Room बनाएँ",
+    "roomName": "Room Name",
+    "namePlaceholder": "उदा: VIP Lounge",
+    "blinds": "Blinds",
+    "buyIn": "Buy-In",
+    "maxPlayers": "Max Players",
+    "private": "Private",
+    "password": "Password",
+    "passwordPlaceholder": "Password डालें",
+    "straddle": "Straddle",
+    "create": "Table बनाएँ",
+    "subtitle": "अपना खुद का Hold'em table बनाएँ",
+    "enterName": "Table नाम डालें",
+    "inviteAdded": "पहले से invite किया गया",
+    "maxInvites": "Max {max} players",
+    "telegramInvite": "Telegram Invite (optional, max 8)",
+    "telegramNotify": "Telegram notification भेजें",
+    "add": "जोड़ें",
+    "telegramBotNotice": "Telegram bot @username को room link DM करेगा",
+    "inviteOnlyOnCreate": "Invites सिर्फ room बनाते समय उपलब्ध हैं",
+    "buyInAuto": "Auto: 20BB ~ 100BB",
+    "telegramIdFormat": "Telegram ID format: @username (5-32 अक्षर, alphanumeric/_)",
+    "privateLabel": "Private Room (केवल code से entry)",
+    "privateHelper": "⚙️ Lobby list से छिपा है। केवल invite modal के <b>room code</b> वाले लोग ही enter कर सकते हैं।",
+    "inviteFriendsLabel": "Friends को Invite करें",
+    "inviteFriendsHelper": "बनाने के बाद, <b>«Invite Friends»</b> modal automatically खुलता है — room code copy करें और Telegram से share करें।"
+  },
+  "buyInModal": {
+    "title": "Buy In",
+    "min": "Min",
+    "max": "Max",
+    "balance": "Balance",
+    "insufficientBalance": "Balance अपर्याप्त",
+    "confirm": "Buy In Confirm"
+  },
+  "profile": {
+    "title": "मेरी Profile",
+    "nickname": "Nickname",
+    "nicknameRule": "2-16 अक्षर (letters/numbers)",
+    "avatar": "Avatar",
+    "changeAvatar": "Avatar बदलें",
+    "stats": "Stats",
+    "hands": "Hands",
+    "won": "जीते",
+    "winRate": "% Win",
+    "net": "Net",
+    "handHistory": "Hand History",
+    "fullProfile": "Full Profile",
+    "nicknameSaved": "Nickname save हुआ",
+    "avatarSaved": "Avatar save हुआ",
+    "pendingChanges": "Unsaved changes"
+  },
+  "settings": {
+    "sound": "Sound",
+    "soundOn": "ON",
+    "soundOff": "OFF",
+    "bgm": "BGM",
+    "lobbyMusic": "Lobby Music",
+    "volume": "Volume",
+    "language": "भाषा",
+    "theme": "Theme",
+    "nicknamePlaceholder": "2-16 अक्षर (हिन्दी/अंग्रेजी/अंक)",
+    "nicknameHelper": "हिन्दी, अंग्रेजी, अंक, space, dot/underscore/hyphen की अनुमति · 2-16 अक्षर · तुरंत save",
+    "ownerRakeback": {
+      "title": "Owner Rakeback",
+      "autoEarn": "({percent}% auto-credited)",
+      "pending": "Pending",
+      "claimed": "Claimed",
+      "total": "कुल कमाया",
+      "claim": "💰 Wallet में Claim करें",
+      "claimMin": "(min ₩1,000 चाहिए)",
+      "helper": "आपके बनाए rooms के rake का {percent}% auto-credit होता है"
+    },
+    "country": "देश",
+    "countrySub": "(optional, avatar के बगल में झंडा)",
+    "tableFelt": "Table Felt",
+    "tableFeltSub": "(table color)",
+    "runItOnAllIn": "All-in पर Boards"
+  },
+  "chat": {
+    "title": "Chat",
+    "placeholder": "Message type करें...",
+    "send": "भेजें"
+  },
+  "alert": {
+    "insufficientBalance": "Balance अपर्याप्त",
+    "connectionLost": "Connection टूट गया",
+    "reconnecting": "Reconnecting...",
+    "reconnected": "Reconnected",
+    "kicked": "आपको table से हटा दिया गया",
+    "backgroundDetected": "Background detected — Auto Sit Out",
+    "leaveConfirm": "Game चल रहा है। Leave करें?",
+    "afterHandLeave": "Current hand के बाद leave होंगे",
+    "tryAfterHand": "इस hand के बाद try करें",
+    "passwordRequired": "Room password डालें",
+    "passwordCancelled": "Password cancelled",
+    "topUpAfterHand": "Current hand के बाद top up उपलब्ध"
+  },
+  "timer": {
+    "timeBank": "TIME BANK Active",
+    "seconds": "s"
+  },
+  "error": {
+    "crashTitle": "कुछ गलत हो गया",
+    "crashMessage": "Game में error आया",
+    "retry": "फिर try करें",
+    "goToLobby": "Lobby पर जाएँ",
+    "networkError": "Network Error"
+  },
+  "tournament": {
+    "title": "Tournaments",
+    "comingSoon": "Tournaments जल्द आ रहे हैं",
+    "comingSoonDesc": "MTT, Sit & Go, PKO और अधिक\ntournament formats जल्द खुलेंगे!",
+    "weekendChampionship": "Weekend Championship",
+    "prizePool": "Guaranteed Prize Pool",
+    "registered": "registered",
+    "buyIn": "Buy-in",
+    "headerBadge": "Tournaments",
+    "headerTitle": "Poker Tournaments",
+    "headerSubtitle": "Guaranteed prize pools के साथ premium tournaments",
+    "heroDescription": "Week का सबसे बड़ा tournament",
+    "filterAll": "All",
+    "filterRegular": "Regular",
+    "filterTurbo": "Turbo",
+    "filterHyper": "Hyper",
+    "filterPKO": "Knockout",
+    "statusRegistering": "Registering",
+    "statusLive": "● Live",
+    "guaranteed": "Guaranteed",
+    "players": "Players",
+    "start": "Start",
+    "starts": "Starts",
+    "register": "Register",
+    "lateRegInfo": "Late Reg Info",
+    "lateReg": "Late Reg",
+    "watchLive": "Live देखें",
+    "rebuy": "Rebuy",
+    "viewDetails": "Details & Register",
+    "noMatch": "इस filter से कोई tournament match नहीं",
+    "registeringToast": "{name} में register हो रहे हैं…",
+    "registeredToast": "Registered!",
+    "startTime": "Start Time",
+    "startingStack": "Starting Stack",
+    "left": "बचा है",
+    "filled": "% भरा"
+  },
+  "currency": {
+    "krw": "₩",
+    "usd": "$",
+    "usdt": "USDT"
+  },
+  "manual": {
+    "game": {
+      "header": {
+        "title": "Texas Hold'em Manual",
+        "subtitle": "Premium Poker Guide",
+        "tournamentLink": "Tournament Guide",
+        "toc": "विषय सूची"
+      },
+      "labels": {
+        "advantage": "Advantage",
+        "odds": "Odds"
+      },
+      "sections": {
+        "basics": "Basics",
+        "positions": "Positions",
+        "rounds": "Betting Rounds",
+        "actions": "Actions",
+        "hands": "Hand Rankings",
+        "strategies": "Strategy",
+        "features": "Features",
+        "etiquette": "Etiquette"
+      },
+      "basics": {
+        "title": "Texas Hold'em क्या है?",
+        "intro": "दुनिया का सबसे popular poker game। हर player को <strong>2 hole cards</strong> मिलते हैं, और <strong>5 community cards</strong> बीच में face up रखे जाते हैं। उन 7 cards से best 5-card hand बनाकर जीतें।",
+        "stats": {
+          "playersLabel": "Players",
+          "playersValue": "2-9",
+          "typeLabel": "Game Type",
+          "typeValue": "Cash Game",
+          "handLabel": "प्रति hand",
+          "handValue": "~1-3 min"
+        },
+        "suits": "Card Suits",
+        "suitsNote": "* Texas Hold'em में सभी suits बराबर हैं (समान value)",
+        "goalTitle": "🎯 Goal",
+        "goalText": "केवल अच्छे cards पाना नहीं — <strong>opponents को fold करवाएँ</strong> या <strong>showdown में सबसे strong hand से जीतें</strong> ताकि pot ले सकें।"
+      },
+      "positions": {
+        "title": "Position Guide",
+        "intro": "Position Texas Hold'em में सबसे important concept है। बाद में act करने का मतलब है ज्यादा information, बड़ा advantage।",
+        "items": {
+          "btn": { "short": "Dealer", "desc": "Best position. Last में act करते हैं। पूरी information से decide करते हैं।" },
+          "co": { "short": "Cutoff", "desc": "BTN से ठीक पहले। दूसरी best position। Wide opens OK।" },
+          "hj": { "short": "Hijack", "desc": "CO से पहले। Medium position। केवल अच्छे hands खेलें।" },
+          "mp": { "short": "Middle", "desc": "Middle position। Standard range।" },
+          "utg": { "short": "Under The Gun", "desc": "Worst action position। बहुत tight खेलें।" },
+          "sb": { "short": "Small Blind", "desc": "BTN के बगल में। Forced ½ bet। Post-flop हमेशा first-to-act।" },
+          "bb": { "short": "Big Blind", "desc": "Forced 1× bet। Free flop option। Defend wide।" }
+        }
+      },
+      "rounds": {
+        "title": "Betting Rounds",
+        "intro": "हर hand के 5 stages हैं।",
+        "items": {
+          "preflop": { "desc": "2 cards मिलते हैं। UTG से action शुरू।", "cards": "2 (hole)" },
+          "flop": { "desc": "3 community cards खोले जाते हैं। SB पहले act करता है।", "cards": "3 cards" },
+          "turn": { "desc": "4वाँ card खुलता है। SB पहले act करता है।", "cards": "4वाँ card" },
+          "river": { "desc": "5वाँ card खुलता है। Final betting round।", "cards": "5वाँ card" },
+          "showdown": { "desc": "बचे हुए players cards दिखाते हैं। Strongest hand जीतता है।", "cards": "Reveal" }
+        }
+      },
+      "actions": {
+        "title": "Actions",
+        "intro": "अपनी turn में 5 actions चुन सकते हैं।",
+        "items": {
+          "fold": { "short": "Fold", "desc": "Hand छोड़ें। Chips नहीं खोते। इस hand से बाहर।" },
+          "check": { "short": "Check", "desc": "Bet नहीं करें। अगले player को pass। (केवल जब call करने को कुछ नहीं हो)" },
+          "call": { "short": "Call", "desc": "पिछले bet को match करें।" },
+          "raise": { "short": "Raise", "desc": "पिछले से ज्यादा bet करें। Minimum 2x।" },
+          "allIn": { "short": "All-in", "desc": "बचे हुए सभी chips bet करें। आगे कोई action नहीं।" }
+        }
+      },
+      "hands": {
+        "title": "Hand Rankings (strongest पहले)",
+        "intro": "10 hand combinations, ऊपर से नीचे strongest।",
+        "items": {
+          "royalFlush": "एक ही suit के 10-J-Q-K-A",
+          "straightFlush": "एक ही suit के 5 लगातार",
+          "fourOfAKindName": "Four of a Kind (Quads)",
+          "fourOfAKind": "एक ही rank के चार cards",
+          "fullHouse": "Three of a Kind + Pair",
+          "flush": "एक ही suit के 5 cards",
+          "straight": "5 लगातार cards (कोई भी suit)",
+          "threeOfAKindName": "Three of a Kind (Trips)",
+          "threeOfAKind": "एक ही rank के तीन cards",
+          "twoPair": "दो pairs",
+          "onePair": "एक ही rank के दो cards",
+          "highCard": "कोई combination नहीं"
+        }
+      },
+      "strategies": {
+        "title": "Beginner Strategy",
+        "items": {
+          "tight": { "title": "Tight से शुरू करें", "desc": "केवल अच्छे hands खेलें। Pairs, AK, AQ, AJ पर focus।" },
+          "position": { "title": "Position का use करें", "desc": "Late position (BTN, CO) से ज्यादा hands खेलें।" },
+          "potOdds": { "title": "Pot Odds", "desc": "Call करने को required / (Pot + call) = required equity।" },
+          "noBluff": { "title": "Bluff सीमित रखें", "desc": "Beginners value-bet करें। Feel आने के बाद bluff करें।" },
+          "bankroll": { "title": "Bankroll Management", "desc": "एक बार में stack का केवल 5% bet करें। कभी overcommit न करें।" },
+          "observe": { "title": "Observe करें", "desc": "Opponents पढ़ें। कौन tight, कौन loose?" },
+          "emotion": { "title": "Emotion Control", "desc": "Tilt सबसे बुरा दुश्मन है। बड़ी losses के बाद break लें।" }
+        }
+      },
+      "features": {
+        "title": "Features",
+        "items": {
+          "cardSqueeze": { "title": "Card Squeeze", "desc": "अपने cards drag करके धीरे-धीरे reveal करें — असली casino feel।" },
+          "timeBank": { "title": "Time Bank", "desc": "बड़ी decisions पर extra time use करें। 30s + bonus।" },
+          "rabbitHunt": { "title": "Rabbit Hunt", "desc": "Hand खत्म होने के बाद unrevealed cards देखें।" },
+          "runItTwice": { "title": "Run It Twice", "desc": "All-ins पर board दो बार run करें। Variance कम करें।" },
+          "insurance": { "title": "Insurance", "desc": "All-in पर insurance खरीदें। Safe profit lock करें।" },
+          "bombPot": { "title": "Bomb Pot", "desc": "कुछ hands पर सब force-call → big pot।" },
+          "provablyFair": { "title": "Provably Fair", "desc": "SHA256-verifiable shuffle। कोई tampering नहीं।" },
+          "spectate": { "title": "Spectate", "desc": "बिना बैठे games देखें।" }
+        }
+      },
+      "etiquette": {
+        "title": "Etiquette",
+        "do": {
+          "fastAction": "अपनी turn पर जल्दी act करें",
+          "showCards": "Showdown पर तुरंत cards दिखाएँ",
+          "greet": "Winner को \"GG\", \"NH\" से greet करें",
+          "watchChat": "Spectate mode में chat avoid करें"
+        },
+        "dont": {
+          "slowRoll": "Slow-rolling (winning hand को जानबूझकर धीरे reveal करना)",
+          "abuse": "Abusive / insulting chat",
+          "discuss": "Mid-hand दूसरे players के cards discuss करना",
+          "collusion": "Collusion (दूसरे player के साथ mil-jul कर खेलना)",
+          "tank": "छोटी decisions पर time tank करना"
+        }
+      }
+    },
+    "tournament": {
+      "header": {
+        "title": "Tournament Manual",
+        "subtitle": "TETHER.BET HOLDEM Complete Tournament Guide",
+        "gameLink": "Game Manual →"
+      },
+      "labels": {
+        "duration": "Duration",
+        "interval": "Level Interval",
+        "levels": "Total Levels",
+        "multiplier": "Increase Rate",
+        "strategy": "Strategy",
+        "play": "✓ Play Style",
+        "avoid": "✗ Avoid"
+      },
+      "sections": {
+        "types": "Types",
+        "structure": "Blind Structure",
+        "stages": "Stages",
+        "icm": "ICM Theory",
+        "prize": "Prize Pool",
+        "rules": "Special Rules",
+        "stack": "Stack Management",
+        "strategy": "Stage Strategy"
+      },
+      "types": {
+        "title": "Tournament Types",
+        "intro": "6 main tournament formats सीखें।",
+        "items": {
+          "mtt": {
+            "desc": "दसियों से हजारों players का large-scale tournament",
+            "duration": "4-12 घंटे",
+            "f1": "Buy-in + fee", "f2": "Slow blind increase", "f3": "Final-table progression", "f4": "Big prize pool"
+          },
+          "sng": {
+            "desc": "Full होने पर शुरू होने वाला single/small-table tournament",
+            "duration": "30 min-2 hr",
+            "f1": "6-9 player single table", "f2": "Fast blinds", "f3": "Top 30% in the money", "f4": "Short play time"
+          },
+          "pko": {
+            "desc": "हर elimination पर bounty stack होने वाला tournament",
+            "duration": "3-8 घंटे",
+            "f1": "Buy-in का 50% bounty", "f2": "KO पर आधा तुरंत pay", "f3": "आधा अपने सिर पर add", "f4": "Aggression बढ़ाता है"
+          },
+          "bountyHunter": {
+            "desc": "खास players को knock out करने पर bounty",
+            "duration": "3-6 घंटे",
+            "f1": "Fixed bounty", "f2": "Target system", "f3": "Extra prize chances", "f4": "Main pool + bounties"
+          },
+          "spinAndGo": {
+            "desc": "Random prize multiplier वाला 3-player SNG",
+            "duration": "5-15 min",
+            "f1": "3-player hyper turbo", "f2": "Up to 1000x prize", "f3": "Instant start", "f4": "Lottery-style tournament"
+          },
+          "freezeout": {
+            "desc": "One-shot tournament — कोई rebuy या addon नहीं",
+            "duration": "2-6 घंटे",
+            "f1": "Single entry only", "f2": "Zero chips पर out", "f3": "Less risk", "f4": "Beginner-friendly"
+          }
+        }
+      },
+      "structure": {
+        "title": "Blind Structure",
+        "intro": "4 standard blind speeds सीखें।",
+        "items": {
+          "standard": { "name": "Standard", "interval": "20-30 min", "multiplier": "1.3-1.5x", "desc": "Pro tournament standard. Skill सबसे ज्यादा matter करता है।" },
+          "turbo": { "name": "Turbo", "interval": "8-10 min", "multiplier": "1.5x", "desc": "Fast pace, ज्यादा variance।" },
+          "hyperTurbo": { "name": "Hyper Turbo", "interval": "3-5 min", "multiplier": "1.5-2x", "desc": "Ultra-fast। Push/fold focus।" },
+          "deepStack": { "name": "Deep Stack", "interval": "30-60 min", "multiplier": "1.25x", "desc": "200BB+ start stack। Postflop matter करता है।" }
+        },
+        "exampleTitle": "Standard Blind Progression Example"
+      },
+      "stages": {
+        "title": "Tournament Stages",
+        "intro": "Start से victory तक 6-stage flow।",
+        "items": {
+          "early": { "name": "Early Stage", "desc": "Deep stack play, धीरे-धीरे chips जमा करें", "strategy": "Tight Aggressive" },
+          "middle": { "name": "Middle Stage", "desc": "Antes start, stealing शुरू करें", "strategy": "Position Use करें" },
+          "bubble": { "name": "Bubble", "desc": "Pre-ITM, max ICM pressure", "strategy": "Short Stacks पर pressure" },
+          "itm": { "name": "In The Money (ITM)", "desc": "Prizes start, ladder up", "strategy": "Selective Aggression" },
+          "ft": { "name": "Final Table", "desc": "Last 9, बड़े prize jumps", "strategy": "ICM-based decisions" },
+          "hu": { "name": "Heads-Up", "desc": "1v1 final, winner decide करें", "strategy": "Aggressive" }
+        }
+      },
+      "icm": {
+        "title": "ICM (Independent Chip Model)",
+        "intro": "Tournaments में सबसे important math concept।",
+        "definitionTitle": "ICM क्या है?",
+        "definition": "ICM आपके tournament chip stack को actual cash equity में convert करता है। Cash games के विपरीत, chip values 1:1 NHi होतीं — short stack chips की value big stack chips से ज्यादा होती है।",
+        "formula": "$EV = Σ (P[finish i] × Prize[i])",
+        "formulaNote": "// हर rank finish करने की probability × prize",
+        "examplesTitle": "ICM कहाँ Apply होता है",
+        "examples": {
+          "bubble": { "stack": "Bubble", "desc": "Max ICM pressure। Chip value ≠ prize value।", "action": "Tight play, big stacks avoid करें" },
+          "ft": { "stack": "Final Table", "desc": "हर ladder पर बड़े prize gaps", "action": "Call/push से पहले ICM calc करें" },
+          "hu": { "stack": "Heads-Up", "desc": "Min ICM। Chip EV = $ EV", "action": "Aggressive play OK" },
+          "shortStack": { "stack": "Short Stack", "desc": "Push/fold charts use करें", "action": "Nash Equilibrium based" }
+        },
+        "principlesTitle": "Core Principles",
+        "principles": {
+          "p1": "Last BB > first BB (out = game over)",
+          "p2": "KO पर lost EV हमेशा chip EV से ज्यादा",
+          "p3": "+cEV calls ICM के तहत -$EV हो सकते हैं",
+          "p4": "Middle stacks सबसे tight, big/short aggressive खेलें"
+        }
+      },
+      "prize": {
+        "title": "Prize Distribution",
+        "intro": "100-player MTT के लिए standard prize structure।",
+        "tableTitle": "Standard Prize Table",
+        "ranks": {
+          "r1": "1st", "r2": "2nd", "r3": "3rd", "r4": "4th", "r5": "5th",
+          "r6to9": "6-9th", "r10to18": "10-18th", "r19plus": "19% से नीचे",
+          "p1": "25-30%", "p2": "15-18%", "p3": "10-13%", "p4": "8-10%", "p5": "6-8%",
+          "p6to9": "हर 3-5%", "p10to18": "हर 1.5-2%", "p19plus": "हर 1%"
+        },
+        "topHeavy": { "title": "Top-Heavy", "desc": "Prizes top पर concentrated। WSOP, EPT आदि में use।" },
+        "flat": { "title": "Flat", "desc": "More evenly distributed। ज्यादा ITM finishers। अक्सर satellites में use।" },
+        "formula": "Prize Pool = Buy-in × Players - Fee (typically 8-12%)",
+        "noteTopPercent": "आमतौर पर top 10-15% in the money",
+        "noteFt": "Final 9 total pool का 70-80% लेते हैं",
+        "noteWinner": "Winner अकेले ~25-30% लेता है"
+      },
+      "rules": {
+        "title": "Special Rules",
+        "intro": "Tournaments के 6 unique special rules।",
+        "items": {
+          "lateReg": { "name": "Late Registration", "desc": "Start के बाद limited window में register करें", "detail": "Usually level 5-8 तक। Later entry = smaller starting BB।" },
+          "reentry": { "name": "Re-entry", "desc": "KO के बाद फिर से buy-in pay करके re-enter करें", "detail": "Typically 1-3 max। केवल late reg window में।" },
+          "rebuy": { "name": "Re-buy", "desc": "Threshold से नीचे होने पर ज्यादा chips खरीदें", "detail": "Rebuy period only। Stack starting size से नीचे होनी चाहिए।" },
+          "addon": { "name": "Add-on", "desc": "Rebuy period के अंत में one-time purchase", "detail": "Stack regardless सभी को available। Usually 1.5-2x starting stack।" },
+          "handForHand": { "name": "Hand-for-Hand", "desc": "Bubble के पास सभी tables एक साथ एक hand खेलते हैं", "detail": "Simultaneous KO पर larger stack better rank। Fairness ensure करता है।" },
+          "syncBreak": { "name": "Synchronized Break", "desc": "पूरा tournament एक साथ break लेता है", "detail": "Usually हर hour 5-10 min। Bathroom, meal, और strategy time।" }
+        }
+      },
+      "stack": {
+        "title": "Stack Play Guide",
+        "intro": "Stack size के अनुसार 6 strategies।",
+        "items": {
+          "deep": { "play": "Postflop focus। Implied odds use करें। Set-mining OK।", "avoid": "All-in avoid, middle pairs पर ध्यान" },
+          "standard": { "play": "Standard GTO। सभी play lines available।", "avoid": "Reckless 3-bet defense" },
+          "medium": { "play": "Position-based, कम 3-bets, SPR manage करें।", "avoid": "Deep-stack hands (small pairs, suited connectors as call)" },
+          "short": { "play": "Open-shove OK। Re-shove charts use करें।", "avoid": "Limp, min-raise, calling-only play" },
+          "pushFold": { "play": "केवल Nash push/fold charts। कोई calling नहीं।", "avoid": "Postflop जाना" },
+          "desperation": { "play": "कोई भी two cards push। पहली opening पर shove।", "avoid": "Last BB तक wait करना" }
+        },
+        "mRatioTitle": "M-Ratio Formula",
+        "mRatioFormula": "M = Stack / (SB + BB + sum of antes)"
+      },
+      "strategy": {
+        "title": "Stage-by-Stage Strategy Guide",
+        "intro": "Early से heads-up तक core strategy।",
+        "items": {
+          "early": {
+            "stage": "Early", "bb": "100-200BB",
+            "tip1": "केवल premium hands (top 10%)",
+            "tip2": "Rebuy tournaments में looser",
+            "tip3": "Observe: opponents profile (fish/reg)",
+            "tip4": "Implied odds via set-mining OK"
+          },
+          "middle": {
+            "stage": "Middle", "bb": "30-80BB",
+            "tip1": "Antes added → ज्यादा hands खेलें",
+            "tip2": "Steal और re-steal aggressively",
+            "tip3": "Shorts पर pressure, big stacks avoid",
+            "tip4": "Position top priority"
+          },
+          "bubble": {
+            "stage": "Bubble", "bb": "15-30BB",
+            "tip1": "Max ICM pressure — narrow calling range",
+            "tip2": "Short stack हो तो frequent push",
+            "tip3": "Big stack हो तो सब पर pressure",
+            "tip4": "Middle stack हो तो KO हर हाल avoid"
+          },
+          "itm": {
+            "stage": "ITM", "bb": "10-25BB",
+            "tip1": "Ladder — हर step = real money",
+            "tip2": "Short stack KOs का wait करें",
+            "tip3": "Selective aggression (curated hands)",
+            "tip4": "ICM math सिर में चलाएँ"
+          },
+          "ft": {
+            "stage": "Final Table", "bb": "varies",
+            "tip1": "Payout jumps के बारे में जागरूक रहें",
+            "tip2": "Deal-making OK (ICM/Chip-chop)",
+            "tip3": "Pre-HU max ICM pressure है",
+            "tip4": "Win = honor + biggest prize"
+          },
+          "hu": {
+            "stage": "Heads-Up (HU)", "bb": "varies",
+            "tip1": "ICM gone — aggressive बनें",
+            "tip2": "Button (SB) aggression = 80%+",
+            "tip3": "कोई भी two cards value रखते हैं",
+            "tip4": "Opponent's weakness जल्दी पढ़ें"
+          }
+        },
+        "victoryTitle": "Winning के 7 Principles",
+        "victory": {
+          "p1": "Survival पहले — meaningless chips matter नहीं करते",
+          "p2": "Position सोना है — हमेशा अपनी जानें",
+          "p3": "ICM pressure use करें — opponents पर pressure",
+          "p4": "Offense best defense है — passive = death",
+          "p5": "हमेशा अपनी stack जानें — BBs में सोचें",
+          "p6": "Tilt avoid करें — एक hand tournament बर्बाद कर सकता है",
+          "p7": "Patience और decisiveness का balance — wait then explode"
+        }
+      }
+    }
+  },
+  "gameTable": {
+    "header": {
+      "watchingMode": "देख रहे हैं",
+      "inviteFriends": "Friends को Invite करें",
+      "invite": "Invite",
+      "enterFullscreen": "Fullscreen",
+      "exitFullscreen": "Fullscreen से बाहर",
+      "moreMenu": "More"
+    },
+    "menu": {
+      "recentHandsCount": "Recent 10 hands",
+      "history": "Hand History",
+      "topUp": "Top Up",
+      "changeSeat": "Seat बदलें",
+      "preAction": "Pre-Action",
+      "waitBb": "BB Wait",
+      "rit": "Run It Twice",
+      "emoji": "Emoji",
+      "sitOut": "Sit Out"
+    },
+    "sound": {
+      "title": "Sound",
+      "gameSfx": "Game SFX",
+      "muteOn": "🔊 ON",
+      "muteOff": "🔇 OFF",
+      "popupTitle": "🎵 Sound",
+      "gameLabel": "🎮 Game",
+      "bgmLabel": "🎵 BGM"
+    },
+    "modal": {
+      "inviteTitle": "Friends को Invite करें",
+      "inviteDescription": "एक ही table पर invite (spectators सहित max 8)",
+      "joinFirst": "कृपया पहले room join करें",
+      "roomCode": "Room Code (permanent)",
+      "copy": "Copy",
+      "telegramShare": "Telegram पर Share",
+      "officialChannel": "Official Channel Subscribe करें",
+      "officialChannelDesc": "Auto alerts: नए tables · VIP events",
+      "deepLinkTitle": "One-tap Invite Link (कोई /start नहीं)",
+      "deepLinkHint": "Friend link tap करता है → Start एक बार press करता है → automatically join होता है।",
+      "deepLinkNote": "(अलग account link नहीं · manual /start नहीं)",
+      "roomLifeNote": "Room जीवित होने तक valid · Private rooms lobby से छिपे हैं",
+      "inviteCopied": "Invite text copy हुआ",
+      "deepLinkCopied": "Deep link copy हुआ — friends को share करें",
+      "copyFailed": "Copy fail हुआ",
+      "telegramShareTitle": "🃏 Holdem Room Invite",
+      "inGame": "Game in progress!",
+      "leaveTable": "Table से leave करें?",
+      "leaveSeatedDesc": "Seated में leave करने पर chips automatically cash out होंगे।\nHand के बीच में हैं तो fold होगा।",
+      "leaveSpectatingDesc": "Watching खत्म करके lobby पर वापस।",
+      "leaveAfterHand": "इस hand के बाद leave होंगे",
+      "leaveCancel": "Leave reservation cancelled",
+      "keepPlaying": "खेलते रहें",
+      "leaveNow": "अभी Leave करें",
+      "reserveLeave": "Hand के बाद Leave",
+      "handHistoryTitle": "Hand History",
+      "handHistoryCount": "Last {count} hands",
+      "noHandHistory": "अभी तक कोई hands नहीं खेले",
+      "noHandHistoryHelper": "जैसे-जैसे आप खेलेंगे hands यहाँ दिखेंगे",
+      "replay": "Replay",
+      "playersCount": "Players ({count})",
+      "rabbitHunt": "अगर run out हुआ होता",
+      "topUpTitle": "Top Up",
+      "topUpDescription": "Stack में और chips add करें। केवल hands के बीच।",
+      "changeSeatTitle": "Seat बदलें",
+      "changeSeatDescription": "Empty seat select करें। Current hand खत्म होने तक wait करें।",
+      "seatLabel": "Seat {n}",
+      "seatYou": "(आप)",
+      "seatStatusCurrent": "Current",
+      "seatStatusEmpty": "Empty",
+      "seatStatusTaken": "Taken",
+      "refreshSeats": "Available seats refresh करें"
+    },
+    "preAction": {
+      "title": "Pre-Action",
+      "description": "आपकी turn पर automatically execute"
+    },
+    "emoji": {
+      "reactions": "Reactions",
+      "actions": "Actions",
+      "taunts": "Taunt"
+    },
+    "showMuck": {
+      "prompt": "अपने cards दिखाएँ?",
+      "show": "Show",
+      "muck": "Muck"
+    },
+    "cashOut": {
+      "title": "Cash Out Available",
+      "description": "Showdown skip करें, अभी अपनी equity लें",
+      "yourEquity": "आपकी Equity",
+      "amount": "Amount",
+      "fee": "Fee",
+      "confirm": "Cash Out",
+      "decline": "Run Cards"
+    },
+    "topUp": {
+      "minAmount": "Minimum ₩50,000 चाहिए",
+      "requested": "Top Up requested: ₩{amount}"
+    },
+    "betting": {
+      "waitBbDesc": "अगली BB आपकी seat पर पहुँचने पर auto-join। तुरंत join करने के लिए dead BB दें।"
+    },
+    "alerts": {
+      "confirmLeave": "Game in progress. फिर भी leave?",
+      "awayReturn": "{seconds}s away के बाद वापस आए"
+    },
+    "fairness": {
+      "currentSeedHash": "Current hand server seed hash (public)",
+      "previousReveal": "Previous hand revealed seed (hash verifiable)",
+      "explanation": "💡 SHA-256(serverSeed) === previous hash साबित करता है कि server ने seed pre-commit किया (कोई after-the-fact tampering नहीं)।"
+    },
+    "defaults": {
+      "roomName": "Holdem Room"
+    },
+    "invite": {
+      "messageHeader": "🃏 Holdem Friend Invite!",
+      "roomNameLabel": "Room",
+      "roomCodeLabel": "Code",
+      "messageHint": "👇 नीचे link tap करें और join हों!",
+      "shareTitle": "🃏 Holdem Room Invite",
+      "shareTapLink": "Link tap करें और तुरंत enter हों!"
+    },
+    "replay": {
+      "prev": "◀ Prev",
+      "next": "Next ▶",
+      "auto": "Auto",
+      "winner": "🏆 WINNER"
+    },
+    "rabbit": {
+      "view": "देखें"
+    },
+    "drama": {
+      "badBeat": "😱 BAD BEAT!",
+      "cooler": "🧊 COOLER!"
+    }
+  }
+}

@@ -1,0 +1,787 @@
+{
+  "common": {
+    "confirm": "Xác nhận",
+    "cancel": "Hủy",
+    "close": "Đóng",
+    "save": "Lưu",
+    "loading": "Đang tải...",
+    "error": "Lỗi",
+    "success": "Thành công",
+    "back": "Quay lại",
+    "next": "Tiếp",
+    "yes": "Có",
+    "no": "Không",
+    "copy": "Sao chép",
+    "copied": "Đã sao chép",
+    "search": "Tìm kiếm",
+    "all": "Tất cả",
+    "none": "Không có"
+  },
+  "action": {
+    "fold": "Fold",
+    "check": "Check",
+    "call": "Call",
+    "raise": "Raise",
+    "allIn": "All In",
+    "bet": "Cược",
+    "sitOut": "Tạm rời",
+    "sitIn": "Quay lại",
+    "standUp": "Đứng dậy",
+    "topUp": "Nạp chip",
+    "buyIn": "Buy-in"
+  },
+  "game": {
+    "waiting": "Đang chờ...",
+    "playing": "Đang chơi",
+    "dealing": "Đang chia bài...",
+    "showdown": "Showdown",
+    "result": "Kết quả",
+    "nextHand": "Ván tiếp theo bắt đầu...",
+    "yourTurn": "Đến lượt bạn",
+    "spectating": "Đang xem · Nhấp ghế trống để ngồi",
+    "quickSit": "Ngồi nhanh",
+    "waitingForPlayers": "Đang chờ người chơi...",
+    "waitingForAction": "Đang chờ hành động...",
+    "handNumber": "Ván",
+    "pot": "Pot",
+    "mainPot": "Pot chính",
+    "sidePot": "Side Pot",
+    "winner": "Người thắng",
+    "rake": "Rake",
+    "preflop": "Preflop",
+    "flop": "Flop",
+    "turn": "Turn",
+    "river": "River",
+    "dealer": "Dealer",
+    "smallBlind": "SB",
+    "bigBlind": "BB",
+    "ante": "Ante"
+  },
+  "lobby": {
+    "title": "Bàn Hold'em",
+    "tablesAvailable": "{count} bàn có sẵn",
+    "create": "Tạo",
+    "join": "Tham gia",
+    "full": "Đầy",
+    "online": "trực tuyến",
+    "tables": "Bàn",
+    "active": "Đang hoạt động",
+    "quickPlay": "Chơi nhanh",
+    "tournament": "Giải đấu",
+    "gameManual": "Hướng dẫn game",
+    "tournamentManual": "Hướng dẫn giải đấu",
+    "comingSoon": "Sắp ra mắt",
+    "spectateEnter": "Xem",
+    "roomCreated": "Tạo phòng thành công",
+    "tableIsFull": "Bàn đã đầy",
+    "noRoomsAvailable": "Không có phòng nào",
+    "listView": "Danh sách",
+    "gridView": "Thẻ",
+    "beginner": "Người mới",
+    "standard": "Tiêu chuẩn",
+    "highRoller": "High Roller",
+    "headsUp": "Heads-Up",
+    "vip": "VIP",
+    "labels": {
+      "roomCode": "🔑 Mã phòng",
+      "country": "🌍 Quốc gia",
+      "tableFelt": "🎨 Màu bàn",
+      "telegramNotifications": "📱 Thông báo Telegram"
+    },
+    "placeholder": {
+      "roomCode": "Mã mời 8 ký tự"
+    },
+    "helper": {
+      "countryHint": "(hiển thị cờ bên cạnh ảnh đại diện)"
+    },
+    "table": {
+      "header": {
+        "table": "Bàn",
+        "blinds": "Blinds",
+        "buyIn": "Buy-in",
+        "players": "Người chơi",
+        "action": "Hành động"
+      }
+    },
+    "status": {
+      "live": "● LIVE"
+    },
+    "titles": {
+      "bgmOff": "Tắt BGM",
+      "bgmOn": "Bật BGM",
+      "selectMusic": "Chọn nhạc",
+      "listView": "Danh sách",
+      "gridView": "Thẻ",
+      "editNickname": "Sửa biệt danh"
+    },
+    "telegram": {
+      "channelTitle": "Đăng ký kênh Telegram · thông báo phòng mới ngay",
+      "channelDesc": "Bàn VIP · thông báo sự kiện trước",
+      "linkedWith": "● Đã liên kết {username}",
+      "desc": "Nhận thông báo lượt / thắng / mời trên Telegram ngay cả khi đóng app",
+      "linkButton": "📲 Liên kết app Telegram",
+      "linkHint": "Chạm → Telegram mở → chạm [Bắt đầu]\nMở lại hồ sơ để xác nhận liên kết",
+      "generatingLink": "🔄 Đang tạo liên kết...",
+      "unlinkConfirm": "Hủy liên kết Telegram?",
+      "unlinkButton": "Hủy liên kết",
+      "notif": {
+        "turn": "⏰ Lượt của tôi (AFK 15s+)",
+        "win": "🏆 Thắng / Pot lớn",
+        "allIn": "🔥 Tình huống all-in",
+        "invite": "🎯 Yêu cầu vào phòng (host)"
+      }
+    },
+    "toast": {
+      "telegramChannelPrompt": "📢 Tham gia kênh Telegram!",
+      "telegramChannelDesc": "Là người đầu tiên nhận thông báo phòng mới và sự kiện VIP",
+      "privateRoomOnly": "🔒 Phòng riêng — cần mã để vào",
+      "spectateEnter": "👁 Đang xem {name}",
+      "roomCreatingInvite": "\"{name}\" · đang chuẩn bị lời mời...",
+      "invalidRoomCode": "Mã phòng phải có 8 ký tự chữ số (0-9, a-f)",
+      "serverConnecting": "Đang chờ kết nối máy chủ...",
+      "searchingRoom": "Đang tìm phòng...",
+      "invalidCode": "❌ {message}",
+      "invalidCodeFallback": "Mã phòng không hợp lệ — kiểm tra và thử lại",
+      "countrySet": "🌍 Quốc gia → {code}",
+      "countryUnset": "🌍 Đã bỏ chọn quốc gia",
+      "feltChanged": "Màu bàn: {name}"
+    },
+    "buttons": {
+      "join": "Tham gia",
+      "fullProfile": "Hồ sơ đầy đủ",
+      "handHistory": "Lịch sử ván",
+      "changeAvatar": "Đổi ảnh đại diện"
+    }
+  },
+  "createRoom": {
+    "title": "Tạo phòng",
+    "roomName": "Tên phòng",
+    "namePlaceholder": "VD: VIP Lounge",
+    "blinds": "Blinds",
+    "buyIn": "Buy-in",
+    "maxPlayers": "Người chơi tối đa",
+    "private": "Riêng tư",
+    "password": "Mật khẩu",
+    "passwordPlaceholder": "Nhập mật khẩu",
+    "straddle": "Straddle",
+    "create": "Tạo bàn",
+    "subtitle": "Tạo bàn Hold'em của riêng bạn",
+    "enterName": "Nhập tên bàn",
+    "inviteAdded": "Đã mời",
+    "maxInvites": "Tối đa {max} người",
+    "telegramInvite": "Mời Telegram (tùy chọn · tối đa 8)",
+    "telegramNotify": "Gửi thông báo Telegram",
+    "add": "Thêm",
+    "telegramBotNotice": "Bot Telegram sẽ gửi liên kết phòng tới @username qua DM",
+    "inviteOnlyOnCreate": "Chỉ có thể mời khi tạo phòng",
+    "buyInAuto": "Tự động: 20BB ~ 100BB",
+    "telegramIdFormat": "Định dạng Telegram ID: @username (5-32 ký tự, chữ số/_)",
+    "privateLabel": "Phòng riêng (chỉ vào bằng mã)",
+    "privateHelper": "⚙️ Ẩn khỏi danh sách lobby. Chỉ người có <b>mã phòng</b> từ modal mời mới có thể vào.",
+    "inviteFriendsLabel": "Mời bạn",
+    "inviteFriendsHelper": "Sau khi tạo, modal <b>«Mời bạn»</b> tự động mở — sao chép mã phòng và chia sẻ qua Telegram."
+  },
+  "buyInModal": {
+    "title": "Buy In",
+    "min": "Tối thiểu",
+    "max": "Tối đa",
+    "balance": "Số dư",
+    "insufficientBalance": "Số dư không đủ",
+    "confirm": "Xác nhận Buy In"
+  },
+  "profile": {
+    "title": "Hồ sơ của tôi",
+    "nickname": "Biệt danh",
+    "nicknameRule": "2-16 ký tự (chữ/số)",
+    "avatar": "Ảnh đại diện",
+    "changeAvatar": "Đổi ảnh đại diện",
+    "stats": "Thống kê",
+    "hands": "Ván",
+    "won": "Thắng",
+    "winRate": "% Thắng",
+    "net": "Lãi/lỗ",
+    "handHistory": "Lịch sử ván",
+    "fullProfile": "Hồ sơ đầy đủ",
+    "nicknameSaved": "Đã lưu biệt danh",
+    "avatarSaved": "Đã lưu ảnh đại diện",
+    "pendingChanges": "Thay đổi chưa lưu"
+  },
+  "settings": {
+    "sound": "Âm thanh",
+    "soundOn": "ON",
+    "soundOff": "OFF",
+    "bgm": "BGM",
+    "lobbyMusic": "Nhạc lobby",
+    "volume": "Âm lượng",
+    "language": "Ngôn ngữ",
+    "theme": "Giao diện",
+    "nicknamePlaceholder": "2-16 ký tự (Việt/Anh/Số)",
+    "nicknameHelper": "Cho phép chữ Việt, chữ Anh, số, dấu cách, chấm/gạch dưới/gạch ngang · 2-16 ký tự · lưu tức thì",
+    "ownerRakeback": {
+      "title": "Rakeback chủ phòng",
+      "autoEarn": "({percent}% tự động cộng)",
+      "pending": "Chưa nhận",
+      "claimed": "Đã nhận",
+      "total": "Tổng kiếm",
+      "claim": "💰 Nhận về ví",
+      "claimMin": "(tối thiểu ₩1,000)",
+      "helper": "{percent}% rake từ phòng bạn tạo được tự động cộng"
+    },
+    "country": "Quốc gia",
+    "countrySub": "(tùy chọn, cờ cạnh avatar)",
+    "tableFelt": "Màu bàn",
+    "tableFeltSub": "(màu bàn)",
+    "runItOnAllIn": "Số board khi All-in"
+  },
+  "chat": {
+    "title": "Chat",
+    "placeholder": "Nhập tin nhắn...",
+    "send": "Gửi"
+  },
+  "alert": {
+    "insufficientBalance": "Số dư không đủ",
+    "connectionLost": "Mất kết nối",
+    "reconnecting": "Đang kết nối lại...",
+    "reconnected": "Đã kết nối lại",
+    "kicked": "Bạn đã bị đưa khỏi bàn",
+    "backgroundDetected": "Phát hiện nền — Tự động Sit Out",
+    "leaveConfirm": "Game đang diễn ra. Rời?",
+    "afterHandLeave": "Sẽ rời sau ván hiện tại",
+    "tryAfterHand": "Vui lòng thử sau ván này",
+    "passwordRequired": "Nhập mật khẩu phòng",
+    "passwordCancelled": "Đã hủy mật khẩu",
+    "topUpAfterHand": "Có thể nạp sau ván hiện tại"
+  },
+  "timer": {
+    "timeBank": "TIME BANK Bật",
+    "seconds": "s"
+  },
+  "error": {
+    "crashTitle": "Có lỗi xảy ra",
+    "crashMessage": "Lỗi xảy ra trong game",
+    "retry": "Thử lại",
+    "goToLobby": "Về lobby",
+    "networkError": "Lỗi mạng"
+  },
+  "tournament": {
+    "title": "Giải đấu",
+    "comingSoon": "Giải đấu sắp ra mắt",
+    "comingSoonDesc": "MTT, Sit & Go, PKO và nhiều hơn\nđịnh dạng giải đấu sắp mở!",
+    "weekendChampionship": "Weekend Championship",
+    "prizePool": "Quỹ thưởng đảm bảo",
+    "registered": "đã đăng ký",
+    "buyIn": "Buy-in",
+    "headerBadge": "Giải đấu",
+    "headerTitle": "Giải đấu poker",
+    "headerSubtitle": "Giải đấu cao cấp với quỹ thưởng đảm bảo",
+    "heroDescription": "Giải đấu lớn nhất tuần",
+    "filterAll": "Tất cả",
+    "filterRegular": "Thường",
+    "filterTurbo": "Turbo",
+    "filterHyper": "Hyper",
+    "filterPKO": "Knockout",
+    "statusRegistering": "Đang đăng ký",
+    "statusLive": "● Trực tiếp",
+    "guaranteed": "Đảm bảo",
+    "players": "Người chơi",
+    "start": "Bắt đầu",
+    "starts": "Bắt đầu",
+    "register": "Đăng ký",
+    "lateRegInfo": "Thông tin Late Reg",
+    "lateReg": "Late Reg",
+    "watchLive": "Xem trực tiếp",
+    "rebuy": "Rebuy",
+    "viewDetails": "Chi tiết & Đăng ký",
+    "noMatch": "Không có giải đấu phù hợp",
+    "registeringToast": "Đang đăng ký {name}…",
+    "registeredToast": "Đã đăng ký!",
+    "startTime": "Giờ bắt đầu",
+    "startingStack": "Stack ban đầu",
+    "left": "còn lại",
+    "filled": "% đầy"
+  },
+  "currency": {
+    "krw": "₩",
+    "usd": "$",
+    "usdt": "USDT"
+  },
+  "manual": {
+    "game": {
+      "header": {
+        "title": "Hướng dẫn Texas Hold'em",
+        "subtitle": "Hướng dẫn poker cao cấp",
+        "tournamentLink": "Hướng dẫn giải đấu",
+        "toc": "Mục lục"
+      },
+      "labels": {
+        "advantage": "Lợi thế",
+        "odds": "Tỷ lệ"
+      },
+      "sections": {
+        "basics": "Cơ bản",
+        "positions": "Vị trí",
+        "rounds": "Vòng cược",
+        "actions": "Hành động",
+        "hands": "Xếp hạng bài",
+        "strategies": "Chiến thuật",
+        "features": "Tính năng",
+        "etiquette": "Lễ nghi"
+      },
+      "basics": {
+        "title": "Texas Hold'em là gì?",
+        "intro": "Game poker phổ biến nhất thế giới. Mỗi người chơi nhận <strong>2 lá bài tẩy</strong>, và <strong>5 lá bài chung</strong> được úp ngửa giữa bàn. Tạo bộ 5 lá mạnh nhất từ 7 lá đó để thắng.",
+        "stats": {
+          "playersLabel": "Người chơi",
+          "playersValue": "2-9",
+          "typeLabel": "Loại game",
+          "typeValue": "Cash Game",
+          "handLabel": "Mỗi ván",
+          "handValue": "~1-3 phút"
+        },
+        "suits": "Các chất bài",
+        "suitsNote": "* Tất cả chất bài đều bằng nhau trong Texas Hold'em (cùng giá trị)",
+        "goalTitle": "🎯 Mục tiêu",
+        "goalText": "Không chỉ là có bài tốt — <strong>buộc đối thủ fold</strong> hoặc <strong>thắng showdown với bộ bài mạnh nhất</strong> để lấy pot."
+      },
+      "positions": {
+        "title": "Hướng dẫn vị trí",
+        "intro": "Vị trí là khái niệm quan trọng nhất trong Texas Hold'em. Hành động sau có nghĩa là nhiều thông tin hơn, lợi thế lớn.",
+        "items": {
+          "btn": { "short": "Dealer", "desc": "Vị trí tốt nhất. Hành động cuối. Quyết định với thông tin đầy đủ." },
+          "co": { "short": "Cutoff", "desc": "Ngay trước BTN. Vị trí tốt thứ hai. Open wide OK." },
+          "hj": { "short": "Hijack", "desc": "Trước CO. Vị trí giữa. Chỉ chơi bài tốt." },
+          "mp": { "short": "Giữa", "desc": "Vị trí giữa. Range tiêu chuẩn." },
+          "utg": { "short": "Under The Gun", "desc": "Vị trí hành động xấu nhất. Chơi rất tight." },
+          "sb": { "short": "Small Blind", "desc": "Cạnh BTN. Cược ép ½. Luôn first-to-act post-flop." },
+          "bb": { "short": "Big Blind", "desc": "Cược ép 1×. Lựa chọn flop miễn phí. Defend wide." }
+        }
+      },
+      "rounds": {
+        "title": "Vòng cược",
+        "intro": "Mỗi ván có 5 giai đoạn.",
+        "items": {
+          "preflop": { "desc": "Nhận 2 lá bài. UTG bắt đầu hành động.", "cards": "2 (bài tẩy)" },
+          "flop": { "desc": "3 lá chung được lật. SB hành động trước.", "cards": "3 lá" },
+          "turn": { "desc": "Lá thứ 4 được lật. SB hành động trước.", "cards": "Lá thứ 4" },
+          "river": { "desc": "Lá thứ 5 được lật. Vòng cược cuối.", "cards": "Lá thứ 5" },
+          "showdown": { "desc": "Người chơi còn lại lật bài. Bộ bài mạnh nhất thắng.", "cards": "Lật bài" }
+        }
+      },
+      "actions": {
+        "title": "Hành động",
+        "intro": "Năm hành động bạn có thể chọn trong lượt mình.",
+        "items": {
+          "fold": { "short": "Fold", "desc": "Bỏ ván bài. Không mất chip. Ra khỏi ván này." },
+          "check": { "short": "Check", "desc": "Không cược. Chuyển cho người chơi tiếp theo. (chỉ khi không có cược để theo)" },
+          "call": { "short": "Call", "desc": "Theo cược trước đó." },
+          "raise": { "short": "Raise", "desc": "Cược cao hơn trước. Tối thiểu 2x." },
+          "allIn": { "short": "All-in", "desc": "Cược toàn bộ chip còn lại. Không còn hành động." }
+        }
+      },
+      "hands": {
+        "title": "Xếp hạng bài (mạnh nhất trước)",
+        "intro": "10 bộ kết hợp bài, từ trên xuống dưới mạnh hơn.",
+        "items": {
+          "royalFlush": "10-J-Q-K-A cùng chất",
+          "straightFlush": "5 lá liên tiếp cùng chất (Thùng phá sảnh)",
+          "fourOfAKindName": "Four of a Kind (Tứ quý)",
+          "fourOfAKind": "Bốn lá cùng số",
+          "fullHouse": "Cù lũ (Sám + đôi)",
+          "flush": "Thùng (5 lá cùng chất)",
+          "straight": "Sảnh (5 lá liên tiếp, bất kỳ chất)",
+          "threeOfAKindName": "Three of a Kind (Sám)",
+          "threeOfAKind": "Ba lá cùng số",
+          "twoPair": "Hai đôi",
+          "onePair": "Đôi (hai lá cùng số)",
+          "highCard": "Mậu thầu (không có bộ)"
+        }
+      },
+      "strategies": {
+        "title": "Chiến thuật cho người mới",
+        "items": {
+          "tight": { "title": "Bắt đầu tight", "desc": "Chỉ chơi bài tốt. Tập trung pair, AK, AQ, AJ." },
+          "position": { "title": "Sử dụng vị trí", "desc": "Chơi nhiều bài hơn ở vị trí muộn (BTN, CO)." },
+          "potOdds": { "title": "Pot Odds", "desc": "Cần để theo / (Pot + call) = equity yêu cầu." },
+          "noBluff": { "title": "Hạn chế bluff", "desc": "Người mới value-bet. Bluff sau khi quen tình huống." },
+          "bankroll": { "title": "Quản lý bankroll", "desc": "Chỉ cược 5% stack mỗi lần. Không bao giờ liều." },
+          "observe": { "title": "Quan sát", "desc": "Đọc đối thủ. Ai tight, ai loose?" },
+          "emotion": { "title": "Kiểm soát cảm xúc", "desc": "Tilt là kẻ thù tệ nhất. Nghỉ sau thua lớn." }
+        }
+      },
+      "features": {
+        "title": "Tính năng",
+        "items": {
+          "cardSqueeze": { "title": "Card Squeeze", "desc": "Kéo bài để mở từ từ — cảm giác casino thực." },
+          "timeBank": { "title": "Time Bank", "desc": "Dùng thời gian thêm cho quyết định lớn. 30s + thưởng." },
+          "rabbitHunt": { "title": "Rabbit Hunt", "desc": "Xem bài chưa lật sau khi ván kết thúc." },
+          "runItTwice": { "title": "Run It Twice", "desc": "Chạy board hai lần khi all-in. Giảm phương sai." },
+          "insurance": { "title": "Insurance", "desc": "Mua bảo hiểm khi all-in. Đảm bảo lợi nhuận an toàn." },
+          "bombPot": { "title": "Bomb Pot", "desc": "Force-call ở một số ván → pot lớn." },
+          "provablyFair": { "title": "Provably Fair", "desc": "Trộn bài có thể xác minh SHA256. Không gian lận." },
+          "spectate": { "title": "Chế độ xem", "desc": "Xem game mà không cần ngồi." }
+        }
+      },
+      "etiquette": {
+        "title": "Lễ nghi",
+        "do": {
+          "fastAction": "Hành động nhanh trong lượt mình",
+          "showCards": "Lật bài kịp thời ở showdown",
+          "greet": "Chào người thắng với \"GG\", \"NH\"",
+          "watchChat": "Tránh chat ở chế độ xem"
+        },
+        "dont": {
+          "slowRoll": "Slow-rolling (cố ý lật bài thắng chậm)",
+          "abuse": "Chat lăng mạ / xúc phạm",
+          "discuss": "Thảo luận bài người khác giữa ván",
+          "collusion": "Câu kết (hợp tác với người chơi khác)",
+          "tank": "Tank thời gian ở quyết định nhỏ"
+        }
+      }
+    },
+    "tournament": {
+      "header": {
+        "title": "Hướng dẫn giải đấu",
+        "subtitle": "Hướng dẫn giải đấu TETHER.BET HOLDEM đầy đủ",
+        "gameLink": "Hướng dẫn game →"
+      },
+      "labels": {
+        "duration": "Thời lượng",
+        "interval": "Khoảng thời gian level",
+        "levels": "Tổng level",
+        "multiplier": "Tỷ lệ tăng",
+        "strategy": "Chiến thuật",
+        "play": "✓ Cách chơi",
+        "avoid": "✗ Tránh"
+      },
+      "sections": {
+        "types": "Loại",
+        "structure": "Cấu trúc Blind",
+        "stages": "Giai đoạn",
+        "icm": "Lý thuyết ICM",
+        "prize": "Phân chia thưởng",
+        "rules": "Luật đặc biệt",
+        "stack": "Quản lý Stack",
+        "strategy": "Chiến thuật theo giai đoạn"
+      },
+      "types": {
+        "title": "Loại giải đấu",
+        "intro": "Thành thạo 6 định dạng giải đấu chính.",
+        "items": {
+          "mtt": {
+            "desc": "Giải đấu quy mô lớn với hàng chục đến hàng nghìn người chơi",
+            "duration": "4-12 giờ",
+            "f1": "Buy-in + phí", "f2": "Blind tăng chậm", "f3": "Tiến đến mesa final", "f4": "Pot lớn"
+          },
+          "sng": {
+            "desc": "Giải đấu single-/small-table bắt đầu khi đầy",
+            "duration": "30 phút-2 giờ",
+            "f1": "Bàn đơn 6-9 người chơi", "f2": "Blind nhanh", "f3": "Top 30% vào tiền", "f4": "Thời gian chơi ngắn"
+          },
+          "pko": {
+            "desc": "Giải đấu nơi bounty tích lũy mỗi loại",
+            "duration": "3-8 giờ",
+            "f1": "50% buy-in là bounty", "f2": "Trả nửa ngay khi KO", "f3": "Nửa cộng vào đầu bạn", "f4": "Khuyến khích aggressive"
+          },
+          "bountyHunter": {
+            "desc": "Bounty trả khi loại người chơi cụ thể",
+            "duration": "3-6 giờ",
+            "f1": "Bounty cố định", "f2": "Hệ thống mục tiêu", "f3": "Cơ hội thưởng thêm", "f4": "Pool chính + bounties"
+          },
+          "spinAndGo": {
+            "desc": "SNG 3 người với bộ nhân thưởng ngẫu nhiên",
+            "duration": "5-15 phút",
+            "f1": "Hyper turbo 3 người", "f2": "Lên đến 1000x thưởng", "f3": "Bắt đầu ngay", "f4": "Giải đấu kiểu xổ số"
+          },
+          "freezeout": {
+            "desc": "Giải đấu một lần — không rebuy hoặc addon",
+            "duration": "2-6 giờ",
+            "f1": "Một lần entry", "f2": "Out khi về 0", "f3": "Ít rủi ro", "f4": "Phù hợp người mới"
+          }
+        }
+      },
+      "structure": {
+        "title": "Cấu trúc Blind",
+        "intro": "Học 4 tốc độ blind tiêu chuẩn.",
+        "items": {
+          "standard": { "name": "Standard (Tiêu chuẩn)", "interval": "20-30 phút", "multiplier": "1.3-1.5x", "desc": "Tiêu chuẩn giải đấu chuyên nghiệp. Kỹ năng quan trọng nhất." },
+          "turbo": { "name": "Turbo", "interval": "8-10 phút", "multiplier": "1.5x", "desc": "Nhịp độ nhanh, nhiều variance hơn." },
+          "hyperTurbo": { "name": "Hyper Turbo", "interval": "3-5 phút", "multiplier": "1.5-2x", "desc": "Cực nhanh. Tập trung push/fold." },
+          "deepStack": { "name": "Deep Stack", "interval": "30-60 phút", "multiplier": "1.25x", "desc": "Stack đầu 200BB+. Postflop quan trọng." }
+        },
+        "exampleTitle": "Ví dụ tiến trình blind tiêu chuẩn"
+      },
+      "stages": {
+        "title": "Giai đoạn giải đấu",
+        "intro": "Dòng chảy 6 giai đoạn từ đầu đến chiến thắng.",
+        "items": {
+          "early": { "name": "Đầu (Early Stage)", "desc": "Chơi deep stack, tích chip từ từ", "strategy": "Tight Aggressive" },
+          "middle": { "name": "Giữa (Middle Stage)", "desc": "Antes bắt đầu, bắt đầu steal", "strategy": "Sử dụng vị trí" },
+          "bubble": { "name": "Bubble", "desc": "Trước ITM, áp lực ICM tối đa", "strategy": "Áp lực short stack" },
+          "itm": { "name": "Vào tiền (ITM)", "desc": "Thưởng bắt đầu, leo thang", "strategy": "Aggressive chọn lọc" },
+          "ft": { "name": "Final Table", "desc": "9 người cuối, khoảng cách thưởng lớn", "strategy": "Quyết định dựa trên ICM" },
+          "hu": { "name": "Heads-Up", "desc": "1v1 chung kết, quyết định người thắng", "strategy": "Aggressive" }
+        }
+      },
+      "icm": {
+        "title": "ICM (Independent Chip Model)",
+        "intro": "Khái niệm toán học quan trọng nhất trong giải đấu.",
+        "definitionTitle": "ICM là gì?",
+        "definition": "ICM chuyển stack chip giải đấu của bạn thành equity tiền mặt thực. Khác với cash game, giá trị chip KHÔNG là 1:1 — chip stack ngắn có giá trị hơn chip stack lớn.",
+        "formula": "$EV = Σ (P[đến hạng i] × Thưởng[i])",
+        "formulaNote": "// Xác suất đến mỗi hạng × thưởng",
+        "examplesTitle": "Nơi ICM áp dụng",
+        "examples": {
+          "bubble": { "stack": "Bubble", "desc": "Áp lực ICM tối đa. Giá trị chip ≠ giá trị thưởng.", "action": "Chơi tight, tránh stack lớn" },
+          "ft": { "stack": "Final Table", "desc": "Khoảng cách thưởng lớn mỗi nấc", "action": "Tính ICM trước call/push" },
+          "hu": { "stack": "Heads-Up", "desc": "Min ICM. Chip EV = $ EV", "action": "Aggressive OK" },
+          "shortStack": { "stack": "Short Stack", "desc": "Sử dụng chart push/fold", "action": "Dựa trên Nash Equilibrium" }
+        },
+        "principlesTitle": "Nguyên tắc cốt lõi",
+        "principles": {
+          "p1": "BB cuối > BB đầu (out = hết game)",
+          "p2": "EV mất khi KO luôn > chip EV",
+          "p3": "Call +cEV có thể -$EV dưới ICM",
+          "p4": "Stack giữa chơi tight nhất, big/short chơi aggressive"
+        }
+      },
+      "prize": {
+        "title": "Cấu trúc phân chia thưởng",
+        "intro": "Cấu trúc thưởng tiêu chuẩn cho MTT 100 người chơi.",
+        "tableTitle": "Bảng thưởng tiêu chuẩn",
+        "ranks": {
+          "r1": "Hạng 1", "r2": "Hạng 2", "r3": "Hạng 3", "r4": "Hạng 4", "r5": "Hạng 5",
+          "r6to9": "Hạng 6-9", "r10to18": "Hạng 10-18", "r19plus": "Dưới 19%",
+          "p1": "25-30%", "p2": "15-18%", "p3": "10-13%", "p4": "8-10%", "p5": "6-8%",
+          "p6to9": "Mỗi 3-5%", "p10to18": "Mỗi 1.5-2%", "p19plus": "Mỗi 1%"
+        },
+        "topHeavy": { "title": "Top-Heavy", "desc": "Thưởng tập trung ở top. Dùng trong WSOP, EPT, v.v." },
+        "flat": { "title": "Flat", "desc": "Phân bổ đồng đều hơn. Nhiều người vào tiền hơn. Thường trong satellite." },
+        "formula": "Pot = Buy-in × Người chơi - Phí (thường 8-12%)",
+        "noteTopPercent": "Thường top 10-15% vào tiền",
+        "noteFt": "9 người cuối lấy 70-80% pot tổng",
+        "noteWinner": "Người thắng lấy ~25-30% một mình"
+      },
+      "rules": {
+        "title": "Luật đặc biệt",
+        "intro": "6 luật đặc biệt riêng của giải đấu.",
+        "items": {
+          "lateReg": { "name": "Late Registration (đăng ký muộn)", "desc": "Đăng ký sau khi bắt đầu, trong khoảng thời gian giới hạn", "detail": "Thường đến level 5-8. Vào muộn = BB đầu nhỏ hơn." },
+          "reentry": { "name": "Re-entry (vào lại)", "desc": "Trả buy-in lại để vào lại sau KO", "detail": "Thường tối đa 1-3 lần. Chỉ trong khoảng late reg." },
+          "rebuy": { "name": "Re-buy (mua lại)", "desc": "Mua thêm chip khi dưới ngưỡng", "detail": "Chỉ trong giai đoạn rebuy. Stack phải dưới ban đầu." },
+          "addon": { "name": "Add-on (mua thêm)", "desc": "Mua một lần cuối giai đoạn rebuy", "detail": "Có sẵn cho tất cả bất kể stack. Thường 1.5-2x stack đầu." },
+          "handForHand": { "name": "Hand-for-Hand", "desc": "Tất cả bàn chơi đồng thời một ván gần bubble", "detail": "Khi KO đồng thời, stack lớn hơn được hạng tốt hơn. Đảm bảo công bằng." },
+          "syncBreak": { "name": "Synchronized Break (nghỉ đồng bộ)", "desc": "Toàn giải đấu nghỉ cùng nhau", "detail": "Thường 5-10 phút/giờ. Vệ sinh, ăn uống, thời gian chiến thuật." }
+        }
+      },
+      "stack": {
+        "title": "Hướng dẫn chơi theo Stack",
+        "intro": "6 chiến thuật theo kích thước stack.",
+        "items": {
+          "deep": { "play": "Tập trung postflop. Sử dụng implied odds. Set-mining OK.", "avoid": "Tránh all-in, cẩn thận pair giữa" },
+          "standard": { "play": "GTO tiêu chuẩn. Tất cả các đường chơi có sẵn.", "avoid": "Phòng thủ 3-bet liều lĩnh" },
+          "medium": { "play": "Dựa trên vị trí, ít 3-bet, quản lý SPR.", "avoid": "Bài deep-stack (pair nhỏ, suited connector call)" },
+          "short": { "play": "Open-shove OK. Sử dụng chart re-shove.", "avoid": "Limp, min-raise, chỉ call" },
+          "pushFold": { "play": "Chỉ chart Nash push/fold. Không call.", "avoid": "Đi vào postflop" },
+          "desperation": { "play": "Bất kỳ hai lá nào cũng push. Shove ở mở đầu tiên.", "avoid": "Đợi đến BB cuối" }
+        },
+        "mRatioTitle": "Công thức M-Ratio",
+        "mRatioFormula": "M = Stack / (SB + BB + tổng antes)"
+      },
+      "strategy": {
+        "title": "Hướng dẫn chiến thuật theo giai đoạn",
+        "intro": "Chiến thuật cốt lõi từ giai đoạn đầu đến heads-up.",
+        "items": {
+          "early": {
+            "stage": "Đầu (Early)", "bb": "100-200BB",
+            "tip1": "Chỉ bài premium (top 10%)",
+            "tip2": "Loose hơn ở giải đấu rebuy",
+            "tip3": "Quan sát: hồ sơ đối thủ (fish/reg)",
+            "tip4": "Set-mining qua implied odds OK"
+          },
+          "middle": {
+            "stage": "Giữa (Middle)", "bb": "30-80BB",
+            "tip1": "Antes thêm vào → chơi nhiều bài hơn",
+            "tip2": "Steal và re-steal aggressive",
+            "tip3": "Áp lực short, tránh stack lớn",
+            "tip4": "Vị trí là ưu tiên hàng đầu"
+          },
+          "bubble": {
+            "stage": "Bubble", "bb": "15-30BB",
+            "tip1": "Áp lực ICM tối đa — range call hẹp",
+            "tip2": "Push thường xuyên khi short stack",
+            "tip3": "Áp lực mọi người khi big stack",
+            "tip4": "Tránh KO mọi giá khi medium stack"
+          },
+          "itm": {
+            "stage": "ITM", "bb": "10-25BB",
+            "tip1": "Leo thang — mỗi nấc = tiền thực",
+            "tip2": "Đợi short stack KO",
+            "tip3": "Aggressive chọn lọc (bài đã chọn)",
+            "tip4": "Tính ICM trong đầu"
+          },
+          "ft": {
+            "stage": "Final Table", "bb": "thay đổi",
+            "tip1": "Nhận biết bước nhảy thưởng",
+            "tip2": "Deal-making OK (ICM/Chip-chop)",
+            "tip3": "Trước HU là áp lực ICM tối đa",
+            "tip4": "Thắng = danh dự + thưởng lớn nhất"
+          },
+          "hu": {
+            "stage": "Heads-Up (HU)", "bb": "thay đổi",
+            "tip1": "ICM biến mất — aggressive",
+            "tip2": "Aggression Button (SB) = 80%+",
+            "tip3": "Bất kỳ hai lá nào đều có giá trị",
+            "tip4": "Đọc điểm yếu đối thủ nhanh"
+          }
+        },
+        "victoryTitle": "7 nguyên tắc chiến thắng",
+        "victory": {
+          "p1": "Sống sót trước — chip vô nghĩa không quan trọng",
+          "p2": "Vị trí là vàng — luôn biết của mình",
+          "p3": "Sử dụng áp lực ICM — áp lực đối thủ",
+          "p4": "Tấn công là phòng thủ tốt nhất — passive = chết",
+          "p5": "Luôn biết stack — nghĩ theo BB",
+          "p6": "Tránh tilt — một ván có thể phá hủy giải đấu",
+          "p7": "Cân bằng kiên nhẫn và quyết đoán — đợi rồi bùng nổ"
+        }
+      }
+    }
+  },
+  "gameTable": {
+    "header": {
+      "watchingMode": "Đang xem",
+      "inviteFriends": "Mời bạn",
+      "invite": "Mời",
+      "enterFullscreen": "Toàn màn hình",
+      "exitFullscreen": "Thoát toàn màn hình",
+      "moreMenu": "Thêm"
+    },
+    "menu": {
+      "recentHandsCount": "10 ván gần nhất",
+      "history": "Lịch sử ván",
+      "topUp": "Nạp chip",
+      "changeSeat": "Đổi ghế",
+      "preAction": "Pre-Action",
+      "waitBb": "Chờ BB",
+      "rit": "Run It Twice",
+      "emoji": "Emoji",
+      "sitOut": "Tạm rời"
+    },
+    "sound": {
+      "title": "Âm thanh",
+      "gameSfx": "Hiệu ứng game",
+      "muteOn": "🔊 ON",
+      "muteOff": "🔇 OFF",
+      "popupTitle": "🎵 Âm thanh",
+      "gameLabel": "🎮 Game",
+      "bgmLabel": "🎵 BGM"
+    },
+    "modal": {
+      "inviteTitle": "Mời bạn",
+      "inviteDescription": "Mời tới cùng bàn (tối đa 8, kể cả người xem)",
+      "joinFirst": "Vui lòng vào phòng trước",
+      "roomCode": "Mã phòng (vĩnh viễn)",
+      "copy": "Sao chép",
+      "telegramShare": "Chia sẻ Telegram",
+      "officialChannel": "Đăng ký kênh chính thức",
+      "officialChannelDesc": "Cảnh báo tự động: phòng mới · sự kiện VIP",
+      "deepLinkTitle": "Liên kết mời một chạm (không cần /start)",
+      "deepLinkHint": "Bạn chạm liên kết → nhấn Bắt đầu một lần → vào tự động.",
+      "deepLinkNote": "(không cần liên kết tài khoản · không cần /start thủ công)",
+      "roomLifeNote": "Có hiệu lực khi phòng còn · Phòng riêng ẩn khỏi lobby",
+      "inviteCopied": "Đã sao chép văn bản mời",
+      "deepLinkCopied": "Đã sao chép deep link — chia sẻ với bạn",
+      "copyFailed": "Sao chép thất bại",
+      "telegramShareTitle": "🃏 Mời phòng Hold'em",
+      "inGame": "Game đang diễn ra!",
+      "leaveTable": "Rời bàn?",
+      "leaveSeatedDesc": "Rời khi đang ngồi sẽ tự động cash out chip.\nNếu giữa ván, bạn sẽ fold.",
+      "leaveSpectatingDesc": "Kết thúc xem và quay về lobby.",
+      "leaveAfterHand": "Bạn sẽ rời sau ván này",
+      "leaveCancel": "Đã hủy đặt rời",
+      "keepPlaying": "Tiếp tục chơi",
+      "leaveNow": "Rời ngay",
+      "reserveLeave": "Rời sau ván",
+      "handHistoryTitle": "Lịch sử ván",
+      "handHistoryCount": "{count} ván gần nhất",
+      "noHandHistory": "Chưa chơi ván nào",
+      "noHandHistoryHelper": "Ván của bạn sẽ xuất hiện ở đây khi chơi",
+      "replay": "Phát lại",
+      "playersCount": "Người chơi ({count})",
+      "rabbitHunt": "Nếu đã chạy hết",
+      "topUpTitle": "Nạp chip",
+      "topUpDescription": "Thêm chip vào stack. Chỉ có giữa các ván.",
+      "changeSeatTitle": "Đổi ghế",
+      "changeSeatDescription": "Chọn ghế trống. Phải đợi đến khi ván hiện tại kết thúc.",
+      "seatLabel": "Ghế {n}",
+      "seatYou": "(Bạn)",
+      "seatStatusCurrent": "Hiện tại",
+      "seatStatusEmpty": "Trống",
+      "seatStatusTaken": "Đã ngồi",
+      "refreshSeats": "Làm mới ghế trống"
+    },
+    "preAction": {
+      "title": "Pre-Action",
+      "description": "Tự động thực hiện khi đến lượt bạn"
+    },
+    "emoji": {
+      "reactions": "Phản ứng",
+      "actions": "Hành động",
+      "taunts": "Khiêu khích"
+    },
+    "showMuck": {
+      "prompt": "Lật bài của bạn?",
+      "show": "Lật",
+      "muck": "Muck"
+    },
+    "cashOut": {
+      "title": "Cash Out có sẵn",
+      "description": "Bỏ qua showdown, lấy equity ngay",
+      "yourEquity": "Equity của bạn",
+      "amount": "Số tiền",
+      "fee": "Phí",
+      "confirm": "Cash Out",
+      "decline": "Tiếp tục"
+    },
+    "topUp": {
+      "minAmount": "Tối thiểu ₩50,000 cần thiết",
+      "requested": "Yêu cầu nạp: ₩{amount}"
+    },
+    "betting": {
+      "waitBbDesc": "Tự động vào khi BB tiếp theo đến ghế bạn. Trả BB chết để vào ngay."
+    },
+    "alerts": {
+      "confirmLeave": "Game đang diễn ra. Vẫn rời?",
+      "awayReturn": "Quay lại sau {seconds}s vắng"
+    },
+    "fairness": {
+      "currentSeedHash": "Hash seed máy chủ ván hiện tại (công khai)",
+      "previousReveal": "Seed công khai ván trước (xác minh được hash)",
+      "explanation": "💡 SHA-256(serverSeed) === hash trước chứng minh máy chủ pre-commit seed (không thể chỉnh sửa sau)."
+    },
+    "defaults": {
+      "roomName": "Phòng Hold'em"
+    },
+    "invite": {
+      "messageHeader": "🃏 Mời bạn Hold'em!",
+      "roomNameLabel": "Phòng",
+      "roomCodeLabel": "Mã",
+      "messageHint": "👇 Chạm liên kết bên dưới để vào!",
+      "shareTitle": "🃏 Mời phòng Hold'em",
+      "shareTapLink": "Chạm liên kết để vào ngay!"
+    },
+    "replay": {
+      "prev": "◀ Trước",
+      "next": "Tiếp ▶",
+      "auto": "Auto",
+      "winner": "🏆 WINNER"
+    },
+    "rabbit": {
+      "view": "Xem"
+    },
+    "drama": {
+      "badBeat": "😱 BAD BEAT!",
+      "cooler": "🧊 COOLER!"
+    }
+  }
+}

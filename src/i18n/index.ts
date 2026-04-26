@@ -31,13 +31,20 @@ import zh from './zh.json';
 import th from './th.json';
 import es from './es.json';
 import mn from './mn.json';
+import pt from './pt.json';
+import vi from './vi.json';
+import hi from './hi.json';
 import { useState, useEffect, useCallback } from 'react';
 
-// ── 지원 언어 목록 ──
+// ── 지원 언어 목록 (10개국) ──
+// 배치: 호스트(ko) → 글로벌 베이스(en) → 라틴 그룹 → 신흥 아시아 → 동/북아시아
 export const SUPPORTED_LOCALES = [
   { code: 'ko', name: '한국어', flag: '🇰🇷' },
   { code: 'en', name: 'English', flag: '🇺🇸' },
   { code: 'es', name: 'Español', flag: '🇪🇸' },
+  { code: 'pt', name: 'Português', flag: '🇧🇷' },
+  { code: 'vi', name: 'Tiếng Việt', flag: '🇻🇳' },
+  { code: 'hi', name: 'हिन्दी', flag: '🇮🇳' },
   { code: 'mn', name: 'Монгол', flag: '🇲🇳' },
   { code: 'ja', name: '日本語', flag: '🇯🇵' },
   { code: 'zh', name: '中文', flag: '🇨🇳' },
@@ -46,7 +53,7 @@ export const SUPPORTED_LOCALES = [
 
 export type LocaleCode = typeof SUPPORTED_LOCALES[number]['code'];
 
-const messages: Record<string, any> = { ko, en, ja, zh, th, es, mn };
+const messages: Record<string, any> = { ko, en, ja, zh, th, es, mn, pt, vi, hi };
 
 // ── 현재 로케일 ──
 let currentLocale: LocaleCode = 'en'; // V21: 기본 영어 (글로벌 베이스)
