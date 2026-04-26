@@ -733,6 +733,37 @@
       "currentSeedHash": "Current hand server seed hash (public)",
       "previousReveal": "Previous hand revealed seed (hash verifiable)",
       "explanation": "💡 SHA-256(serverSeed) === previous hash proves the server pre-committed the seed (no after-the-fact tampering)."
+    },
+    "defaults": {
+      "roomName": "Holdem Room"
+    },
+    "invite": {
+      "messageHeader": "🃏 Holdem Friend Invite!",
+      "roomNameLabel": "Room",
+      "roomCodeLabel": "Code",
+      "messageHint": "👇 Tap the link below to jump in!",
+      "shareTitle": "🃏 Holdem Room Invite",
+      "shareTapLink": "Tap link to enter instantly!"
+    },
+    "replay": {
+      "prev": "◀ Prev",
+      "next": "Next ▶",
+      "auto": "Auto",
+      "winner": "🏆 WINNER"
+    },
+    "rabbit": {
+      "view": "View"
+    },
+    "sound": {
+      "muteOn": "🔊 ON",
+      "muteOff": "🔇 OFF",
+      "popupTitle": "🎵 Sound",
+      "gameLabel": "🎮 Game",
+      "bgmLabel": "🎵 BGM"
+    },
+    "drama": {
+      "badBeat": "😱 BAD BEAT!",
+      "cooler": "🧊 COOLER!"
     }
   }
 }

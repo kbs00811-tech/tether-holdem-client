@@ -1151,7 +1151,7 @@ export default function GameTable() {
                       className="w-full flex items-center justify-between px-3 py-2.5 rounded-lg text-left text-xs font-semibold hover:bg-white/5"
                       style={{ color: "#8899AB" }}>
                       <span className="flex items-center gap-2"><span>📜</span>History</span>
-                      <span className="text-[9px] text-[#4A5A70]">최근 10핸드</span>
+                      <span className="text-[9px] text-[#4A5A70]">{t('gameTable.menu.recentHandsCount')}</span>
                     </button>
                     {seated && (
                       <>
@@ -1272,7 +1272,7 @@ export default function GameTable() {
                   style={{ background: "rgba(20,24,32,0.95)", border: "1px solid rgba(255,255,255,0.06)", backdropFilter: "blur(12px)" }}>
                   {/* 효과음 (GAME) */}
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[10px] text-[#6B7A90] uppercase tracking-wider">🎮 Game</span>
+                    <span className="text-[10px] text-[#6B7A90] uppercase tracking-wider">{t('gameTable.sound.gameLabel')}</span>
                     <button onClick={() => {
                         const newMuted = !isMuted;
                         setIsMuted(newMuted);
@@ -1305,7 +1305,7 @@ export default function GameTable() {
 
                   {/* BGM */}
                   <div className="flex items-center justify-between mb-1.5">
-                    <span className="text-[10px] text-[#6B7A90] uppercase tracking-wider">🎵 BGM</span>
+                    <span className="text-[10px] text-[#6B7A90] uppercase tracking-wider">{t('gameTable.sound.bgmLabel')}</span>
                     <button onClick={() => {
                         const bgmOff = isBGMMuted();
                         setBGMMuted(!bgmOff);
@@ -1350,7 +1350,7 @@ export default function GameTable() {
                   </div>
                   <button onClick={() => setShowVolume(false)}
                     className="w-full py-1.5 rounded-lg text-[10px] text-[#6B7A90] bg-white/[0.03]">
-                    닫기
+                    {t('common.close')}
                   </button>
                 </motion.div>
               )}
@@ -1374,7 +1374,7 @@ export default function GameTable() {
               boxShadow: '0 12px 40px rgba(0,0,0,0.6)',
             }}>
             <div className="flex items-center justify-between mb-3">
-              <span className="text-[11px] text-white font-bold">🎵 사운드</span>
+              <span className="text-[11px] text-white font-bold">{t('gameTable.sound.popupTitle')}</span>
               <button onClick={() => {
                   const newMuted = !isMuted;
                   setIsMuted(newMuted);
@@ -1386,7 +1386,7 @@ export default function GameTable() {
                   background: isMuted ? 'rgba(239,68,68,0.15)' : 'rgba(52,211,153,0.15)',
                   color: isMuted ? '#EF4444' : '#34D399',
                 }}>
-                {isMuted ? '🔇 OFF' : '🔊 ON'}
+                {isMuted ? t('gameTable.sound.muteOff') : t('gameTable.sound.muteOn')}
               </button>
             </div>
             <input type="range" min={0} max={100} value={volume}
@@ -1417,7 +1417,7 @@ export default function GameTable() {
             </div>
             <button onClick={() => setShowVolume(false)}
               className="w-full mt-2 py-2 rounded-lg text-[10px] font-bold text-[#6B7A90] bg-white/[0.04]">
-              닫기
+              {t('common.close')}
             </button>
           </motion.div>
         )}
@@ -1462,7 +1462,7 @@ export default function GameTable() {
                   fontFamily: "'Space Grotesk', sans-serif",
                   WebkitTextStroke: dramaticMoment.type === 'bad_beat' ? "3px #EF4444" : "3px #F0B90B",
                 }}>
-                {dramaticMoment.type === 'bad_beat' ? '😱 BAD BEAT!' : '🧊 COOLER!'}
+                {dramaticMoment.type === 'bad_beat' ? t('gameTable.drama.badBeat') : t('gameTable.drama.cooler')}
               </motion.div>
 
               <motion.div
@@ -1603,10 +1603,10 @@ export default function GameTable() {
                     {/* V22: 방 코드 = roomId 앞 8자 (영구, 토큰 시스템 제거) */}
                     {(() => {
                       const code = (currentRoomId || '').replace(/-/g, '').slice(0, 8).toUpperCase();
-                      const roomName = (gameState as any)?.roomName || '홀덤 방';
+                      const roomName = (gameState as any)?.roomName || t('gameTable.defaults.roomName');
                       // P2 업그레이드: 봇 딥링크 — 친구가 링크만 탭하면 /start 자동 프리필
                       const deepLink = `https://t.me/tetherinfo_bot?start=room_${code}`;
-                      const msg = `🃏 홀덤 친구 초대!\n\n방 이름: ${roomName}\n방 코드: ${code}\n\n👇 아래 링크 탭 한 번으로 바로 입장!\n${deepLink}`;
+                      const msg = `${t('gameTable.invite.messageHeader')}\n\n${t('gameTable.invite.roomNameLabel')}: ${roomName}\n${t('gameTable.invite.roomCodeLabel')}: ${code}\n\n${t('gameTable.invite.messageHint')}\n${deepLink}`;
                       return (
                         <>
                           <div className="mb-3 p-3 rounded-xl text-center"
@@ -1642,7 +1642,7 @@ export default function GameTable() {
                               📋 {t('gameTable.modal.copy')}
                             </button>
                             <a
-                              href={`https://t.me/share/url?url=${encodeURIComponent(deepLink)}&text=${encodeURIComponent(`🃏 홀덤 방 초대 — ${roomName}\n방 코드: ${code}\n\n링크 탭 한 번으로 바로 입장!`)}`}
+                              href={`https://t.me/share/url?url=${encodeURIComponent(deepLink)}&text=${encodeURIComponent(`${t('gameTable.invite.shareTitle')} — ${roomName}\n${t('gameTable.invite.roomCodeLabel')}: ${code}\n\n${t('gameTable.invite.shareTapLink')}`)}`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="py-3 rounded-xl text-center text-[12px] font-black transition-all block"
@@ -1951,7 +1951,7 @@ export default function GameTable() {
                             border: "1px solid rgba(255,215,0,0.35)",
                           }}
                         >
-                          <div className="text-[11px] text-[#FFD700] font-black mb-0.5">🏆 WINNER</div>
+                          <div className="text-[11px] text-[#FFD700] font-black mb-0.5">{t('gameTable.replay.winner')}</div>
                           <div className="text-[14px] font-black text-white">
                             {winners[0].nickname ?? 'Unknown'}
                           </div>
@@ -1981,7 +1981,7 @@ export default function GameTable() {
                       color: "#8899AB",
                     }}
                   >
-                    ◀ 이전
+                    {t('gameTable.replay.prev')}
                   </button>
 
                   {/* Step dots */}
@@ -2019,7 +2019,7 @@ export default function GameTable() {
                         color: replayAutoplay ? "#34D399" : "#8899AB",
                       }}
                     >
-                      {replayAutoplay ? '⏸' : '▶'} 자동
+                      {replayAutoplay ? '⏸' : '▶'} {t('gameTable.replay.auto')}
                     </button>
                     <button
                       onClick={() => setReplayStep((s) => Math.min(4, s + 1))}
@@ -2031,7 +2031,7 @@ export default function GameTable() {
                         color: "#FF6B35",
                       }}
                     >
-                      다음 ▶
+                      {t('gameTable.replay.next')}
                     </button>
                   </div>
                 </div>
@@ -2460,7 +2460,7 @@ export default function GameTable() {
                 <span className="text-[11px] font-black tracking-wider" style={{ color: "#FFD700" }}>
                   RABBIT HUNT
                 </span>
-                <span className="text-[9px] text-[#C0A540]">보기</span>
+                <span className="text-[9px] text-[#C0A540]">{t('gameTable.rabbit.view')}</span>
               </motion.button>
             )}
 

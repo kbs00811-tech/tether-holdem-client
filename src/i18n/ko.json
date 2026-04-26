@@ -751,6 +751,37 @@
       "currentSeedHash": "현재 핸드 서버 시드 해시 (공개됨)",
       "previousReveal": "직전 핸드 공개 시드 (hash 검증 가능)",
       "explanation": "💡 SHA-256(serverSeed) === 이전 hash 면 서버가 시드를 사전 고정했음이 증명됩니다 (사후 조작 불가)"
+    },
+    "defaults": {
+      "roomName": "홀덤 방"
+    },
+    "invite": {
+      "messageHeader": "🃏 홀덤 친구 초대!",
+      "roomNameLabel": "방 이름",
+      "roomCodeLabel": "방 코드",
+      "messageHint": "👇 아래 링크 탭 한 번으로 바로 입장!",
+      "shareTitle": "🃏 홀덤 방 초대",
+      "shareTapLink": "링크 탭 한 번으로 바로 입장!"
+    },
+    "replay": {
+      "prev": "◀ 이전",
+      "next": "다음 ▶",
+      "auto": "자동",
+      "winner": "🏆 WINNER"
+    },
+    "rabbit": {
+      "view": "보기"
+    },
+    "sound": {
+      "muteOn": "🔊 ON",
+      "muteOff": "🔇 OFF",
+      "popupTitle": "🎵 사운드",
+      "gameLabel": "🎮 Game",
+      "bgmLabel": "🎵 BGM"
+    },
+    "drama": {
+      "badBeat": "😱 BAD BEAT!",
+      "cooler": "🧊 COOLER!"
     }
   }
 }
