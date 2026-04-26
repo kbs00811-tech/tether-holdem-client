@@ -3,6 +3,7 @@ import { Trophy, Crown, Medal, TrendingUp, Users, ArrowLeft } from "lucide-react
 import { motion } from "motion/react";
 import { Link } from "react-router";
 import { useT } from "../../i18n";
+import { formatMoney } from "../utils/currency";
 
 interface LeaderEntry {
   playerId: string;
@@ -124,11 +125,11 @@ export default function Leaderboard() {
                   {/* Profit */}
                   <div className="text-right shrink-0">
                     <div className={`text-sm font-mono font-black ${entry.profit_krw >= 0 ? 'text-[#34D399]' : 'text-[#EF4444]'}`}>
-                      {entry.profit_krw >= 0 ? '+' : ''}{entry.profit_krw.toLocaleString()}
+                      {entry.profit_krw >= 0 ? '+' : ''}{formatMoney(entry.profit_krw)}
                     </div>
                     {entry.biggestPot_krw > 0 && (
                       <div className="text-[9px] text-[#6B7A90]">
-                        Best: {entry.biggestPot_krw.toLocaleString()}
+                        Best: {formatMoney(entry.biggestPot_krw)}
                       </div>
                     )}
                   </div>
