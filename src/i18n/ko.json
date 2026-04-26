@@ -81,7 +81,77 @@
     "standard": "스탠다드",
     "highRoller": "하이롤러",
     "headsUp": "헤즈업",
-    "vip": "VIP"
+    "vip": "VIP",
+    "labels": {
+      "roomCode": "🔑 방 코드",
+      "country": "🌍 Country · 국가",
+      "tableFelt": "🎨 TABLE FELT · 테이블 색상",
+      "telegramNotifications": "📱 Telegram 알림"
+    },
+    "placeholder": {
+      "roomCode": "친구 초대로 받은 8자리 코드"
+    },
+    "helper": {
+      "countryHint": "(아바타 옆 국기로 표시)"
+    },
+    "table": {
+      "header": {
+        "table": "테이블",
+        "blinds": "블라인드",
+        "buyIn": "바이인",
+        "players": "플레이어",
+        "action": "액션"
+      }
+    },
+    "status": {
+      "live": "● LIVE"
+    },
+    "titles": {
+      "bgmOff": "BGM 끄기",
+      "bgmOn": "BGM 켜기",
+      "selectMusic": "음악 선택",
+      "listView": "리스트 보기",
+      "gridView": "카드 보기",
+      "editNickname": "닉네임 수정"
+    },
+    "telegram": {
+      "channelTitle": "텔레그램 채널 구독 · 새 방 오픈 즉시 알림",
+      "channelDesc": "VIP 테이블 · 이벤트 공지도 먼저 받아보세요",
+      "linkedWith": "● 연동됨 {username}",
+      "desc": "앱을 닫아도 내 차례·승리·초대 알림을 텔레그램으로 받기",
+      "linkButton": "📲 텔레그램 앱으로 연동하기",
+      "linkHint": "위 버튼 탭 → 텔레그램 열리면 [시작] 탭\n완료 후 프로필 다시 열면 연동 확인",
+      "generatingLink": "🔄 연동 링크 생성 중...",
+      "unlinkConfirm": "텔레그램 연동을 해제하시겠습니까?",
+      "unlinkButton": "연동 해제",
+      "notif": {
+        "turn": "⏰ 내 턴 차례 (AFK 15초+)",
+        "win": "🏆 승리 / 큰 팟 획득",
+        "allIn": "🔥 올인 상황",
+        "invite": "🎯 방 입장 요청 (호스트)"
+      }
+    },
+    "toast": {
+      "telegramChannelPrompt": "📢 텔레그램 채널 참여하세요!",
+      "telegramChannelDesc": "새 방 오픈·VIP 이벤트 알림을 가장 먼저 받아보세요",
+      "privateRoomOnly": "🔒 비공개 방 — 방 코드로만 입장 가능합니다",
+      "spectateEnter": "👁 {name} 관전 입장",
+      "roomCreatingInvite": "\"{name}\" · 친구 초대 준비 중...",
+      "invalidRoomCode": "방 코드는 8자리 영숫자(0-9, a-f)입니다",
+      "serverConnecting": "서버 연결 대기 중...",
+      "searchingRoom": "방 찾는 중...",
+      "invalidCode": "❌ {message}",
+      "invalidCodeFallback": "방 코드 확인 실패 — 올바른 코드인지 확인해주세요",
+      "countrySet": "🌍 국가 → {code}",
+      "countryUnset": "🌍 국가 미선택",
+      "feltChanged": "테이블 색상: {name}"
+    },
+    "buttons": {
+      "join": "입장",
+      "fullProfile": "전체 프로필",
+      "handHistory": "핸드 히스토리",
+      "changeAvatar": "아바타 변경"
+    }
   },
   "createRoom": {
     "title": "방 만들기",

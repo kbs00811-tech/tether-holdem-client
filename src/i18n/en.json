@@ -81,7 +81,77 @@
     "standard": "Standard",
     "highRoller": "High Roller",
     "headsUp": "Heads-Up",
-    "vip": "VIP"
+    "vip": "VIP",
+    "labels": {
+      "roomCode": "🔑 Room Code",
+      "country": "🌍 Country",
+      "tableFelt": "🎨 Table Felt",
+      "telegramNotifications": "📱 Telegram Alerts"
+    },
+    "placeholder": {
+      "roomCode": "8-char invite code"
+    },
+    "helper": {
+      "countryHint": "(shown as flag next to avatar)"
+    },
+    "table": {
+      "header": {
+        "table": "Table",
+        "blinds": "Blinds",
+        "buyIn": "Buy-In",
+        "players": "Players",
+        "action": "Action"
+      }
+    },
+    "status": {
+      "live": "● LIVE"
+    },
+    "titles": {
+      "bgmOff": "BGM Off",
+      "bgmOn": "BGM On",
+      "selectMusic": "Select Music",
+      "listView": "List View",
+      "gridView": "Grid View",
+      "editNickname": "Edit Nickname"
+    },
+    "telegram": {
+      "channelTitle": "Subscribe Telegram channel · instant alerts on new tables",
+      "channelDesc": "VIP tables · event announcements first",
+      "linkedWith": "● Linked {username}",
+      "desc": "Receive turn / win / invite alerts on Telegram even when app closed",
+      "linkButton": "📲 Link Telegram App",
+      "linkHint": "Tap → Telegram opens → tap [Start]\nReopen profile to confirm linked",
+      "generatingLink": "🔄 Generating link...",
+      "unlinkConfirm": "Unlink Telegram account?",
+      "unlinkButton": "Unlink",
+      "notif": {
+        "turn": "⏰ My turn (AFK 15s+)",
+        "win": "🏆 Win / Big pot",
+        "allIn": "🔥 All-in situation",
+        "invite": "🎯 Room join request (host)"
+      }
+    },
+    "toast": {
+      "telegramChannelPrompt": "📢 Join the Telegram channel!",
+      "telegramChannelDesc": "Be the first to get new room and VIP event alerts",
+      "privateRoomOnly": "🔒 Private room — code required to enter",
+      "spectateEnter": "👁 Spectating {name}",
+      "roomCreatingInvite": "\"{name}\" · preparing invite...",
+      "invalidRoomCode": "Room code must be 8 alphanumeric (0-9, a-f)",
+      "serverConnecting": "Waiting for server connection...",
+      "searchingRoom": "Searching for room...",
+      "invalidCode": "❌ {message}",
+      "invalidCodeFallback": "Invalid room code — check and retry",
+      "countrySet": "🌍 Country → {code}",
+      "countryUnset": "🌍 Country cleared",
+      "feltChanged": "Table felt: {name}"
+    },
+    "buttons": {
+      "join": "Join",
+      "fullProfile": "Full Profile",
+      "handHistory": "Hand History",
+      "changeAvatar": "Change Avatar"
+    }
   },
   "createRoom": {
     "title": "Create Room",

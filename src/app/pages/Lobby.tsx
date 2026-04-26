@@ -138,8 +138,8 @@ export default function Lobby() {
     const shown = localStorage.getItem('tg_channel_prompt_v1');
     if (shown) return;
     const timer = setTimeout(() => {
-      toast('📢 텔레그램 채널 참여하세요!', {
-        description: '새 방 오픈·VIP 이벤트 알림을 가장 먼저 받아보세요',
+      toast(t('lobby.toast.telegramChannelPrompt'), {
+        description: t('lobby.toast.telegramChannelDesc'),
         action: {
           label: 'JOIN',
           onClick: () => window.open('https://t.me/+EvLlkdY7mAFkMjdl', '_blank', 'noopener,noreferrer'),
@@ -311,11 +311,11 @@ export default function Lobby() {
     const serverRoom = serverRooms.find(r => r.id === roomId);
     // V22: 비공개 방은 클릭 입장 차단 (방 코드 입력창으로만 입장 가능)
     if (serverRoom && (serverRoom as any).isPrivate) {
-      toast.error('🔒 비공개 방 — 방 코드로만 입장 가능합니다', { duration: 3000 });
+      toast.error(t('lobby.toast.privateRoomOnly'), { duration: 3000 });
       return;
     }
     navigate(`/table/${roomId}`);
-    toast(`👁 ${room.name} ${t('lobby.spectateEnter')}`, { duration: 1500 });
+    toast(t('lobby.toast.spectateEnter', { name: room.name }), { duration: 1500 });
   };
 
   const handleCreateRoom = (config: RoomConfig) => {
@@ -329,7 +329,7 @@ export default function Lobby() {
         useGameStore.setState({ pendingJoinPassword: config.password });
       }
     }
-    toast.success(`"${config.name}" · 친구 초대 준비 중...`);
+    toast.success(t('lobby.toast.roomCreatingInvite', { name: config.name }));
   };
 
   // V22: 방 코드(roomId 앞 8자)로 직접 입장 — 서버의 JOIN_BY_CODE 사용
@@ -337,18 +337,18 @@ export default function Lobby() {
   const handleJoinByCode = () => {
     const code = joinByCodeInput.trim().toLowerCase();
     if (code.length !== 8 || !/^[a-f0-9]{8}$/.test(code)) {
-      toast.error('방 코드는 8자리 영숫자(0-9, a-f)입니다');
+      toast.error(t('lobby.toast.invalidRoomCode'));
       return;
     }
     if (!connected) {
-      toast.error('서버 연결 대기 중...');
+      toast.error(t('lobby.toast.serverConnecting'));
       return;
     }
     // 기존 pending 상태 초기화
     useGameStore.setState({ pendingInviteJoin: null, lastError: null });
     send({ type: 'JOIN_BY_CODE', code } as any);
     setJoinByCodeInput('');
-    toast.loading('방 찾는 중...', { id: 'join-by-code' });
+    toast.loading(t('lobby.toast.searchingRoom'), { id: 'join-by-code' });
 
     // 3초 타임아웃 — 성공 응답 없으면 실패 토스트
     setTimeout(() => {
@@ -356,7 +356,7 @@ export default function Lobby() {
       const st = useGameStore.getState();
       if (st.pendingInviteJoin) return;
       const err = st.lastError;
-      toast.error(`❌ ${err?.message || '방 코드 확인 실패 — 올바른 코드인지 확인해주세요'}`, { duration: 4000 });
+      toast.error(t('lobby.toast.invalidCode', { message: err?.message || t('lobby.toast.invalidCodeFallback') }), { duration: 4000 });
     }, 3000);
   };
 
@@ -553,13 +553,13 @@ export default function Lobby() {
       <section className="mx-3 sm:mx-5 mt-3">
         <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl"
           style={{ background: "linear-gradient(135deg, rgba(34,211,238,0.08), rgba(34,211,238,0.04))", border: "1px solid rgba(34,211,238,0.2)" }}>
-          <span className="text-[11px] font-bold text-[#22D3EE] shrink-0">🔑 방 코드</span>
+          <span className="text-[11px] font-bold text-[#22D3EE] shrink-0">{t('lobby.labels.roomCode')}</span>
           <input
             type="text"
             value={joinByCodeInput}
             onChange={e => setJoinByCodeInput(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 8))}
             onKeyDown={e => { if (e.key === 'Enter' && joinByCodeInput.length === 8) handleJoinByCode(); }}
-            placeholder="친구 초대로 받은 8자리 코드"
+            placeholder={t('lobby.placeholder.roomCode')}
             className="flex-1 bg-transparent text-[12px] font-mono text-white placeholder:text-[#4A5A70] focus:outline-none tracking-wider"
             maxLength={8}
           />
@@ -572,7 +572,7 @@ export default function Lobby() {
               color: joinByCodeInput.length === 8 ? "#FFFFFF" : "#4A5A70",
             }}
           >
-            입장
+            {t('lobby.buttons.join')}
           </button>
         </div>
       </section>
@@ -592,10 +592,10 @@ export default function Lobby() {
           <span className="text-base shrink-0">📢</span>
           <div className="flex-1 min-w-0">
             <div className="text-[11px] font-bold text-[#0088CC] leading-tight">
-              텔레그램 채널 구독 · 새 방 오픈 즉시 알림
+              {t('lobby.telegram.channelTitle')}
             </div>
             <div className="text-[9px] text-[#6B7A90] leading-tight mt-0.5">
-              VIP 테이블 · 이벤트 공지도 먼저 받아보세요
+              {t('lobby.telegram.channelDesc')}
             </div>
           </div>
           <span className="shrink-0 px-2.5 py-1 rounded-md text-[10px] font-black text-white"
@@ -715,7 +715,7 @@ export default function Lobby() {
                   background: lobbyBGMActive ? 'rgba(255,107,53,0.15)' : 'transparent',
                   color: lobbyBGMActive ? '#FF6B35' : '#6B7A90',
                 }}
-                title={lobbyBGMActive ? "BGM 끄기" : "BGM 켜기"}>
+                title={lobbyBGMActive ? t('lobby.titles.bgmOff') : t('lobby.titles.bgmOn')}>
                 {lobbyBGMActive ? <Volume2 className="h-3.5 w-3.5" /> : <VolumeX className="h-3.5 w-3.5" />}
               </button>
               <button onClick={() => setShowBGMPicker(p => !p)}
@@ -724,7 +724,7 @@ export default function Lobby() {
                   background: showBGMPicker ? 'rgba(167,139,250,0.15)' : 'transparent',
                   color: showBGMPicker ? '#A78BFA' : '#6B7A90',
                 }}
-                title="음악 선택">
+                title={t('lobby.titles.selectMusic')}>
                 <Music className="h-3.5 w-3.5" />
               </button>
             </div>
@@ -737,7 +737,7 @@ export default function Lobby() {
                   background: viewMode === 'list' ? 'rgba(255,107,53,0.15)' : 'transparent',
                   color: viewMode === 'list' ? '#FF6B35' : '#6B7A90',
                 }}
-                title="리스트 보기">
+                title={t('lobby.titles.listView')}>
                 <List className="h-3.5 w-3.5" />
               </button>
               <button onClick={() => setViewMode('grid')}
@@ -746,7 +746,7 @@ export default function Lobby() {
                   background: viewMode === 'grid' ? 'rgba(255,107,53,0.15)' : 'transparent',
                   color: viewMode === 'grid' ? '#FF6B35' : '#6B7A90',
                 }}
-                title="카드 보기">
+                title={t('lobby.titles.gridView')}>
                 <LayoutGrid className="h-3.5 w-3.5" />
               </button>
             </div>
@@ -770,11 +770,11 @@ export default function Lobby() {
             {/* 헤더 */}
             <div className="grid grid-cols-[1.5fr_0.8fr_0.8fr_0.7fr_0.7fr] gap-2 px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-[#4A5A70]"
               style={{ background: "rgba(0,0,0,0.25)", borderBottom: "1px solid rgba(255,255,255,0.04)" }}>
-              <div>테이블</div>
-              <div className="text-right">블라인드</div>
-              <div className="text-right">바이인</div>
-              <div className="text-center">플레이어</div>
-              <div className="text-right">액션</div>
+              <div>{t('lobby.table.header.table')}</div>
+              <div className="text-right">{t('lobby.table.header.blinds')}</div>
+              <div className="text-right">{t('lobby.table.header.buyIn')}</div>
+              <div className="text-center">{t('lobby.table.header.players')}</div>
+              <div className="text-right">{t('lobby.table.header.action')}</div>
             </div>
             {rooms.map((room, idx) => {
               const isFull = room.currentPlayers >= room.maxPlayers;
@@ -794,7 +794,7 @@ export default function Lobby() {
                       <div className="font-bold text-white truncate">{room.name}</div>
                       <div className="text-[10px] text-[#6B7A90] flex items-center gap-1.5">
                         <span>{variant}</span>
-                        {room.status === 'playing' && <span className="text-[#34D399]">● LIVE</span>}
+                        {room.status === 'playing' && <span className="text-[#34D399]">{t('lobby.status.live')}</span>}
                         {(room as any).spectatorCount > 0 && (
                           <span className="text-[#60A5FA]">👁 {(room as any).spectatorCount}</span>
                         )}
@@ -1077,7 +1077,7 @@ export default function Lobby() {
                             setEditingNickname(true);
                           }}
                           className="text-[10px] text-[#FFD700]/70 hover:text-[#FFD700]"
-                          title="닉네임 수정">
+                          title={t('lobby.titles.editNickname')}>
                           ✏️
                         </button>
                       </div>
@@ -1175,14 +1175,14 @@ export default function Lobby() {
                     setCountryCode(code);
                     if (connected) {
                       send({ type: 'UPDATE_COUNTRY', countryCode: code } as any);
-                      toast.success(code ? `🌍 국가 → ${code}` : '🌍 국가 미선택');
+                      toast.success(code ? t('lobby.toast.countrySet', { code }) : t('lobby.toast.countryUnset'));
                     }
                   }}
                   label={
                     <span className="flex items-center gap-2">
-                      <span>🌍 Country · 국가</span>
+                      <span>{t('lobby.labels.country')}</span>
                       <span className="text-[#4A5A70] normal-case tracking-normal text-[10px]">
-                        (아바타 옆 국기로 표시)
+                        {t('lobby.helper.countryHint')}
                       </span>
                     </span>
                   }
@@ -1194,7 +1194,7 @@ export default function Lobby() {
               {/* 🎨 Table Felt — V22 Phase 2+: ProfilePanel 안에 직접 노출 */}
               <div className="px-5 py-4 border-b border-white/5">
                 <div className="text-[10px] font-bold text-[#6B7A90] uppercase tracking-wider mb-2 flex items-center gap-2">
-                  <span>🎨 TABLE FELT · 테이블 색상</span>
+                  <span>{t('lobby.labels.tableFelt')}</span>
                 </div>
                 <div className="grid grid-cols-3 gap-2">
                   {Object.entries(TABLE_FELTS).map(([id, felt]) => {
@@ -1205,7 +1205,7 @@ export default function Lobby() {
                         key={id}
                         onClick={() => {
                           setTableFelt(idNum);
-                          toast.success(`테이블 색상: ${felt.name}`);
+                          toast.success(t('lobby.toast.feltChanged', { name: felt.name }));
                         }}
                         className="p-2.5 rounded-xl text-center transition-all no-touch-min"
                         style={{
@@ -1230,15 +1230,15 @@ export default function Lobby() {
               {/* P3: Telegram 연동 */}
               <div className="px-5 py-4 border-b border-white/5">
                 <div className="flex items-center justify-between mb-2">
-                  <div className="text-[10px] font-bold text-[#6B7A90] uppercase tracking-wider">📱 Telegram 알림</div>
+                  <div className="text-[10px] font-bold text-[#6B7A90] uppercase tracking-wider">{t('lobby.labels.telegramNotifications')}</div>
                   {tgLink.linked && (
-                    <span className="text-[9px] text-[#34D399]">● 연동됨 {tgLink.username || ''}</span>
+                    <span className="text-[9px] text-[#34D399]">{t('lobby.telegram.linkedWith', { username: tgLink.username || '' })}</span>
                   )}
                 </div>
                 {!tgLink.linked ? (
                   <>
                     <p className="text-[10px] text-[#8899AB] leading-relaxed mb-2">
-                      앱을 닫아도 내 차례·승리·초대 알림을 텔레그램으로 받기
+                      {t('lobby.telegram.desc')}
                     </p>
                     {tgLink.pendingUrl ? (
                       <>
@@ -1253,11 +1253,10 @@ export default function Lobby() {
                             textDecoration: "none",
                           }}
                         >
-                          📲 텔레그램 앱으로 연동하기
+                          {t('lobby.telegram.linkButton')}
                         </a>
-                        <p className="text-[9px] text-[#FFD700] mt-2 text-center leading-relaxed">
-                          위 버튼 탭 → 텔레그램 열리면 [시작] 탭<br/>
-                          완료 후 프로필 다시 열면 연동 확인
+                        <p className="text-[9px] text-[#FFD700] mt-2 text-center leading-relaxed whitespace-pre-line">
+                          {t('lobby.telegram.linkHint')}
                         </p>
                       </>
                     ) : (
@@ -1266,7 +1265,7 @@ export default function Lobby() {
                         className="w-full py-2.5 rounded-xl text-[12px] font-black text-white opacity-60"
                         style={{ background: "linear-gradient(135deg, #0088CC, #0066AA)" }}
                       >
-                        🔄 연동 링크 생성 중...
+                        {t('lobby.telegram.generatingLink')}
                       </button>
                     )}
                   </>
@@ -1274,10 +1273,10 @@ export default function Lobby() {
                   <>
                     <div className="space-y-1.5 mb-2">
                       {[
-                        { key: 'turn' as const, label: '⏰ 내 턴 차례 (AFK 15초+)' },
-                        { key: 'win' as const, label: '🏆 승리 / 큰 팟 획득' },
-                        { key: 'allIn' as const, label: '🔥 올인 상황' },
-                        { key: 'invite' as const, label: '🎯 방 입장 요청 (호스트)' },
+                        { key: 'turn' as const, label: t('lobby.telegram.notif.turn') },
+                        { key: 'win' as const, label: t('lobby.telegram.notif.win') },
+                        { key: 'allIn' as const, label: t('lobby.telegram.notif.allIn') },
+                        { key: 'invite' as const, label: t('lobby.telegram.notif.invite') },
                       ].map(opt => (
                         <label key={opt.key} className="flex items-center gap-2 py-1.5 px-2 rounded-lg cursor-pointer hover:bg-white/[0.03]">
                           <input
@@ -1291,11 +1290,11 @@ export default function Lobby() {
                       ))}
                     </div>
                     <button
-                      onClick={() => { if (confirm('텔레그램 연동을 해제하시겠습니까?')) send({ type: 'LINK_TELEGRAM_UNLINK' } as any); }}
+                      onClick={() => { if (confirm(t('lobby.telegram.unlinkConfirm'))) send({ type: 'LINK_TELEGRAM_UNLINK' } as any); }}
                       className="w-full py-1.5 rounded-lg text-[10px] font-bold text-[#6B7A90] transition-all hover:text-[#EF4444]"
                       style={{ background: "rgba(239,68,68,0.05)", border: "1px solid rgba(239,68,68,0.15)" }}
                     >
-                      연동 해제
+                      {t('lobby.telegram.unlinkButton')}
                     </button>
                   </>
                 )}
