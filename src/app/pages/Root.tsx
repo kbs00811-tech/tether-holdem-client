@@ -5,6 +5,7 @@ import { ConnectionStatus } from "../components/ConnectionStatus";
 import { useEmbedMode } from "../hooks/useEmbedMode";
 import { checkGeo, isGeoOverridden } from "../utils/geoGuard";
 import GeoBlocked from "./GeoBlocked";
+import { UsdtOnboardingModal } from "../components/UsdtOnboardingModal";
 
 export default function Root() {
   const location = useLocation();
@@ -52,6 +53,7 @@ export default function Root() {
         <Outlet />
       </main>
       <BottomNav />
+      <UsdtOnboardingModal />
     </div>
   );
 }

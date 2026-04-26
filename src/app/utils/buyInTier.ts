@@ -97,3 +97,32 @@ export function splitBuyInDisplay(n: number, currencySymbol: string = '₩'): {
   }
   return { prefix: currencySymbol, amount: String(n), suffix: '' };
 }
+
+/**
+ * USDT cents (정수) + 보조 통화로 듀얼 표시 (Beta-G+ 2026-04-27)
+ *
+ * 사용자 호스트 통화에 따라 메인/보조 결정:
+ *   - 한국 (KRW): main=₩X (익숙도) / sub=₮Y (실제 자산)
+ *   - 글로벌 (USDT/USD): main=₮Y (실제 자산) / sub=$Z (참조)
+ *
+ * 입력:
+ *   amount: 표시 단위 (호환성 — KRW 정수 또는 USDT cents)
+ *   currencySymbol: 사용자 표시 통화 심볼 (₩/$/₮ 등)
+ *   usdtPerUnit: 1 표시 단위 = N USDT (KRW 일 때 1/1400, USDT 일 때 1/100 등)
+ */
+export function splitDualDisplay(
+  amount: number,
+  mainSymbol: string,
+  subAmount: number | null,
+  subSymbol: string | null,
+): {
+  main: { prefix: string; amount: string; suffix: string };
+  sub: { prefix: string; amount: string; suffix: string } | null;
+} {
+  return {
+    main: splitBuyInDisplay(amount, mainSymbol),
+    sub: subAmount !== null && subSymbol !== null
+      ? splitBuyInDisplay(subAmount, subSymbol)
+      : null,
+  };
+}

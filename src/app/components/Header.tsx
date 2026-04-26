@@ -9,6 +9,7 @@ import { SettingsModal } from "./SettingsModal";
 import { useSettingsStore, AVATAR_IMAGES } from "../stores/settingsStore";
 import { formatMoney, getSymbol } from "../utils/currency";
 import { useEmbedMode } from "../hooks/useEmbedMode";
+import { useRateStore } from "../stores/rateStore";
 
 export function Header() {
   const location = useLocation();
@@ -125,14 +126,53 @@ export function Header() {
               <div className={`w-2 h-2 rounded-full ${connected ? "bg-emerald-400" : "bg-red-500"}`}
                 style={{ boxShadow: connected ? "0 0 6px rgba(52,211,153,0.4)" : "0 0 6px rgba(239,68,68,0.4)" }} />
 
-              {/* Balance */}
-              <Link to="/cashier" className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl"
+              {/* USDT 시세 인디케이터 (Beta-G+ 2026-04-27) — 클릭 시 통화 cycle */}
+              {(() => {
+                const rates = useRateStore(s => s.rates);
+                const displayCurrency = useRateStore(s => s.displayCurrency);
+                const cycle = useRateStore(s => s.cycleDisplayCurrency);
+                const isFresh = rates.updatedAt > 0 && (Date.now() - rates.updatedAt) < 10 * 60 * 1000;
+                const display = (() => {
+                  switch (displayCurrency) {
+                    case 'KRW': return `≈ ₩${Math.round(rates.usdtKrw).toLocaleString()}`;
+                    case 'USD': return `≈ $${rates.usdtUsd.toFixed(2)}`;
+                    case 'EUR': return `≈ €${rates.usdtEur.toFixed(2)}`;
+                    case 'JPY': return `≈ ¥${Math.round(rates.usdtJpy)}`;
+                    case 'USDT': return `(USDT mode)`;
+                  }
+                })();
+                return (
+                  <button
+                    onClick={cycle}
+                    className="hidden md:flex items-center gap-1 px-2 py-1 rounded-md text-[9px] font-mono hover:bg-[#26A17B]/15 transition-colors"
+                    title={`Click to cycle currency · ${isFresh ? 'Live' : 'Cached'}`}
+                    style={{
+                      background: 'rgba(38,161,123,0.08)',
+                      border: '1px solid rgba(38,161,123,0.15)',
+                    }}>
+                    <span className="text-[#26A17B] font-bold">₮ 1</span>
+                    <span className="text-[#8899AB]">{display}</span>
+                    {isFresh && <span className="w-1 h-1 rounded-full bg-emerald-400 ml-0.5" />}
+                  </button>
+                );
+              })()}
+
+              {/* Balance + USDT 보조 표시 (Beta-G+ 2026-04-27) */}
+              <Link to="/cashier" className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl group"
                 style={{
                   background: "rgba(255,255,255,0.03)",
                   border: "1px solid rgba(255,255,255,0.05)",
                 }}>
                 <Wallet className="h-4 w-4 text-[#FF6B35]" />
-                <span className="font-mono text-sm text-white font-bold">{getSymbol()}{balance.toLocaleString()}</span>
+                <div className="flex flex-col items-end leading-none">
+                  <span className="font-mono text-sm text-white font-bold">{getSymbol()}{balance.toLocaleString()}</span>
+                  {(() => {
+                    const usdtKrw = useRateStore.getState().rates.usdtKrw || 1400;
+                    const usdt = balance / usdtKrw;
+                    const txt = usdt >= 1000 ? `≈ ₮${(usdt/1000).toFixed(1)}K` : `≈ ₮${usdt.toFixed(2)}`;
+                    return <span className="text-[8px] text-[#26A17B] mt-0.5">{txt}</span>;
+                  })()}
+                </div>
               </Link>
 
               {/* Deposit button */}

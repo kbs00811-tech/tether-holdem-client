@@ -100,7 +100,73 @@ export default function Terms() {
           Material changes will be communicated via email or in-app notification.
         </p>
 
-        <h2 className="text-base font-bold mt-6 mb-3">11. Contact</h2>
+        <h2 className="text-base font-bold mt-6 mb-3">11. Currency, Settlement Asset & Display (Critical)</h2>
+        <div className="rounded-xl p-4 mb-4"
+          style={{ background: "rgba(255,107,53,0.08)", border: "1px solid rgba(255,107,53,0.25)" }}>
+          <p className="text-sm text-[#FFB085] leading-relaxed mb-2 font-bold">
+            ⚠️ Important: Settlement Asset = USDT (Tether)
+          </p>
+          <p className="text-sm text-[#8899AB] leading-relaxed">
+            All deposits, withdrawals, buy-ins, bets, pots, and prize payouts are denominated in
+            <strong className="text-white"> USDT (Tether ERC-20/TRC-20)</strong>. USDT is the sole
+            settlement asset on this Service.
+          </p>
+        </div>
+
+        <p className="text-sm text-[#8899AB] leading-relaxed mb-2"><strong className="text-white">11.1 Display Currency Is Informational Only.</strong></p>
+        <p className="text-sm text-[#8899AB] leading-relaxed mb-3">
+          The Service may display amounts in a fiat currency (KRW, USD, EUR, JPY etc.) for user convenience.
+          These figures are <strong className="text-white">non-binding visual conversions</strong> derived from third-party exchange
+          rate sources and have <strong className="text-white">no contractual or legal status as the actual settlement amount</strong>.
+          The authoritative ledger entry is always in USDT.
+        </p>
+
+        <p className="text-sm text-[#8899AB] leading-relaxed mb-2"><strong className="text-white">11.2 Exchange Rate Sources.</strong></p>
+        <p className="text-sm text-[#8899AB] leading-relaxed mb-3">
+          KRW conversion uses Bithumb (primary) and Upbit (fallback) USDT/KRW closing prices.
+          USD/EUR/JPY conversion uses CoinGecko USDT spot rates. Sources may change without notice.
+          The Service makes no warranty as to the accuracy, timeliness, or availability of any rate source.
+        </p>
+
+        <p className="text-sm text-[#8899AB] leading-relaxed mb-2"><strong className="text-white">11.3 Rate Volatility Disclaimer.</strong></p>
+        <p className="text-sm text-[#8899AB] leading-relaxed mb-3">
+          Cryptocurrency exchange rates are inherently volatile. The fiat-equivalent display of your
+          USDT balance, buy-in, or winnings <strong className="text-white">may change between hands</strong>. Your underlying
+          USDT amount remains constant. By using the Service you accept this volatility and waive any
+          claim against the Service for changes in fiat-equivalent display values.
+        </p>
+
+        <p className="text-sm text-[#8899AB] leading-relaxed mb-2"><strong className="text-white">11.4 No Fiat Currency Acceptance.</strong></p>
+        <p className="text-sm text-[#8899AB] leading-relaxed mb-3">
+          The Service does not accept, hold, or settle in any fiat currency. KRW deposits processed
+          via approved payment partners (e.g., PeerX) are converted to USDT at the time of credit
+          based on the prevailing rate, and the user&apos;s on-chain ledger is updated in USDT only.
+        </p>
+
+        <p className="text-sm text-[#8899AB] leading-relaxed mb-2"><strong className="text-white">11.5 Skill-Based Game Notice.</strong></p>
+        <p className="text-sm text-[#8899AB] leading-relaxed mb-3">
+          Texas Hold&apos;em poker is a game of skill where the long-term outcome is determined predominantly
+          by player decisions. Where local law distinguishes between games of skill and games of chance,
+          the Service is positioned as a skill-based competition. You are responsible for verifying the
+          legal status of skill-based poker in your jurisdiction.
+        </p>
+
+        <p className="text-sm text-[#8899AB] leading-relaxed mb-2"><strong className="text-white">11.6 Self-Exclusion & Responsible Gaming.</strong></p>
+        <p className="text-sm text-[#8899AB] leading-relaxed mb-3">
+          You may request self-exclusion at any time via support@tethergame.io. Once self-excluded,
+          you may not access the Service for the requested period (minimum 30 days). The Service also
+          enforces deposit and session-time limits per applicable responsible gaming regulations.
+        </p>
+
+        <p className="text-sm text-[#8899AB] leading-relaxed mb-2"><strong className="text-white">11.7 Dispute Resolution & Governing Law.</strong></p>
+        <p className="text-sm text-[#8899AB] leading-relaxed mb-3">
+          Disputes shall be resolved by binding arbitration under the rules of the operating
+          licensor&apos;s jurisdiction (Anjouan / Curaçao, as applicable). User waives the right to
+          class actions. Korean residents acknowledge that the Service operates as a USDT skill-game
+          platform and that fiat-display values are informational only.
+        </p>
+
+        <h2 className="text-base font-bold mt-6 mb-3">12. Contact</h2>
         <p className="text-sm text-[#8899AB] leading-relaxed mb-4">
           For questions or disputes, contact: support@tethergame.io
         </p>
