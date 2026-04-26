@@ -284,6 +284,140 @@
     "usd": "$",
     "usdt": "USDT"
   },
+  "manual": {
+    "game": {
+      "header": {
+        "title": "Texas Hold'em Manual",
+        "subtitle": "Premium Poker Guide",
+        "tournamentLink": "Tournament Guide",
+        "toc": "Contents"
+      },
+      "labels": {
+        "advantage": "Advantage",
+        "odds": "Odds"
+      },
+      "sections": {
+        "basics": "Basics",
+        "positions": "Positions",
+        "rounds": "Betting Rounds",
+        "actions": "Actions",
+        "hands": "Hand Rankings",
+        "strategies": "Strategy",
+        "features": "Features",
+        "etiquette": "Etiquette"
+      },
+      "basics": {
+        "title": "What is Texas Hold'em?",
+        "intro": "The world's most popular poker game. Each player gets <strong>2 hole cards</strong>, and <strong>5 community cards</strong> are dealt face up in the middle. Make the best 5-card hand from those 7 to win.",
+        "stats": {
+          "playersLabel": "Players",
+          "playersValue": "2-9",
+          "typeLabel": "Game Type",
+          "typeValue": "Cash Game",
+          "handLabel": "Per Hand",
+          "handValue": "~1-3 min"
+        },
+        "suits": "Card Suits",
+        "suitsNote": "* All suits are equal in Texas Hold'em (same value)",
+        "goalTitle": "🎯 Goal",
+        "goalText": "Not just to get good cards — <strong>force opponents to fold</strong> or <strong>win at showdown with the strongest hand</strong> to take the pot."
+      },
+      "positions": {
+        "title": "Position Guide",
+        "intro": "Position is the most important concept in Texas Hold'em. Acting later means more information, which is a major advantage.",
+        "items": {
+          "btn": { "short": "Dealer", "desc": "Best position. Acts last. Decides with full information." },
+          "co": { "short": "Cutoff", "desc": "Right before BTN. Second-best position. Wide opens OK." },
+          "hj": { "short": "Hijack", "desc": "Before CO. Medium position. Play only good hands." },
+          "mp": { "short": "Middle", "desc": "Middle position. Standard range." },
+          "utg": { "short": "Under The Gun", "desc": "Worst action position. Play very tight." },
+          "sb": { "short": "Small Blind", "desc": "Next to BTN. Forced ½ bet. Always first-to-act post-flop." },
+          "bb": { "short": "Big Blind", "desc": "Forced 1× bet. Free flop option. Defend wide." }
+        }
+      },
+      "rounds": {
+        "title": "Betting Rounds",
+        "intro": "Each hand has 5 stages.",
+        "items": {
+          "preflop": { "desc": "Receive 2 cards. UTG starts the action.", "cards": "2 (hole)" },
+          "flop": { "desc": "3 community cards revealed. SB acts first.", "cards": "3 cards" },
+          "turn": { "desc": "4th card revealed. SB acts first.", "cards": "4th card" },
+          "river": { "desc": "5th card revealed. Final betting round.", "cards": "5th card" },
+          "showdown": { "desc": "Remaining players reveal cards. Strongest hand wins.", "cards": "Reveal" }
+        }
+      },
+      "actions": {
+        "title": "Actions",
+        "intro": "Five actions you can choose on your turn.",
+        "items": {
+          "fold": { "short": "Fold", "desc": "Give up the hand. No chips lost. Out of this hand." },
+          "check": { "short": "Check", "desc": "Don't bet. Pass to next player. (only if no bet to call)" },
+          "call": { "short": "Call", "desc": "Match the previous bet." },
+          "raise": { "short": "Raise", "desc": "Bet more than the previous. Minimum 2x." },
+          "allIn": { "short": "All-in", "desc": "Bet all remaining chips. No more action from you." }
+        }
+      },
+      "hands": {
+        "title": "Hand Rankings (strongest first)",
+        "intro": "10 hand combinations, top to bottom strongest.",
+        "items": {
+          "royalFlush": "10-J-Q-K-A of the same suit",
+          "straightFlush": "5 consecutive cards, same suit",
+          "fourOfAKindName": "Four of a Kind (Quads)",
+          "fourOfAKind": "Four cards of the same rank",
+          "fullHouse": "Three of a Kind + Pair",
+          "flush": "5 cards of the same suit",
+          "straight": "5 consecutive cards (any suit)",
+          "threeOfAKindName": "Three of a Kind (Trips)",
+          "threeOfAKind": "Three cards of the same rank",
+          "twoPair": "Two Pairs",
+          "onePair": "Two cards of the same rank",
+          "highCard": "No combination"
+        }
+      },
+      "strategies": {
+        "title": "Beginner Strategy",
+        "items": {
+          "tight": { "title": "Start Tight", "desc": "Play only good hands. Focus on pairs, AK, AQ, AJ." },
+          "position": { "title": "Use Position", "desc": "Play more hands from late position (BTN, CO)." },
+          "potOdds": { "title": "Pot Odds", "desc": "Required to call / (Pot + call) = required equity." },
+          "noBluff": { "title": "Limit Bluffing", "desc": "Beginners value-bet. Bluff after gaining feel." },
+          "bankroll": { "title": "Bankroll Management", "desc": "Bet only 5% of stack at a time. Never overcommit." },
+          "observe": { "title": "Observe", "desc": "Read opponents. Who's tight, who's loose?" },
+          "emotion": { "title": "Emotion Control", "desc": "Tilt is the worst enemy. Take a break after big losses." }
+        }
+      },
+      "features": {
+        "title": "Features",
+        "items": {
+          "cardSqueeze": { "title": "Card Squeeze", "desc": "Drag your cards to slowly reveal — true casino feel." },
+          "timeBank": { "title": "Time Bank", "desc": "Use extra time on big decisions. 30s + bonus." },
+          "rabbitHunt": { "title": "Rabbit Hunt", "desc": "See unrevealed cards after the hand ends." },
+          "runItTwice": { "title": "Run It Twice", "desc": "Run the board twice on all-ins. Reduce variance." },
+          "insurance": { "title": "Insurance", "desc": "Buy insurance on all-in. Lock in safe profit." },
+          "bombPot": { "title": "Bomb Pot", "desc": "Force-call on certain hands → big pot." },
+          "provablyFair": { "title": "Provably Fair", "desc": "SHA256-verifiable shuffle. No tampering possible." },
+          "spectate": { "title": "Spectate", "desc": "Watch games without sitting." }
+        }
+      },
+      "etiquette": {
+        "title": "Etiquette",
+        "do": {
+          "fastAction": "Act quickly on your turn",
+          "showCards": "Reveal cards promptly at showdown",
+          "greet": "Greet the winner with \"GG\", \"NH\"",
+          "watchChat": "Avoid chat in spectate mode"
+        },
+        "dont": {
+          "slowRoll": "Slow-rolling (revealing winning hand slowly on purpose)",
+          "abuse": "Abusive / insulting chat",
+          "discuss": "Discussing other players' cards mid-hand",
+          "collusion": "Collusion (colluding with another player)",
+          "tank": "Time-tanking on small decisions"
+        }
+      }
+    }
+  },
   "gameTable": {
     "header": {
       "watchingMode": "Watching",

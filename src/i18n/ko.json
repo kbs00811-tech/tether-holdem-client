@@ -284,6 +284,140 @@
     "usd": "$",
     "usdt": "USDT"
   },
+  "manual": {
+    "game": {
+      "header": {
+        "title": "Texas Hold'em Manual",
+        "subtitle": "Premium Poker Guide",
+        "tournamentLink": "토너먼트 가이드",
+        "toc": "목차"
+      },
+      "labels": {
+        "advantage": "유리도",
+        "odds": "확률"
+      },
+      "sections": {
+        "basics": "게임 기초",
+        "positions": "포지션",
+        "rounds": "베팅 라운드",
+        "actions": "액션 종류",
+        "hands": "핸드 랭킹",
+        "strategies": "기본 전략",
+        "features": "게임 기능",
+        "etiquette": "에티켓"
+      },
+      "basics": {
+        "title": "Texas Hold'em이란?",
+        "intro": "세계에서 가장 인기있는 포커 게임. 각 플레이어는 <strong>2장의 홀카드</strong>를 받고, 테이블 중앙에 <strong>5장의 커뮤니티 카드</strong>가 펼쳐집니다. 총 7장 중 가장 강한 5장 조합을 만드는 플레이어가 승리합니다.",
+        "stats": {
+          "playersLabel": "인원",
+          "playersValue": "2~9명",
+          "typeLabel": "게임 종류",
+          "typeValue": "Cash Game",
+          "handLabel": "한 핸드",
+          "handValue": "약 1~3분"
+        },
+        "suits": "카드 무늬 (Suits)",
+        "suitsNote": "* 텍사스 홀덤에서 무늬는 동등합니다 (모두 같은 가치)",
+        "goalTitle": "🎯 게임 목표",
+        "goalText": "단순히 좋은 카드를 받는 것이 아니라, <strong>상대를 폴드시키거나</strong> 또는 <strong>가장 강한 핸드로 쇼다운에서 이겨</strong> 팟을 가져오는 것입니다."
+      },
+      "positions": {
+        "title": "포지션 가이드",
+        "intro": "포지션은 텍사스 홀덤에서 가장 중요한 개념. 늦게 액션할수록 정보가 많아 유리합니다.",
+        "items": {
+          "btn": { "short": "딜러", "desc": "가장 유리한 포지션. 마지막에 액션. 모든 정보를 보고 결정 가능." },
+          "co": { "short": "컷오프", "desc": "딜러 직전. BTN 다음으로 좋은 포지션. 와이드 오픈 가능." },
+          "hj": { "short": "하이잭", "desc": "CO 직전. 미디엄 포지션. 좋은 핸드만 플레이." },
+          "mp": { "short": "미들", "desc": "중간 포지션. 표준 레인지." },
+          "utg": { "short": "언더더건", "desc": "가장 불리한 액션 포지션. 매우 타이트하게 플레이." },
+          "sb": { "short": "스몰블라인드", "desc": "BTN 다음 좌석. 강제 베팅 ½. 포스트플롭은 항상 first-to-act." },
+          "bb": { "short": "빅블라인드", "desc": "강제 베팅 1×. 무료로 플랍을 볼 수 있는 옵션. 디펜드 wide." }
+        }
+      },
+      "rounds": {
+        "title": "베팅 라운드",
+        "intro": "한 핸드는 5단계로 진행됩니다.",
+        "items": {
+          "preflop": { "desc": "카드 2장 받음. UTG부터 액션 시작.", "cards": "2장 (홀카드)" },
+          "flop": { "desc": "커뮤니티 카드 3장 공개. SB부터 액션.", "cards": "3장 공개" },
+          "turn": { "desc": "4번째 카드 공개. SB부터 액션.", "cards": "4장째" },
+          "river": { "desc": "5번째 카드 공개. 마지막 베팅 라운드.", "cards": "5장째" },
+          "showdown": { "desc": "남은 플레이어들이 카드 공개. 가장 강한 핸드 승리.", "cards": "카드 공개" }
+        }
+      },
+      "actions": {
+        "title": "액션 종류",
+        "intro": "자기 차례에 선택할 수 있는 5가지 액션.",
+        "items": {
+          "fold": { "short": "폴드", "desc": "핸드를 포기. 칩 잃지 않음. 이번 핸드에서 빠짐." },
+          "check": { "short": "체크", "desc": "베팅 안 함. 다음 플레이어로 패스. (콜할 게 없을 때만)" },
+          "call": { "short": "콜", "desc": "직전 베팅과 같은 금액 베팅." },
+          "raise": { "short": "레이즈", "desc": "직전 베팅보다 더 많이 베팅. 최소 2배." },
+          "allIn": { "short": "올인", "desc": "남은 칩 전부 베팅. 더 이상 액션 없음." }
+        }
+      },
+      "hands": {
+        "title": "핸드 랭킹 (강한 순)",
+        "intro": "10가지 핸드 조합. 위에서 아래로 강함.",
+        "items": {
+          "royalFlush": "같은 무늬의 10-J-Q-K-A",
+          "straightFlush": "같은 무늬의 5장 연속",
+          "fourOfAKindName": "Four of a Kind (포카드)",
+          "fourOfAKind": "같은 숫자 4장",
+          "fullHouse": "트리플 + 페어",
+          "flush": "같은 무늬 5장",
+          "straight": "5장 연속 (무늬 무관)",
+          "threeOfAKindName": "Three of a Kind (트리플)",
+          "threeOfAKind": "같은 숫자 3장",
+          "twoPair": "페어 2개",
+          "onePair": "같은 숫자 2장",
+          "highCard": "아무 조합도 안 됨"
+        }
+      },
+      "strategies": {
+        "title": "초보자 전략",
+        "items": {
+          "tight": { "title": "타이트하게 시작", "desc": "좋은 핸드만 플레이. 페어, AK, AQ, AJ 중심." },
+          "position": { "title": "포지션 활용", "desc": "늦은 포지션(BTN, CO)에서 더 많은 핸드 플레이." },
+          "potOdds": { "title": "팟 오즈 계산", "desc": "콜에 필요한 금액 / (팟 + 콜) = 필요 승률." },
+          "noBluff": { "title": "블러프 자제", "desc": "초보는 밸류 위주. 블러프는 상황 익힌 후." },
+          "bankroll": { "title": "뱅크롤 관리", "desc": "스택의 5%만 한 번에 베팅. 절대 무리하지 말 것." },
+          "observe": { "title": "관찰", "desc": "상대 패턴 파악. 누가 타이트한지, 누가 루즈한지." },
+          "emotion": { "title": "감정 컨트롤", "desc": "틸트(흥분)는 최악의 적. 큰 손실 후엔 잠시 쉬기." }
+        }
+      },
+      "features": {
+        "title": "특수 기능",
+        "items": {
+          "cardSqueeze": { "title": "Card Squeeze", "desc": "내 카드를 마우스로 드래그해서 천천히 공개. 진짜 카지노 느낌." },
+          "timeBank": { "title": "Time Bank", "desc": "큰 결정에 추가 시간 사용. 30초 + 보너스 시간." },
+          "rabbitHunt": { "title": "Rabbit Hunt", "desc": "핸드 종료 후 안 까진 카드 확인. 어떤 카드였는지 확인." },
+          "runItTwice": { "title": "Run It Twice", "desc": "올인 후 2번 보드 실행. 분산 줄이기." },
+          "insurance": { "title": "Insurance", "desc": "올인 시 보험 가입. 안전한 수익 보장." },
+          "bombPot": { "title": "Bomb Pot", "desc": "특정 핸드에서 모두 강제 콜 + 큰 팟." },
+          "provablyFair": { "title": "Provably Fair", "desc": "SHA256 검증 가능한 셔플. 조작 불가능." },
+          "spectate": { "title": "관전 모드", "desc": "착석하지 않고 게임 관전 가능." }
+        }
+      },
+      "etiquette": {
+        "title": "게임 에티켓",
+        "do": {
+          "fastAction": "본인 차례에 신속하게 액션",
+          "showCards": "쇼다운 시 카드 즉시 공개",
+          "greet": "승자에게 \"GG\", \"NH\" 같은 인사",
+          "watchChat": "관전 모드에서는 채팅 자제"
+        },
+        "dont": {
+          "slowRoll": "슬로우롤 (이긴 카드를 일부러 천천히 공개)",
+          "abuse": "욕설/비방 채팅",
+          "discuss": "핸드 진행 중 다른 사람 카드 논의",
+          "collusion": "콜루전 (다른 플레이어와 짜고 플레이)",
+          "tank": "시간 끌기 (Tank). 큰 결정 외엔 빠르게"
+        }
+      }
+    }
+  },
   "gameTable": {
     "header": {
       "watchingMode": "관전 모드",

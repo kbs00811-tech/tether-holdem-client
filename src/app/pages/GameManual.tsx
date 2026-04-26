@@ -11,56 +11,7 @@ import {
 } from "lucide-react";
 import { Link } from "react-router";
 import { getSymbol } from "../utils/currency";
-
-const SECTIONS = [
-  { id: 'basics', label: '게임 기초', icon: BookOpen },
-  { id: 'positions', label: '포지션', icon: Users },
-  { id: 'rounds', label: '베팅 라운드', icon: Clock },
-  { id: 'actions', label: '액션 종류', icon: Hand },
-  { id: 'hands', label: '핸드 랭킹', icon: Trophy },
-  { id: 'strategies', label: '기본 전략', icon: Target },
-  { id: 'features', label: '게임 기능', icon: Zap },
-  { id: 'etiquette', label: '에티켓', icon: Shield },
-];
-
-const HAND_RANKINGS = [
-  { rank: 1, name: 'Royal Flush', desc: '같은 무늬의 10-J-Q-K-A', odds: '649,740 : 1', cards: ['10♠', 'J♠', 'Q♠', 'K♠', 'A♠'], color: '#FFD700' },
-  { rank: 2, name: 'Straight Flush', desc: '같은 무늬의 5장 연속', odds: '72,193 : 1', cards: ['5♥', '6♥', '7♥', '8♥', '9♥'], color: '#FF6B35' },
-  { rank: 3, name: 'Four of a Kind (포카드)', desc: '같은 숫자 4장', odds: '4,164 : 1', cards: ['K♠', 'K♥', 'K♦', 'K♣', '7♠'], color: '#A78BFA' },
-  { rank: 4, name: 'Full House', desc: '트리플 + 페어', odds: '693 : 1', cards: ['Q♠', 'Q♥', 'Q♦', '8♣', '8♠'], color: '#26A17B' },
-  { rank: 5, name: 'Flush', desc: '같은 무늬 5장', odds: '508 : 1', cards: ['A♦', 'J♦', '9♦', '6♦', '3♦'], color: '#60A5FA' },
-  { rank: 6, name: 'Straight', desc: '5장 연속 (무늬 무관)', odds: '254 : 1', cards: ['5♠', '6♥', '7♣', '8♦', '9♠'], color: '#FBBF24' },
-  { rank: 7, name: 'Three of a Kind (트리플)', desc: '같은 숫자 3장', odds: '46 : 1', cards: ['7♠', '7♥', '7♣', 'K♦', '2♠'], color: '#22D3EE' },
-  { rank: 8, name: 'Two Pair', desc: '페어 2개', odds: '20 : 1', cards: ['A♠', 'A♥', '8♦', '8♣', 'K♠'], color: '#EC4899' },
-  { rank: 9, name: 'One Pair', desc: '같은 숫자 2장', odds: '1.37 : 1', cards: ['10♠', '10♥', 'K♦', '7♣', '4♠'], color: '#94A3B8' },
-  { rank: 10, name: 'High Card', desc: '아무 조합도 안 됨', odds: '1 : 1', cards: ['A♠', 'K♥', '9♦', '5♣', '3♠'], color: '#64748B' },
-];
-
-const POSITIONS = [
-  { name: 'BTN (Button)', short: '딜러', desc: '가장 유리한 포지션. 마지막에 액션. 모든 정보를 보고 결정 가능.', color: '#FFD700', advantage: '★★★★★' },
-  { name: 'CO (Cut Off)', short: '컷오프', desc: '딜러 직전. BTN 다음으로 좋은 포지션. 와이드 오픈 가능.', color: '#FF6B35', advantage: '★★★★' },
-  { name: 'HJ (Hijack)', short: '하이잭', desc: 'CO 직전. 미디엄 포지션. 좋은 핸드만 플레이.', color: '#A78BFA', advantage: '★★★' },
-  { name: 'MP (Middle)', short: '미들', desc: '중간 포지션. 표준 레인지.', color: '#60A5FA', advantage: '★★★' },
-  { name: 'UTG (Under The Gun)', short: '언더더건', desc: '가장 불리한 액션 포지션. 매우 타이트하게 플레이.', color: '#EF4444', advantage: '★' },
-  { name: 'SB (Small Blind)', short: '스몰블라인드', desc: 'BTN 다음 좌석. 강제 베팅 ½. 포스트플롭은 항상 first-to-act.', color: '#22D3EE', advantage: '★★' },
-  { name: 'BB (Big Blind)', short: '빅블라인드', desc: '강제 베팅 1×. 무료로 플랍을 볼 수 있는 옵션. 디펜드 wide.', color: '#26A17B', advantage: '★★' },
-];
-
-const BETTING_ROUNDS = [
-  { name: 'Pre-Flop', desc: '카드 2장 받음. UTG부터 액션 시작.', cards: '2장 (홀카드)', icon: '🃏' },
-  { name: 'Flop', desc: '커뮤니티 카드 3장 공개. SB부터 액션.', cards: '3장 공개', icon: '🎴' },
-  { name: 'Turn', desc: '4번째 카드 공개. SB부터 액션.', cards: '4장째', icon: '🎴' },
-  { name: 'River', desc: '5번째 카드 공개. 마지막 베팅 라운드.', cards: '5장째', icon: '🎴' },
-  { name: 'Showdown', desc: '남은 플레이어들이 카드 공개. 가장 강한 핸드 승리.', cards: '카드 공개', icon: '🏆' },
-];
-
-const ACTIONS = [
-  { name: 'FOLD', short: '폴드', desc: '핸드를 포기. 칩 잃지 않음. 이번 핸드에서 빠짐.', color: '#EF4444', icon: '🚫' },
-  { name: 'CHECK', short: '체크', desc: '베팅 안 함. 다음 플레이어로 패스. (콜할 게 없을 때만)', color: '#94A3B8', icon: '✋' },
-  { name: 'CALL', short: '콜', desc: '직전 베팅과 같은 금액 베팅.', color: '#26A17B', icon: '💰' },
-  { name: 'RAISE', short: '레이즈', desc: '직전 베팅보다 더 많이 베팅. 최소 2배.', color: '#3B82F6', icon: '⬆️' },
-  { name: 'ALL-IN', short: '올인', desc: '남은 칩 전부 베팅. 더 이상 액션 없음.', color: '#FFD700', icon: '🔥' },
-];
+import { useT } from "../../i18n";
 
 const SUITS = [
   { icon: Spade, name: 'Spades', color: '#1F2937' },
@@ -70,7 +21,58 @@ const SUITS = [
 ];
 
 export default function GameManual() {
+  const t = useT();
   const [activeSection, setActiveSection] = useState('basics');
+
+  const SECTIONS = [
+    { id: 'basics', label: t('manual.game.sections.basics'), icon: BookOpen },
+    { id: 'positions', label: t('manual.game.sections.positions'), icon: Users },
+    { id: 'rounds', label: t('manual.game.sections.rounds'), icon: Clock },
+    { id: 'actions', label: t('manual.game.sections.actions'), icon: Hand },
+    { id: 'hands', label: t('manual.game.sections.hands'), icon: Trophy },
+    { id: 'strategies', label: t('manual.game.sections.strategies'), icon: Target },
+    { id: 'features', label: t('manual.game.sections.features'), icon: Zap },
+    { id: 'etiquette', label: t('manual.game.sections.etiquette'), icon: Shield },
+  ];
+
+  const HAND_RANKINGS = [
+    { rank: 1, name: 'Royal Flush', desc: t('manual.game.hands.items.royalFlush'), odds: '649,740 : 1', cards: ['10♠', 'J♠', 'Q♠', 'K♠', 'A♠'], color: '#FFD700' },
+    { rank: 2, name: 'Straight Flush', desc: t('manual.game.hands.items.straightFlush'), odds: '72,193 : 1', cards: ['5♥', '6♥', '7♥', '8♥', '9♥'], color: '#FF6B35' },
+    { rank: 3, name: t('manual.game.hands.items.fourOfAKindName'), desc: t('manual.game.hands.items.fourOfAKind'), odds: '4,164 : 1', cards: ['K♠', 'K♥', 'K♦', 'K♣', '7♠'], color: '#A78BFA' },
+    { rank: 4, name: 'Full House', desc: t('manual.game.hands.items.fullHouse'), odds: '693 : 1', cards: ['Q♠', 'Q♥', 'Q♦', '8♣', '8♠'], color: '#26A17B' },
+    { rank: 5, name: 'Flush', desc: t('manual.game.hands.items.flush'), odds: '508 : 1', cards: ['A♦', 'J♦', '9♦', '6♦', '3♦'], color: '#60A5FA' },
+    { rank: 6, name: 'Straight', desc: t('manual.game.hands.items.straight'), odds: '254 : 1', cards: ['5♠', '6♥', '7♣', '8♦', '9♠'], color: '#FBBF24' },
+    { rank: 7, name: t('manual.game.hands.items.threeOfAKindName'), desc: t('manual.game.hands.items.threeOfAKind'), odds: '46 : 1', cards: ['7♠', '7♥', '7♣', 'K♦', '2♠'], color: '#22D3EE' },
+    { rank: 8, name: 'Two Pair', desc: t('manual.game.hands.items.twoPair'), odds: '20 : 1', cards: ['A♠', 'A♥', '8♦', '8♣', 'K♠'], color: '#EC4899' },
+    { rank: 9, name: 'One Pair', desc: t('manual.game.hands.items.onePair'), odds: '1.37 : 1', cards: ['10♠', '10♥', 'K♦', '7♣', '4♠'], color: '#94A3B8' },
+    { rank: 10, name: 'High Card', desc: t('manual.game.hands.items.highCard'), odds: '1 : 1', cards: ['A♠', 'K♥', '9♦', '5♣', '3♠'], color: '#64748B' },
+  ];
+
+  const POSITIONS = [
+    { name: 'BTN (Button)', short: t('manual.game.positions.items.btn.short'), desc: t('manual.game.positions.items.btn.desc'), color: '#FFD700', advantage: '★★★★★' },
+    { name: 'CO (Cut Off)', short: t('manual.game.positions.items.co.short'), desc: t('manual.game.positions.items.co.desc'), color: '#FF6B35', advantage: '★★★★' },
+    { name: 'HJ (Hijack)', short: t('manual.game.positions.items.hj.short'), desc: t('manual.game.positions.items.hj.desc'), color: '#A78BFA', advantage: '★★★' },
+    { name: 'MP (Middle)', short: t('manual.game.positions.items.mp.short'), desc: t('manual.game.positions.items.mp.desc'), color: '#60A5FA', advantage: '★★★' },
+    { name: 'UTG (Under The Gun)', short: t('manual.game.positions.items.utg.short'), desc: t('manual.game.positions.items.utg.desc'), color: '#EF4444', advantage: '★' },
+    { name: 'SB (Small Blind)', short: t('manual.game.positions.items.sb.short'), desc: t('manual.game.positions.items.sb.desc'), color: '#22D3EE', advantage: '★★' },
+    { name: 'BB (Big Blind)', short: t('manual.game.positions.items.bb.short'), desc: t('manual.game.positions.items.bb.desc'), color: '#26A17B', advantage: '★★' },
+  ];
+
+  const BETTING_ROUNDS = [
+    { name: 'Pre-Flop', desc: t('manual.game.rounds.items.preflop.desc'), cards: t('manual.game.rounds.items.preflop.cards'), icon: '🃏' },
+    { name: 'Flop', desc: t('manual.game.rounds.items.flop.desc'), cards: t('manual.game.rounds.items.flop.cards'), icon: '🎴' },
+    { name: 'Turn', desc: t('manual.game.rounds.items.turn.desc'), cards: t('manual.game.rounds.items.turn.cards'), icon: '🎴' },
+    { name: 'River', desc: t('manual.game.rounds.items.river.desc'), cards: t('manual.game.rounds.items.river.cards'), icon: '🎴' },
+    { name: 'Showdown', desc: t('manual.game.rounds.items.showdown.desc'), cards: t('manual.game.rounds.items.showdown.cards'), icon: '🏆' },
+  ];
+
+  const ACTIONS = [
+    { name: 'FOLD', short: t('manual.game.actions.items.fold.short'), desc: t('manual.game.actions.items.fold.desc'), color: '#EF4444', icon: '🚫' },
+    { name: 'CHECK', short: t('manual.game.actions.items.check.short'), desc: t('manual.game.actions.items.check.desc'), color: '#94A3B8', icon: '✋' },
+    { name: 'CALL', short: t('manual.game.actions.items.call.short'), desc: t('manual.game.actions.items.call.desc'), color: '#26A17B', icon: '💰' },
+    { name: 'RAISE', short: t('manual.game.actions.items.raise.short'), desc: t('manual.game.actions.items.raise.desc'), color: '#3B82F6', icon: '⬆️' },
+    { name: 'ALL-IN', short: t('manual.game.actions.items.allIn.short'), desc: t('manual.game.actions.items.allIn.desc'), color: '#FFD700', icon: '🔥' },
+  ];
 
   return (
     <div className="min-h-screen" style={{ background: "radial-gradient(ellipse at 50% 30%, #0F1923, #080E16)" }}>
@@ -83,12 +85,12 @@ export default function GameManual() {
             <ArrowLeft className="h-4 w-4 text-[#8899AB]" />
           </Link>
           <div>
-            <h1 className="text-base font-black text-white">Texas Hold'em Manual</h1>
-            <div className="text-[10px] text-[#4A5A70]">Premium Poker Guide</div>
+            <h1 className="text-base font-black text-white">{t('manual.game.header.title')}</h1>
+            <div className="text-[10px] text-[#4A5A70]">{t('manual.game.header.subtitle')}</div>
           </div>
         </div>
         <Link to="/tournament-manual" className="text-xs text-[#FF6B35] font-semibold flex items-center gap-1">
-          토너먼트 가이드 <ChevronRight className="h-3 w-3" />
+          {t('manual.game.header.tournamentLink')} <ChevronRight className="h-3 w-3" />
         </Link>
       </div>
 
@@ -96,7 +98,7 @@ export default function GameManual() {
         {/* Sidebar */}
         <div className="lg:sticky lg:top-20 h-fit">
           <div className="rounded-2xl p-3" style={{ background: "#141820", border: "1px solid rgba(255,255,255,0.06)" }}>
-            <div className="text-[10px] text-[#4A5A70] uppercase tracking-wider px-2 pb-2 font-bold">목차</div>
+            <div className="text-[10px] text-[#4A5A70] uppercase tracking-wider px-2 pb-2 font-bold">{t('manual.game.header.toc')}</div>
             <div className="space-y-1">
               {SECTIONS.map(s => (
                 <button key={s.id}
@@ -121,20 +123,18 @@ export default function GameManual() {
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-5">
               <div className="rounded-2xl p-6" style={{ background: "#141820", border: "1px solid rgba(255,255,255,0.06)" }}>
                 <h2 className="text-2xl font-black text-white mb-3 flex items-center gap-2">
-                  <BookOpen className="h-6 w-6 text-[#FF6B35]" /> Texas Hold'em이란?
+                  <BookOpen className="h-6 w-6 text-[#FF6B35]" /> {t('manual.game.basics.title')}
                 </h2>
-                <p className="text-sm text-[#8899AB] leading-relaxed">
-                  세계에서 가장 인기있는 포커 게임. 각 플레이어는 <strong className="text-white">2장의 홀카드</strong>를 받고,
-                  테이블 중앙에 <strong className="text-white">5장의 커뮤니티 카드</strong>가 펼쳐집니다.
-                  총 7장 중 가장 강한 5장 조합을 만드는 플레이어가 승리합니다.
-                </p>
+                <p className="text-sm text-[#8899AB] leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: t('manual.game.basics.intro').replace(/<strong>/g, '<strong class="text-white">') }}
+                />
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                 {[
-                  { icon: Users, label: '인원', value: '2~9명', color: '#FF6B35' },
-                  { icon: DollarSign, label: '게임 종류', value: 'Cash Game', color: '#26A17B' },
-                  { icon: Clock, label: '한 핸드', value: '약 1~3분', color: '#FFD700' },
+                  { icon: Users, label: t('manual.game.basics.stats.playersLabel'), value: t('manual.game.basics.stats.playersValue'), color: '#FF6B35' },
+                  { icon: DollarSign, label: t('manual.game.basics.stats.typeLabel'), value: t('manual.game.basics.stats.typeValue'), color: '#26A17B' },
+                  { icon: Clock, label: t('manual.game.basics.stats.handLabel'), value: t('manual.game.basics.stats.handValue'), color: '#FFD700' },
                 ].map(s => (
                   <div key={s.label} className="rounded-xl p-4" style={{ background: "#141820", border: "1px solid rgba(255,255,255,0.04)" }}>
                     <s.icon className="h-5 w-5 mb-2" style={{ color: s.color }} />
@@ -145,7 +145,7 @@ export default function GameManual() {
               </div>
 
               <div className="rounded-2xl p-6" style={{ background: "#141820", border: "1px solid rgba(255,255,255,0.06)" }}>
-                <h3 className="text-base font-bold text-white mb-3">카드 무늬 (Suits)</h3>
+                <h3 className="text-base font-bold text-white mb-3">{t('manual.game.basics.suits')}</h3>
                 <div className="grid grid-cols-4 gap-3">
                   {SUITS.map(s => (
                     <div key={s.name} className="text-center p-3 rounded-lg" style={{ background: "rgba(255,255,255,0.02)" }}>
@@ -154,15 +154,14 @@ export default function GameManual() {
                     </div>
                   ))}
                 </div>
-                <p className="text-[10px] text-[#4A5A70] mt-3">* 텍사스 홀덤에서 무늬는 동등합니다 (모두 같은 가치)</p>
+                <p className="text-[10px] text-[#4A5A70] mt-3">{t('manual.game.basics.suitsNote')}</p>
               </div>
 
               <div className="rounded-2xl p-6" style={{ background: "linear-gradient(135deg, rgba(255,107,53,0.08), rgba(38,161,123,0.05))", border: "1px solid rgba(255,107,53,0.15)" }}>
-                <h3 className="text-base font-bold text-white mb-3">🎯 게임 목표</h3>
-                <p className="text-sm text-[#8899AB] leading-relaxed">
-                  단순히 좋은 카드를 받는 것이 아니라, <strong className="text-[#FFD700]">상대를 폴드시키거나</strong> 또는
-                  <strong className="text-[#FFD700]">가장 강한 핸드로 쇼다운에서 이겨</strong> 팟을 가져오는 것입니다.
-                </p>
+                <h3 className="text-base font-bold text-white mb-3">{t('manual.game.basics.goalTitle')}</h3>
+                <p className="text-sm text-[#8899AB] leading-relaxed"
+                  dangerouslySetInnerHTML={{ __html: t('manual.game.basics.goalText').replace(/<strong>/g, '<strong class="text-[#FFD700]">') }}
+                />
               </div>
             </motion.div>
           )}
@@ -172,10 +171,10 @@ export default function GameManual() {
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
               <div className="rounded-2xl p-6 mb-3" style={{ background: "#141820", border: "1px solid rgba(255,255,255,0.06)" }}>
                 <h2 className="text-2xl font-black text-white mb-2 flex items-center gap-2">
-                  <Users className="h-6 w-6 text-[#FF6B35]" /> 포지션 가이드
+                  <Users className="h-6 w-6 text-[#FF6B35]" /> {t('manual.game.positions.title')}
                 </h2>
                 <p className="text-sm text-[#8899AB]">
-                  포지션은 텍사스 홀덤에서 가장 중요한 개념. 늦게 액션할수록 정보가 많아 유리합니다.
+                  {t('manual.game.positions.intro')}
                 </p>
               </div>
 
@@ -194,7 +193,7 @@ export default function GameManual() {
                     <div className="text-xs text-[#8899AB]">{p.desc}</div>
                   </div>
                   <div className="text-right shrink-0">
-                    <div className="text-[9px] text-[#4A5A70] uppercase mb-0.5">유리도</div>
+                    <div className="text-[9px] text-[#4A5A70] uppercase mb-0.5">{t('manual.game.labels.advantage')}</div>
                     <div style={{ color: p.color, fontSize: 12 }}>{p.advantage}</div>
                   </div>
                 </div>
@@ -207,9 +206,9 @@ export default function GameManual() {
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
               <div className="rounded-2xl p-6 mb-3" style={{ background: "#141820", border: "1px solid rgba(255,255,255,0.06)" }}>
                 <h2 className="text-2xl font-black text-white mb-2 flex items-center gap-2">
-                  <Clock className="h-6 w-6 text-[#FF6B35]" /> 베팅 라운드
+                  <Clock className="h-6 w-6 text-[#FF6B35]" /> {t('manual.game.rounds.title')}
                 </h2>
-                <p className="text-sm text-[#8899AB]">한 핸드는 5단계로 진행됩니다.</p>
+                <p className="text-sm text-[#8899AB]">{t('manual.game.rounds.intro')}</p>
               </div>
 
               {BETTING_ROUNDS.map((r, i) => (
@@ -240,9 +239,9 @@ export default function GameManual() {
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
               <div className="rounded-2xl p-6 mb-3" style={{ background: "#141820", border: "1px solid rgba(255,255,255,0.06)" }}>
                 <h2 className="text-2xl font-black text-white mb-2 flex items-center gap-2">
-                  <Hand className="h-6 w-6 text-[#FF6B35]" /> 액션 종류
+                  <Hand className="h-6 w-6 text-[#FF6B35]" /> {t('manual.game.actions.title')}
                 </h2>
-                <p className="text-sm text-[#8899AB]">자기 차례에 선택할 수 있는 5가지 액션.</p>
+                <p className="text-sm text-[#8899AB]">{t('manual.game.actions.intro')}</p>
               </div>
 
               {ACTIONS.map(a => (
@@ -263,9 +262,9 @@ export default function GameManual() {
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
               <div className="rounded-2xl p-6 mb-3" style={{ background: "#141820", border: "1px solid rgba(255,255,255,0.06)" }}>
                 <h2 className="text-2xl font-black text-white mb-2 flex items-center gap-2">
-                  <Trophy className="h-6 w-6 text-[#FFD700]" /> 핸드 랭킹 (강한 순)
+                  <Trophy className="h-6 w-6 text-[#FFD700]" /> {t('manual.game.hands.title')}
                 </h2>
-                <p className="text-sm text-[#8899AB]">10가지 핸드 조합. 위에서 아래로 강함.</p>
+                <p className="text-sm text-[#8899AB]">{t('manual.game.hands.intro')}</p>
               </div>
 
               {HAND_RANKINGS.map(h => (
@@ -292,7 +291,7 @@ export default function GameManual() {
                     </div>
                   </div>
                   <div className="text-right shrink-0">
-                    <div className="text-[9px] text-[#4A5A70] uppercase">확률</div>
+                    <div className="text-[9px] text-[#4A5A70] uppercase">{t('manual.game.labels.odds')}</div>
                     <div className="text-xs font-mono text-[#FFD700]">{h.odds}</div>
                   </div>
                 </div>
@@ -305,28 +304,28 @@ export default function GameManual() {
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
               <div className="rounded-2xl p-6 mb-3" style={{ background: "#141820", border: "1px solid rgba(255,255,255,0.06)" }}>
                 <h2 className="text-2xl font-black text-white mb-2 flex items-center gap-2">
-                  <Target className="h-6 w-6 text-[#FF6B35]" /> 초보자 전략
+                  <Target className="h-6 w-6 text-[#FF6B35]" /> {t('manual.game.strategies.title')}
                 </h2>
               </div>
 
               {[
-                { num: 1, title: '타이트하게 시작', desc: '좋은 핸드만 플레이. 페어, AK, AQ, AJ 중심.', color: '#FF6B35' },
-                { num: 2, title: '포지션 활용', desc: '늦은 포지션(BTN, CO)에서 더 많은 핸드 플레이.', color: '#26A17B' },
-                { num: 3, title: '팟 오즈 계산', desc: '콜에 필요한 금액 / (팟 + 콜) = 필요 승률.', color: '#FFD700' },
-                { num: 4, title: '블러프 자제', desc: '초보는 밸류 위주. 블러프는 상황 익힌 후.', color: '#A78BFA' },
-                { num: 5, title: '뱅크롤 관리', desc: '스택의 5%만 한 번에 베팅. 절대 무리하지 말 것.', color: '#3B82F6' },
-                { num: 6, title: '관찰', desc: '상대 패턴 파악. 누가 타이트한지, 누가 루즈한지.', color: '#22D3EE' },
-                { num: 7, title: '감정 컨트롤', desc: '틸트(흥분)는 최악의 적. 큰 손실 후엔 잠시 쉬기.', color: '#EF4444' },
-              ].map(t => (
-                <div key={t.num} className="rounded-xl p-4 flex gap-4"
+                { num: 1, title: t('manual.game.strategies.items.tight.title'), desc: t('manual.game.strategies.items.tight.desc'), color: '#FF6B35' },
+                { num: 2, title: t('manual.game.strategies.items.position.title'), desc: t('manual.game.strategies.items.position.desc'), color: '#26A17B' },
+                { num: 3, title: t('manual.game.strategies.items.potOdds.title'), desc: t('manual.game.strategies.items.potOdds.desc'), color: '#FFD700' },
+                { num: 4, title: t('manual.game.strategies.items.noBluff.title'), desc: t('manual.game.strategies.items.noBluff.desc'), color: '#A78BFA' },
+                { num: 5, title: t('manual.game.strategies.items.bankroll.title'), desc: t('manual.game.strategies.items.bankroll.desc'), color: '#3B82F6' },
+                { num: 6, title: t('manual.game.strategies.items.observe.title'), desc: t('manual.game.strategies.items.observe.desc'), color: '#22D3EE' },
+                { num: 7, title: t('manual.game.strategies.items.emotion.title'), desc: t('manual.game.strategies.items.emotion.desc'), color: '#EF4444' },
+              ].map(item => (
+                <div key={item.num} className="rounded-xl p-4 flex gap-4"
                   style={{ background: "#141820", border: "1px solid rgba(255,255,255,0.04)" }}>
                   <div className="w-10 h-10 rounded-xl flex items-center justify-center font-black shrink-0"
-                    style={{ background: `${t.color}15`, color: t.color, border: `1px solid ${t.color}30` }}>
-                    {t.num}
+                    style={{ background: `${item.color}15`, color: item.color, border: `1px solid ${item.color}30` }}>
+                    {item.num}
                   </div>
                   <div className="flex-1">
-                    <div className="text-sm font-bold text-white mb-0.5">{t.title}</div>
-                    <div className="text-xs text-[#8899AB]">{t.desc}</div>
+                    <div className="text-sm font-bold text-white mb-0.5">{item.title}</div>
+                    <div className="text-xs text-[#8899AB]">{item.desc}</div>
                   </div>
                 </div>
               ))}
@@ -338,19 +337,19 @@ export default function GameManual() {
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
               <div className="rounded-2xl p-6 mb-3" style={{ background: "#141820", border: "1px solid rgba(255,255,255,0.06)" }}>
                 <h2 className="text-2xl font-black text-white mb-2 flex items-center gap-2">
-                  <Zap className="h-6 w-6 text-[#FF6B35]" /> 특수 기능
+                  <Zap className="h-6 w-6 text-[#FF6B35]" /> {t('manual.game.features.title')}
                 </h2>
               </div>
 
               {[
-                { icon: '🔍', title: 'Card Squeeze', desc: '내 카드를 마우스로 드래그해서 천천히 공개. 진짜 카지노 느낌.' },
-                { icon: '⏱', title: 'Time Bank', desc: '큰 결정에 추가 시간 사용. 30초 + 보너스 시간.' },
-                { icon: '🐰', title: 'Rabbit Hunt', desc: '핸드 종료 후 안 까진 카드 확인. 어떤 카드였는지 확인.' },
-                { icon: '🛡', title: 'Run It Twice', desc: '올인 후 2번 보드 실행. 분산 줄이기.' },
-                { icon: '💎', title: 'Insurance', desc: '올인 시 보험 가입. 안전한 수익 보장.' },
-                { icon: '💣', title: 'Bomb Pot', desc: '특정 핸드에서 모두 강제 콜 + 큰 팟.' },
-                { icon: '🃏', title: 'Provably Fair', desc: 'SHA256 검증 가능한 셔플. 조작 불가능.' },
-                { icon: '👁', title: '관전 모드', desc: '착석하지 않고 게임 관전 가능.' },
+                { icon: '🔍', title: t('manual.game.features.items.cardSqueeze.title'), desc: t('manual.game.features.items.cardSqueeze.desc') },
+                { icon: '⏱', title: t('manual.game.features.items.timeBank.title'), desc: t('manual.game.features.items.timeBank.desc') },
+                { icon: '🐰', title: t('manual.game.features.items.rabbitHunt.title'), desc: t('manual.game.features.items.rabbitHunt.desc') },
+                { icon: '🛡', title: t('manual.game.features.items.runItTwice.title'), desc: t('manual.game.features.items.runItTwice.desc') },
+                { icon: '💎', title: t('manual.game.features.items.insurance.title'), desc: t('manual.game.features.items.insurance.desc') },
+                { icon: '💣', title: t('manual.game.features.items.bombPot.title'), desc: t('manual.game.features.items.bombPot.desc') },
+                { icon: '🃏', title: t('manual.game.features.items.provablyFair.title'), desc: t('manual.game.features.items.provablyFair.desc') },
+                { icon: '👁', title: t('manual.game.features.items.spectate.title'), desc: t('manual.game.features.items.spectate.desc') },
               ].map(f => (
                 <div key={f.title} className="rounded-xl p-4 flex items-center gap-4"
                   style={{ background: "#141820", border: "1px solid rgba(255,255,255,0.04)" }}>
@@ -369,20 +368,20 @@ export default function GameManual() {
             <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="space-y-3">
               <div className="rounded-2xl p-6 mb-3" style={{ background: "#141820", border: "1px solid rgba(255,255,255,0.06)" }}>
                 <h2 className="text-2xl font-black text-white mb-2 flex items-center gap-2">
-                  <Shield className="h-6 w-6 text-[#FF6B35]" /> 게임 에티켓
+                  <Shield className="h-6 w-6 text-[#FF6B35]" /> {t('manual.game.etiquette.title')}
                 </h2>
               </div>
 
               {[
-                { type: 'do', text: '본인 차례에 신속하게 액션', color: '#26A17B' },
-                { type: 'do', text: '쇼다운 시 카드 즉시 공개', color: '#26A17B' },
-                { type: 'do', text: '승자에게 "GG", "NH" 같은 인사', color: '#26A17B' },
-                { type: 'do', text: '관전 모드에서는 채팅 자제', color: '#26A17B' },
-                { type: 'dont', text: '슬로우롤 (이긴 카드를 일부러 천천히 공개)', color: '#EF4444' },
-                { type: 'dont', text: '욕설/비방 채팅', color: '#EF4444' },
-                { type: 'dont', text: '핸드 진행 중 다른 사람 카드 논의', color: '#EF4444' },
-                { type: 'dont', text: '콜루전 (다른 플레이어와 짜고 플레이)', color: '#EF4444' },
-                { type: 'dont', text: '시간 끌기 (Tank). 큰 결정 외엔 빠르게', color: '#EF4444' },
+                { type: 'do', text: t('manual.game.etiquette.do.fastAction'), color: '#26A17B' },
+                { type: 'do', text: t('manual.game.etiquette.do.showCards'), color: '#26A17B' },
+                { type: 'do', text: t('manual.game.etiquette.do.greet'), color: '#26A17B' },
+                { type: 'do', text: t('manual.game.etiquette.do.watchChat'), color: '#26A17B' },
+                { type: 'dont', text: t('manual.game.etiquette.dont.slowRoll'), color: '#EF4444' },
+                { type: 'dont', text: t('manual.game.etiquette.dont.abuse'), color: '#EF4444' },
+                { type: 'dont', text: t('manual.game.etiquette.dont.discuss'), color: '#EF4444' },
+                { type: 'dont', text: t('manual.game.etiquette.dont.collusion'), color: '#EF4444' },
+                { type: 'dont', text: t('manual.game.etiquette.dont.tank'), color: '#EF4444' },
               ].map((e, i) => (
                 <div key={i} className="rounded-xl p-3 flex items-center gap-3"
                   style={{ background: "#141820", border: `1px solid ${e.color}15`, borderLeft: `4px solid ${e.color}` }}>
