@@ -11,6 +11,7 @@ import { useSocket } from "../hooks/useSocket";
 import { useGameStore } from "../stores/gameStore";
 import GameTable from "./GameTable";
 import { Trophy, Clock, Users, TrendingUp } from "lucide-react";
+import { formatMoney } from "../utils/currency";
 
 interface TournamentState {
   success?: boolean;
@@ -165,7 +166,7 @@ export default function TournamentTable() {
           )}
           {isFinished && (
             <div className="mt-1.5 text-center text-[12px] font-bold text-[#FFD700]">
-              🏆 토너먼트 종료 — 상금풀 ₩{Math.round((tournamentState.totalPrizePool || 0) / 100).toLocaleString()}
+              🏆 토너먼트 종료 — 상금풀 {formatMoney(Math.round((tournamentState.totalPrizePool || 0) / 100))}
             </div>
           )}
           {isCancelled && (
@@ -209,7 +210,7 @@ function TournamentResultModal({ results, totalPrizePool, myFinishPosition }: { 
           style={{ background: 'linear-gradient(135deg, rgba(255,215,0,0.15), rgba(255,107,53,0.05))' }}>
           <div className="text-4xl mb-1">🏆</div>
           <div className="text-base font-black text-[#FFD700]">Tournament Finished</div>
-          <div className="text-[11px] text-[#6B7A90] mt-1">상금풀 ₩{Math.round(totalPrizePool / 100).toLocaleString()}</div>
+          <div className="text-[11px] text-[#6B7A90] mt-1">상금풀 {formatMoney(Math.round(totalPrizePool / 100))}</div>
         </div>
 
         {/* Top 3 */}
@@ -227,7 +228,7 @@ function TournamentResultModal({ results, totalPrizePool, myFinishPosition }: { 
                 </div>
                 <div className="text-right">
                   <div className="text-base font-mono font-bold" style={{ color: colors[i] }}>
-                    ₩{Math.round((r.prize || 0) / 100).toLocaleString()}
+                    {formatMoney(Math.round((r.prize || 0) / 100))}
                   </div>
                 </div>
               </div>
@@ -243,7 +244,7 @@ function TournamentResultModal({ results, totalPrizePool, myFinishPosition }: { 
             <div className="flex items-center justify-between">
               <div className="text-sm font-bold text-white">#{myResult.position} {myResult.nickname || ''}</div>
               <div className="font-mono font-bold text-[#22D3EE]">
-                ₩{Math.round((myResult.prize || 0) / 100).toLocaleString()}
+                {formatMoney(Math.round((myResult.prize || 0) / 100))}
               </div>
             </div>
           </div>

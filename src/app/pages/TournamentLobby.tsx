@@ -115,8 +115,8 @@ function TournamentDetailModal({ tournament }: { tournament: Tournament }) {
         <TabsContent value="details" className="space-y-3 mt-0">
           <div className="grid grid-cols-2 gap-3">
             {[
-              { label: "Buy-in", value: `${getSymbol()}${tournament.buyIn.toLocaleString()}`, accent: false },
-              { label: "Guaranteed", value: `${getSymbol()}${tournament.guaranteed.toLocaleString()}`, accent: true },
+              { label: "Buy-in", value: formatMoney(tournament.buyIn), accent: false },
+              { label: "Guaranteed", value: formatMoney(tournament.guaranteed), accent: true },
               { label: "Start Time", value: tournament.startTime, accent: false },
               { label: "Players", value: `${tournament.players} / ${tournament.maxPlayers}`, accent: false },
               { label: "Starting Stack", value: "5,000 chips", accent: false },
@@ -162,7 +162,7 @@ function TournamentDetailModal({ tournament }: { tournament: Tournament }) {
               <div className="text-right">
                 <span className="text-[10px] text-[#4A5A70] mr-2">{p.pct}</span>
                 <span className={`font-mono text-sm font-bold ${i === 0 ? "text-[#FFD700]" : "text-[#FF6B35]"}`}>
-                  {getSymbol()}{p.est.toLocaleString()}
+                  {formatMoney(p.est)}
                 </span>
               </div>
             </div>
@@ -178,7 +178,7 @@ function TournamentDetailModal({ tournament }: { tournament: Tournament }) {
               className="flex-1 py-2.5 rounded-lg text-[13px] font-bold text-white relative overflow-hidden group"
               style={{ background: "linear-gradient(135deg, #FF6B35, #E85D2C)", boxShadow: "0 4px 15px rgba(255,107,53,0.25)" }}>
               <span className="relative z-10 flex items-center justify-center gap-1.5">
-                <Zap className="h-3.5 w-3.5" /> {t('tournament.register')} ({getSymbol()}{tournament.buyIn})
+                <Zap className="h-3.5 w-3.5" /> {t('tournament.register')} ({formatMoney(tournament.buyIn)})
               </span>
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/10 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700" />
             </button>
@@ -199,7 +199,7 @@ function TournamentDetailModal({ tournament }: { tournament: Tournament }) {
               className="flex-1 py-2.5 rounded-lg text-[13px] font-bold text-white"
               style={{ background: "linear-gradient(135deg, #26A17B, #1E8A5C)", boxShadow: "0 4px 15px rgba(38,161,123,0.25)" }}>
               <span className="flex items-center justify-center gap-1.5">
-                <RefreshCw className="h-3.5 w-3.5" /> {t('tournament.rebuy')} ({getSymbol()}{tournament.buyIn})
+                <RefreshCw className="h-3.5 w-3.5" /> {t('tournament.rebuy')} ({formatMoney(tournament.buyIn)})
               </span>
             </button>
           </>
@@ -315,8 +315,8 @@ export default function TournamentLobby() {
 
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
                     {[
-                      { label: "Buy-in", value: `${getSymbol()}${featured.buyIn.toLocaleString()}`, color: "text-white" },
-                      { label: "Guaranteed", value: `${getSymbol()}${featured.guaranteed.toLocaleString()}`, color: "text-[#FFD700]" },
+                      { label: "Buy-in", value: formatMoney(featured.buyIn), color: "text-white" },
+                      { label: "Guaranteed", value: formatMoney(featured.guaranteed), color: "text-[#FFD700]" },
                       { label: "Players", value: `${featured.players} / ${featured.maxPlayers}`, color: "text-white" },
                       { label: "Starts", value: "Sunday 15:00", color: "text-white" },
                     ].map((item, i) => (
@@ -417,7 +417,7 @@ export default function TournamentLobby() {
                       </div>
                       <div className="text-right">
                         <div className="text-[10px] text-[#4A5A70]">{tr('tournament.guaranteed')}</div>
-                        <div className="font-mono text-sm font-bold text-[#FF6B35]">{getSymbol()}{t.guaranteed.toLocaleString()}</div>
+                        <div className="font-mono text-sm font-bold text-[#FF6B35]">{formatMoney(t.guaranteed)}</div>
                       </div>
                     </div>
 
@@ -425,7 +425,7 @@ export default function TournamentLobby() {
                     <div className="grid grid-cols-3 gap-2 mb-3">
                       <div className="text-center px-2 py-1.5 rounded-md" style={{ background: "rgba(255,255,255,0.02)" }}>
                         <div className="text-[9px] text-[#4A5A70]">{tr('tournament.buyIn')}</div>
-                        <div className="font-mono text-xs font-semibold text-white">{getSymbol()}{t.buyIn}</div>
+                        <div className="font-mono text-xs font-semibold text-white">{formatMoney(t.buyIn)}</div>
                       </div>
                       <div className="text-center px-2 py-1.5 rounded-md" style={{ background: "rgba(255,255,255,0.02)" }}>
                         <div className="text-[9px] text-[#4A5A70]">{tr('tournament.players')}</div>
