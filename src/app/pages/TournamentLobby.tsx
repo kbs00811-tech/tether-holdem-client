@@ -1,5 +1,5 @@
 import { formatMoney, getSymbol } from "../utils/currency";
-import { Link } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { Trophy, Users, Clock, DollarSign, Zap, Crown, Star, ChevronRight, Flame, RefreshCw, ArrowLeft } from "lucide-react";
 import { Badge } from "../components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "../components/ui/dialog";
@@ -213,6 +213,8 @@ function TournamentDetailModal({ tournament }: { tournament: Tournament }) {
 export default function TournamentLobby() {
   const { send, connected } = useSocket();
   const serverTournaments = useGameStore(s => s.tournaments);
+  const pendingTournamentJoin = useGameStore(s => (s as any).pendingTournamentJoin as string | null);
+  const navigate = useNavigate();
   const [filter, setFilter] = useState<string>("all");
   const tr = useT();
 
@@ -224,6 +226,16 @@ export default function TournamentLobby() {
       return () => clearInterval(t);
     }
   }, [connected, send]);
+
+  // Phase 1 fix: 토너 등록 성공 → /tournament/:id 자동 이동
+  useEffect(() => {
+    if (pendingTournamentJoin) {
+      const id = pendingTournamentJoin;
+      // 즉시 store 의 pending 클리어 + navigate
+      useGameStore.setState({ pendingTournamentJoin: null } as any);
+      navigate(`/tournament/${id}`);
+    }
+  }, [pendingTournamentJoin, navigate]);
 
   // 서버 데이터 → 로컬 형식 (서버 데이터 있으면 사용, 없으면 mock)
   const allTournaments: Tournament[] = serverTournaments.length > 0
