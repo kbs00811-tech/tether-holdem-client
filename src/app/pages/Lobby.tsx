@@ -417,7 +417,7 @@ export default function Lobby() {
                     color: isActive ? "#FF6B35" : "#8899AB",
                   }}>
                   {isActive && <span className="text-[8px]">&#9654;</span>}
-                  <span>{track.name}</span>
+                  <span>{t(`gameTable.sound.tracks.${track.id}`)}</span>
                 </button>
               );
             })}

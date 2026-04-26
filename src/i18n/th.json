@@ -674,7 +674,16 @@
       "muteOff": "🔇 OFF",
       "popupTitle": "🎵 เสียง",
       "gameLabel": "🎮 Game",
-      "bgmLabel": "🎵 BGM"
+      "bgmLabel": "🎵 BGM",
+      "trackLabel": "แทร็ก",
+      "tracks": {
+        "casino": "🎰 คาสิโน แจ๊ส",
+        "latin": "💃 ละติน แจ๊ส",
+        "upbeat": "🎸 อัพบีท ฟังก์",
+        "hiphop": "🔥 เม็กซิกัน ฮิปฮอป",
+        "groove": "🎵 ฟังก์กี้ กรูฟ",
+        "lounge": "🍸 คลาสสิก เลานจ์"
+      }
     },
     "modal": {
       "inviteTitle": "เชิญเพื่อน",

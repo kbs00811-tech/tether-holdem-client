@@ -674,7 +674,16 @@
       "muteOff": "🔇 OFF",
       "popupTitle": "🎵 声音",
       "gameLabel": "🎮 Game",
-      "bgmLabel": "🎵 BGM"
+      "bgmLabel": "🎵 BGM",
+      "trackLabel": "曲目",
+      "tracks": {
+        "casino": "🎰 赌场爵士",
+        "latin": "💃 拉丁爵士",
+        "upbeat": "🎸 欢快朋克",
+        "hiphop": "🔥 墨西哥嘻哈",
+        "groove": "🎵 放克律动",
+        "lounge": "🍸 经典休闲"
+      }
     },
     "modal": {
       "inviteTitle": "好友邀请",

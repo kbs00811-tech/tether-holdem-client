@@ -674,7 +674,16 @@
       "muteOff": "🔇 OFF",
       "popupTitle": "🎵 Дуу",
       "gameLabel": "🎮 Game",
-      "bgmLabel": "🎵 BGM"
+      "bgmLabel": "🎵 BGM",
+      "trackLabel": "Track",
+      "tracks": {
+        "casino": "🎰 Казино Жазз",
+        "latin": "💃 Латин Жазз",
+        "upbeat": "🎸 Хөгжөөнтэй Фанк",
+        "hiphop": "🔥 Мексик Хип-Хоп",
+        "groove": "🎵 Фанки Грүв",
+        "lounge": "🍸 Сонгодог Лаунж"
+      }
     },
     "modal": {
       "inviteTitle": "Найзаа урих",

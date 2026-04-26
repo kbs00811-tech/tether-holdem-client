@@ -674,7 +674,16 @@
       "muteOff": "🔇 OFF",
       "popupTitle": "🎵 サウンド",
       "gameLabel": "🎮 Game",
-      "bgmLabel": "🎵 BGM"
+      "bgmLabel": "🎵 BGM",
+      "trackLabel": "トラック",
+      "tracks": {
+        "casino": "🎰 カジノ ジャズ",
+        "latin": "💃 ラテン ジャズ",
+        "upbeat": "🎸 アップビート ファンク",
+        "hiphop": "🔥 メキシカン ヒップホップ",
+        "groove": "🎵 ファンキー グルーヴ",
+        "lounge": "🍸 クラシック ラウンジ"
+      }
     },
     "modal": {
       "inviteTitle": "友達招待",

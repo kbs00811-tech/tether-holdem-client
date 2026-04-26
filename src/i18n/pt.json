@@ -674,7 +674,16 @@
       "muteOff": "🔇 OFF",
       "popupTitle": "🎵 Som",
       "gameLabel": "🎮 Game",
-      "bgmLabel": "🎵 BGM"
+      "bgmLabel": "🎵 BGM",
+      "trackLabel": "Faixa",
+      "tracks": {
+        "casino": "🎰 Jazz de Cassino",
+        "latin": "💃 Jazz Latino",
+        "upbeat": "🎸 Funk Animado",
+        "hiphop": "🔥 Hip-Hop Mexicano",
+        "groove": "🎵 Groove Funky",
+        "lounge": "🍸 Lounge Clássico"
+      }
     },
     "modal": {
       "inviteTitle": "Convidar amigos",

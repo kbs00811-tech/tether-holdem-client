@@ -674,7 +674,16 @@
       "muteOff": "🔇 OFF",
       "popupTitle": "🎵 Sound",
       "gameLabel": "🎮 Game",
-      "bgmLabel": "🎵 BGM"
+      "bgmLabel": "🎵 BGM",
+      "trackLabel": "Track",
+      "tracks": {
+        "casino": "🎰 Casino Jazz",
+        "latin": "💃 Latin Jazz",
+        "upbeat": "🎸 Upbeat Funk",
+        "hiphop": "🔥 Mexican Hip-Hop",
+        "groove": "🎵 Funky Groove",
+        "lounge": "🍸 Classic Lounge"
+      }
     },
     "modal": {
       "inviteTitle": "Invite Friends",

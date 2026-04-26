@@ -674,7 +674,16 @@
       "muteOff": "🔇 OFF",
       "popupTitle": "🎵 Âm thanh",
       "gameLabel": "🎮 Game",
-      "bgmLabel": "🎵 BGM"
+      "bgmLabel": "🎵 BGM",
+      "trackLabel": "Bài hát",
+      "tracks": {
+        "casino": "🎰 Casino Jazz",
+        "latin": "💃 Latin Jazz",
+        "upbeat": "🎸 Funk Sôi Động",
+        "hiphop": "🔥 Hip-Hop Mexico",
+        "groove": "🎵 Funky Groove",
+        "lounge": "🍸 Lounge Cổ Điển"
+      }
     },
     "modal": {
       "inviteTitle": "Mời bạn",

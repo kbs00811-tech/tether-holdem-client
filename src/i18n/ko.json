@@ -692,7 +692,16 @@
       "muteOff": "🔇 OFF",
       "popupTitle": "🎵 사운드",
       "gameLabel": "🎮 Game",
-      "bgmLabel": "🎵 BGM"
+      "bgmLabel": "🎵 BGM",
+      "trackLabel": "트랙",
+      "tracks": {
+        "casino": "🎰 카지노 재즈",
+        "latin": "💃 라틴 재즈",
+        "upbeat": "🎸 신나는 펑크",
+        "hiphop": "🔥 멕시코 힙합",
+        "groove": "🎵 펑키 그루브",
+        "lounge": "🍸 클래식 라운지"
+      }
     },
     "modal": {
       "inviteTitle": "친구 초대",

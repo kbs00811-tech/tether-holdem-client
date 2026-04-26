@@ -1334,7 +1334,7 @@ export default function GameTable() {
                   </div>
 
                   {/* BGM 트랙 선택 */}
-                  <div className="text-[9px] text-[#4A5A70] mb-1 uppercase tracking-wider">Track</div>
+                  <div className="text-[9px] text-[#4A5A70] mb-1 uppercase tracking-wider">{t('gameTable.sound.trackLabel')}</div>
                   <div className="space-y-1 mb-3 max-h-[120px] overflow-y-auto">
                     {BGM_TRACKS.map(track => (
                       <button key={track.id}
@@ -1344,7 +1344,7 @@ export default function GameTable() {
                           background: bgmTrackId === track.id ? 'rgba(255,107,53,0.15)' : 'transparent',
                           color: bgmTrackId === track.id ? '#FF6B35' : '#6B7A90',
                         }}>
-                        {track.name}
+                        {t(`gameTable.sound.tracks.${track.id}`)}
                       </button>
                     ))}
                   </div>
@@ -1411,7 +1411,7 @@ export default function GameTable() {
                     background: bgmTrackId === track.id ? 'rgba(255,107,53,0.15)' : 'transparent',
                     color: bgmTrackId === track.id ? '#FF6B35' : '#8899AB',
                   }}>
-                  {track.name}
+                  {t(`gameTable.sound.tracks.${track.id}`)}
                 </button>
               ))}
             </div>
