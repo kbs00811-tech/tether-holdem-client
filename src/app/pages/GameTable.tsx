@@ -769,7 +769,7 @@ export default function GameTable() {
     send({ type: 'SIT_DOWN', seat: targetSeat, buyIn: Math.round(amount * 100), avatarId: currentAvatarIdx } as any);
     // ★ setSeated 는 useEffect로 자동 — 서버 PLAYER_JOINED 도착 시 heroSeat 갱신되며 동기화
     setShowBuyInModal(false);
-    toast.success(`Bought in for ${getSymbol()}${amount.toLocaleString()}`);
+    toast.success(`Bought in for ${formatMoney(amount)}`);
   }, [send, clickedSeat, serverPlayers, maxSeats, currentRoomId, tableId, currentAvatarIdx]);
 
   const handleLeave = useCallback(() => {
@@ -1064,7 +1064,7 @@ export default function GameTable() {
               style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.06)" }}>
               <span className="text-[10px] text-[#6B7A90]">Stack</span>
               <span className="text-xs font-mono font-black text-[#34D399]">
-                {getSymbol()}{((serverPlayers.find(p => p.seat === heroSeat)?.stack ?? 0) / 100).toLocaleString()}
+                {formatMoney(((serverPlayers.find(p => p.seat === heroSeat)?.stack ?? 0) / 100))}
               </span>
             </div>
           )}
@@ -1534,7 +1534,7 @@ export default function GameTable() {
               </div>
               <div className="text-base sm:text-xl font-mono font-black text-[#FFD700]"
                 style={{ textShadow: "0 0 20px rgba(255,215,0,0.6)" }}>
-                {getSymbol()}{(allInBanner.amount / 100).toLocaleString()}
+                {formatMoney(allInBanner.amount / 100)}
               </div>
             </motion.div>
           </motion.div>
@@ -1766,7 +1766,7 @@ export default function GameTable() {
                       Hand Replay #{replayHand.handNumber ?? '?'}
                     </h3>
                     <p className="text-[10px] text-[#4A5A70]">
-                      Pot: {getSymbol()}{((replayHand.pot ?? 0) / 100).toLocaleString()} ·
+                      Pot: {formatMoney((replayHand.pot ?? 0) / 100)} ·
                       {' '}{new Date(replayHand.timestamp).toLocaleString('ko-KR')}
                     </p>
                   </div>
@@ -1932,7 +1932,7 @@ export default function GameTable() {
                               {/* Win amount on RESULT step */}
                               {isWinner && replayStep >= 4 && pl.winAmount > 0 && (
                                 <div className="text-center mt-0.5 text-[9px] font-mono font-black text-[#FFD700]">
-                                  +{getSymbol()}{(pl.winAmount / 100).toLocaleString()}
+                                  +{formatMoney(pl.winAmount / 100)}
                                 </div>
                               )}
                             </div>
@@ -2218,7 +2218,7 @@ export default function GameTable() {
                           boxShadow: "0 2px 6px rgba(0,0,0,0.5)",
                         }}>
                         {/* p.bet 은 이미 /100 완료 — 중복 나눗셈 제거 (버그: W5/W10 표기 오류) */}
-                        ₩{Math.round(p.bet).toLocaleString()}
+                        {formatMoney(Math.round(p.bet))}
                       </span>
                     </motion.div>
                   </div>
@@ -2399,11 +2399,11 @@ export default function GameTable() {
                     className="text-[16px] font-mono font-black"
                     style={{ textShadow: "0 0 10px rgba(229,184,0,0.3)" }}
                   >
-                    {getSymbol()}{(
+                    {formatMoney(
                       (((gameState as any)?.sidePots?.length ?? 0) >= 2
                         ? ((gameState as any).sidePots[0]?.amount ?? pot)
                         : pot) / 100
-                    ).toLocaleString()}
+                    )}
                   </motion.span>
                 </motion.div>
 
@@ -2427,7 +2427,7 @@ export default function GameTable() {
                           SIDE{idx + 1}
                         </span>
                         <span className="text-[11px] font-mono font-black" style={{ color: "#C4B5FD" }}>
-                          {getSymbol()}{(sp.amount / 100).toLocaleString()}
+                          {formatMoney(sp.amount / 100)}
                         </span>
                       </motion.div>
                     ))}
@@ -2697,7 +2697,7 @@ export default function GameTable() {
                         className="font-mono text-2xl font-black text-[#34D399] mb-1"
                         style={{ textShadow: "0 0 12px rgba(52,211,153,0.3)" }}
                       >
-                        +{getSymbol()}{(winners[0].amount / 100).toLocaleString()}
+                        +{formatMoney(winners[0].amount / 100)}
                       </motion.div>
 
                       {winners[0].handResult?.description && (
@@ -3298,7 +3298,7 @@ export default function GameTable() {
                     </span>
                     {!canCheck && (
                       <span className="text-white/70 text-[10px] font-mono font-bold">
-                        {getSymbol()}{(callAmount/100).toLocaleString()}
+                        {formatMoney(callAmount/100)}
                       </span>
                     )}
                   </div>
@@ -3320,7 +3320,7 @@ export default function GameTable() {
                       {raiseAmount >= maxRaise ? t('action.allIn') : t('action.raise')}
                     </span>
                     <span className="text-white/70 text-[10px] font-mono font-bold">
-                      {getSymbol()}{(raiseAmount/100).toLocaleString()}
+                      {formatMoney(raiseAmount/100)}
                     </span>
                   </div>
                   {/* ALL-IN 골드 글로우 */}
@@ -3603,7 +3603,7 @@ export default function GameTable() {
                             </div>
                             <div className="flex items-center gap-2">
                               <div className="text-[11px] font-mono font-bold text-[#FFD700]">
-                                Pot: {getSymbol()}{((rec.pot ?? 0) / 100).toLocaleString()}
+                                Pot: {formatMoney((rec.pot ?? 0) / 100)}
                               </div>
                               {/* V3 P2D Part 3: Replay 버튼 */}
                               <button
@@ -3669,7 +3669,7 @@ export default function GameTable() {
                                 </div>
                               </div>
                               <div className="font-mono font-black text-[13px] text-[#34D399]">
-                                +{getSymbol()}{((winner.amount ?? 0) / 100).toLocaleString()}
+                                +{formatMoney((winner.amount ?? 0) / 100)}
                               </div>
                             </div>
                           )}
@@ -3734,7 +3734,7 @@ export default function GameTable() {
                                         )}
                                         {pl.winAmount > 0 && (
                                           <span className="text-[10px] font-mono font-bold text-[#34D399]">
-                                            +{getSymbol()}{(pl.winAmount / 100).toLocaleString()}
+                                            +{formatMoney(pl.winAmount / 100)}
                                           </span>
                                         )}
                                       </div>
@@ -3748,7 +3748,7 @@ export default function GameTable() {
                           {/* Rake */}
                           {rec.rake > 0 && (
                             <div className="mt-2 text-[9px] text-[#4A5A70] text-right">
-                              Rake: {getSymbol()}{(rec.rake / 100).toLocaleString()}
+                              Rake: {formatMoney(rec.rake / 100)}
                             </div>
                           )}
                         </motion.div>
@@ -4272,7 +4272,7 @@ function TopUpForm({ currentStack, send, onDone }: {
       return;
     }
     send({ type: 'TOP_UP', amount });
-    toast.success(`Top Up 요청: ₩${(amount / 100).toLocaleString()}`);
+    toast.success(`Top Up 요청: ${formatMoney(amount / 100)}`);
     onDone();
   };
 
@@ -4281,7 +4281,7 @@ function TopUpForm({ currentStack, send, onDone }: {
       <div className="bg-[#0a0b10] rounded-lg p-3 border border-white/5">
         <div className="text-[10px] text-[#4A5A70] uppercase">Current Stack</div>
         <div className="text-lg font-mono font-black text-[#34D399]">
-          ₩{(currentStack / 100).toLocaleString()}
+          {formatMoney(currentStack / 100)}
         </div>
       </div>
       <div>
