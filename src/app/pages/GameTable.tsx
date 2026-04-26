@@ -579,8 +579,8 @@ export default function GameTable() {
   const callAmount = turnInfo?.callAmount ?? 0;
   const minRaise = turnInfo?.minBet ?? (currentBet * 2 || 400);
   const maxRaise = turnInfo?.maxBet ?? myStack;
-  const sbAmount = gameState?.smallBlind ? (gameState.smallBlind / 100).toLocaleString() : "—";
-  const bbAmount = gameState?.bigBlind ? (gameState.bigBlind / 100).toLocaleString() : "—";
+  const sbAmount = gameState?.smallBlind ? formatMoney(gameState.smallBlind / 100) : "—";
+  const bbAmount = gameState?.bigBlind ? formatMoney(gameState.bigBlind / 100) : "—";
   const blinds = gameState?.smallBlind ? `${sbAmount}/${bbAmount}` : "—";
 
   // 베팅 액션

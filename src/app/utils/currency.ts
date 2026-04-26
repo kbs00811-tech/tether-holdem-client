@@ -56,16 +56,49 @@ function convertFromKrwMajor(krwMajor: number, target: string): number {
   }
 }
 
+/**
+ * 디자인팀 가독성 규칙 (2026-04-27):
+ *   매그니튜드별 자릿수 자동 조정 — "₮33.83" 같은 노이즈 제거
+ *
+ *   |amount|       fraction digits  compact
+ *   ─────────────────────────────────────
+ *    < 1            2                X       (예: ₮0.36, $0.71)
+ *    1 ~ 9.99       1                X       (예: ₮3.5, $7.2)
+ *    10 ~ 999       0                X       (예: ₮34, ₮500)
+ *    1K ~ 9.99K     0 (× 1000)       K       (예: ₮3K, ₮5K)
+ *    10K ~ 999K     0 (× 1000)       K       (예: ₮34K, ₮500K)
+ *    >= 1M          1 (× 1M)         M       (예: ₮1.2M)
+ *
+ *   KRW/JPY/VND (zero-decimal) 는 절대값 그대로 유지하되 ≥1K 이면 compact.
+ */
+function smartFormat(value: number, baseDecimals: number): string {
+  const abs = Math.abs(value);
+  if (abs >= 1_000_000) {
+    return (value / 1_000_000).toLocaleString('en-US', {
+      minimumFractionDigits: 1,
+      maximumFractionDigits: 1,
+    }) + 'M';
+  }
+  if (abs >= 1_000) {
+    return Math.round(value / 1_000).toLocaleString('en-US') + 'K';
+  }
+  // < 1000 — baseDecimals 기준이지만 USDT/USD 류는 매그니튜드별 자동 조정
+  if (baseDecimals === 0) {
+    // KRW / JPY 류 — 절대값 정수
+    return Math.round(value).toLocaleString('en-US');
+  }
+  // USDT / USD / EUR 류
+  if (abs < 1) return value.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (abs < 10) return value.toLocaleString('en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  return Math.round(value).toLocaleString('en-US');
+}
+
 /** 금액 포맷 — 입력은 KRW major 단위로 가정 (legacy) */
 export function formatMoney(amount: number, currency?: string): string {
   const cur = currency ?? getCurrency();
   const config = CURRENCY_CONFIG[cur] ?? CURRENCY_CONFIG.KRW!;
   const value = convertFromKrwMajor(amount, cur);
-  const formatted = value.toLocaleString('en-US', {
-    minimumFractionDigits: config.decimals,
-    maximumFractionDigits: config.decimals,
-  });
-  return `${config.symbol}${formatted}`;
+  return `${config.symbol}${smartFormat(value, config.decimals)}`;
 }
 
 /** 통화 심볼만 — getCurrency() 의 심볼 반환 */
@@ -86,8 +119,5 @@ export function formatAmount(krwMajor: number, currency?: string): string {
   const cur = currency ?? getCurrency();
   const config = CURRENCY_CONFIG[cur] ?? CURRENCY_CONFIG.KRW!;
   const value = convertFromKrwMajor(krwMajor, cur);
-  return value.toLocaleString('en-US', {
-    minimumFractionDigits: config.decimals,
-    maximumFractionDigits: config.decimals,
-  });
+  return smartFormat(value, config.decimals);
 }

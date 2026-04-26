@@ -1,4 +1,4 @@
-import { formatMoney, getSymbol } from "../utils/currency";
+import { formatMoney, getCurrency } from "../utils/currency";
 import { Link, useNavigate } from "react-router";
 import { Users, Filter, Plus, Trophy, Activity, Crown, Flame, Zap, Star, Clock, DollarSign, Play, LayoutGrid, List, User, Volume2, VolumeX, Music } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
@@ -18,7 +18,7 @@ import {
   LOBBY_BGM_TRACKS, setLobbyBGMTrack, getLobbyBGMId,
 } from "../hooks/useSound";
 import { useT, useLocale, SUPPORTED_LOCALES, type LocaleCode } from "../../i18n";
-import { getBuyInTier, splitBuyInDisplay } from "../utils/buyInTier";
+import { getBuyInTier } from "../utils/buyInTier";
 import { useRateStore } from "../stores/rateStore";
 
 interface PokerRoom {
@@ -810,28 +810,20 @@ export default function Lobby() {
                     <span className="text-[#4A5A70]">/</span>
                     <span className="text-[#34D399]">{formatMoney(room.bigBlind)}</span>
                   </div>
-                  {/* Buy-in — Beta-G++: USDT main (settlement asset) + fiat sub (informational) */}
+                  {/* Buy-in — 디자인팀 v2 (2026-04-27): smart formatMoney 메인 + 보조 통화 자동 */}
                   <div className="text-right">
                     {(() => {
                       const tier = getBuyInTier(room.minBuyIn);
-                      // USDT primary — actual settlement amount
-                      const usdtAmount = room.minBuyIn / (usdtKrw || 1400);
-                      const usdtAmtStr = usdtAmount >= 1000
-                        ? (usdtAmount / 1000).toFixed(usdtAmount >= 10000 ? 0 : 1)
-                        : usdtAmount >= 100 ? String(Math.round(usdtAmount))
-                        : usdtAmount.toFixed(2);
-                      const usdtSuffix = usdtAmount >= 1000 ? 'K' : '';
-                      // Fiat secondary — user's display currency (informational)
-                      const fiatSplit = splitBuyInDisplay(room.minBuyIn, getSymbol());
+                      // 메인: 사용자 선호 통화 (smart 자릿수 자동)
+                      const mainStr = formatMoney(room.minBuyIn);
+                      // 보조: 메인이 USDT 면 USD, 메인이 fiat 면 USDT (정보용)
+                      const isUsdtMain = getCurrency() === 'USDT';
+                      const subStr = isUsdtMain ? formatMoney(room.minBuyIn, 'USD') : formatMoney(room.minBuyIn, 'USDT');
                       return (
                         <span className={`inline-flex flex-col items-end gap-0 px-2.5 py-1 rounded-md tabular-nums ${tier.bgClass} ${tier.ringClass}`}
                           style={{ color: tier.textColor }}>
-                          <span className="inline-flex items-baseline gap-0.5">
-                            <span className="text-[10px] opacity-70">₮</span>
-                            <span className="text-[15px] font-extrabold tracking-tight">{usdtAmtStr}</span>
-                            {usdtSuffix && <span className="text-[11px] font-bold opacity-85 ml-0.5">{usdtSuffix}</span>}
-                          </span>
-                          <span className="text-[9px] opacity-60 leading-none mt-0.5">≈ {fiatSplit.prefix}{fiatSplit.amount}{fiatSplit.suffix}</span>
+                          <span className="text-[15px] font-extrabold tracking-tight">{mainStr}</span>
+                          <span className="text-[9px] opacity-60 leading-none mt-0.5">≈ {subStr}</span>
                         </span>
                       );
                     })()}
@@ -911,25 +903,17 @@ export default function Lobby() {
                   </div>
                   <div className="text-right shrink-0">
                     <div className="text-[8px] sm:text-xs text-[#6B7A90] mb-0.5 font-semibold hidden sm:block">Buy-in</div>
-                    {/* Beta-G++: USDT main (settlement asset) + fiat sub (informational) */}
+                    {/* 디자인팀 v2 (2026-04-27): smart formatMoney 메인 + 보조 통화 자동 */}
                     {(() => {
                       const tier = getBuyInTier(room.minBuyIn);
-                      const usdtAmount = room.minBuyIn / (usdtKrw || 1400);
-                      const usdtAmtStr = usdtAmount >= 1000
-                        ? (usdtAmount / 1000).toFixed(usdtAmount >= 10000 ? 0 : 1)
-                        : usdtAmount >= 100 ? String(Math.round(usdtAmount))
-                        : usdtAmount.toFixed(2);
-                      const usdtSuffix = usdtAmount >= 1000 ? 'K' : '';
-                      const fiatSplit = splitBuyInDisplay(room.minBuyIn, getSymbol());
+                      const mainStr = formatMoney(room.minBuyIn);
+                      const isUsdtMain = getCurrency() === 'USDT';
+                      const subStr = isUsdtMain ? formatMoney(room.minBuyIn, 'USD') : formatMoney(room.minBuyIn, 'USDT');
                       return (
                         <span className={`inline-flex flex-col items-end gap-0 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md tabular-nums ${tier.bgClass} ${tier.ringClass}`}
                           style={{ color: tier.textColor }}>
-                          <span className="inline-flex items-baseline gap-0.5">
-                            <span className="text-[8px] sm:text-[10px] opacity-70">₮</span>
-                            <span className="text-[12px] sm:text-[18px] font-extrabold tracking-tight">{usdtAmtStr}</span>
-                            {usdtSuffix && <span className="text-[9px] sm:text-[12px] font-bold opacity-85 ml-0.5">{usdtSuffix}</span>}
-                          </span>
-                          <span className="text-[7px] sm:text-[10px] opacity-60 leading-none mt-0.5">≈ {fiatSplit.prefix}{fiatSplit.amount}{fiatSplit.suffix}</span>
+                          <span className="text-[12px] sm:text-[18px] font-extrabold tracking-tight">{mainStr}</span>
+                          <span className="text-[7px] sm:text-[10px] opacity-60 leading-none mt-0.5">≈ {subStr}</span>
                         </span>
                       );
                     })()}
