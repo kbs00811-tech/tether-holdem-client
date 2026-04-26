@@ -1,4 +1,4 @@
-import { formatMoney } from "../utils/currency";
+import { formatMoney, getSymbol } from "../utils/currency";
 import { Link, useNavigate } from "react-router";
 import { Users, Filter, Plus, Trophy, Activity, Crown, Flame, Zap, Star, Clock, DollarSign, Play, LayoutGrid, List, User, Volume2, VolumeX, Music } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
@@ -811,7 +811,7 @@ export default function Lobby() {
                   <div className="text-right">
                     {(() => {
                       const tier = getBuyInTier(room.minBuyIn);
-                      const split = splitBuyInDisplay(room.minBuyIn, '₩');
+                      const split = splitBuyInDisplay(room.minBuyIn, getSymbol());
                       return (
                         <span className={`inline-flex items-baseline gap-0.5 px-2.5 py-1 rounded-md tabular-nums ${tier.bgClass} ${tier.ringClass}`}
                           style={{ color: tier.textColor }}>
@@ -900,7 +900,7 @@ export default function Lobby() {
                     {/* Beta-G+: Pill 배경 + tier 컬러 + 단위 분리 (전문가 합의) */}
                     {(() => {
                       const tier = getBuyInTier(room.minBuyIn);
-                      const split = splitBuyInDisplay(room.minBuyIn, '₩');
+                      const split = splitBuyInDisplay(room.minBuyIn, getSymbol());
                       return (
                         <span className={`inline-flex items-baseline gap-0.5 px-2 py-0.5 sm:px-2.5 sm:py-1 rounded-md tabular-nums ${tier.bgClass} ${tier.ringClass}`}
                           style={{ color: tier.textColor }}>
