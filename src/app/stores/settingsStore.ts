@@ -257,7 +257,7 @@ export const AVATAR_NAMES = [
   "Bitcoin Bull", "Ethereum Fox", "Tether Penguin", "Cyber Ninja", "Diamond Shark",
   "Neon Hacker", "Phoenix Fire", "Crystal Wolf", "Astronaut", "Platinum Eagle",
   "Latina Queen", "Asian Gentleman", "Euro Femme", "Euro Gentleman", "Brazilian Goddess",
-  "Middle East Prince", "Russian Ice Queen", "Korean Idol", "Nordic Viking", "Asian Beauty",
+  "Middle East Prince", "Russian Ice Queen", "Pop Star Idol", "Nordic Viking", "Asian Beauty",
 ];
 
 // Card skin color configs

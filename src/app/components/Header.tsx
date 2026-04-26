@@ -17,7 +17,7 @@ export function Header() {
   const { send } = useSocket();
   const connected = useGameStore(s => s.connected);
   const { user: embedUser } = useEmbedMode();
-  // Embed 모드에서는 호스트가 전달한 balance 사용, standalone 에서는 기본값
+  // In embed mode, balance comes from host iframe params; standalone uses default 0
   const balance = embedUser?.balance ?? 0;
   const [showPromo, setShowPromo] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
@@ -25,7 +25,7 @@ export function Header() {
   const currentAvatar = useSettingsStore(s => s.avatar);
   const profileMenuRef = useRef<HTMLDivElement>(null);
 
-  // 바깥 클릭 시 드롭다운 닫기
+  // Close dropdown on outside click
   useEffect(() => {
     if (!showProfileMenu) return;
     const close = (e: MouseEvent) => {
@@ -126,7 +126,7 @@ export function Header() {
               <div className={`w-2 h-2 rounded-full ${connected ? "bg-emerald-400" : "bg-red-500"}`}
                 style={{ boxShadow: connected ? "0 0 6px rgba(52,211,153,0.4)" : "0 0 6px rgba(239,68,68,0.4)" }} />
 
-              {/* USDT 시세 인디케이터 (Beta-G++ 2026-04-27) — 글로벌 표준 소스, 클릭 시 cycle */}
+              {/* USDT rate indicator (Beta-G++ 2026-04-27) — global rate sources, click to cycle */}
               {(() => {
                 const rates = useRateStore(s => s.rates);
                 const displayCurrency = useRateStore(s => s.displayCurrency);
@@ -141,7 +141,7 @@ export function Header() {
                     case 'USDT': return `(USDT mode)`;
                   }
                 })();
-                // 글로벌 소스 표기 (DevTools/검사 시 한국 거래소 흔적 0)
+                // Source attribution (verifiable in DevTools — global rate sources only)
                 const sourceTitle = rates.sources
                   ? `USDT peg: ${rates.sources.USDT_PEG}\nFX: ${rates.sources.FX}\nClick to cycle currency`
                   : `Click to cycle currency · ${isFresh ? 'Live' : 'Cached'}`;

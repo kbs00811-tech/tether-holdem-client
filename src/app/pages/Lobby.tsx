@@ -815,7 +815,7 @@ export default function Lobby() {
                     {(() => {
                       const tier = getBuyInTier(room.minBuyIn);
                       const hostSplit = splitBuyInDisplay(room.minBuyIn, getSymbol());
-                      // USDT 환산 — 빗썸 시세 기반 (room.minBuyIn 은 KRW 정수, usdtKrw = 1 USDT = N KRW)
+                      // USDT conversion (1 USDT = N display unit, source: global FX rates)
                       const usdtAmount = room.minBuyIn / (usdtKrw || 1400);
                       const usdtCompact = usdtAmount >= 1000
                         ? `₮${(usdtAmount / 1000).toFixed(usdtAmount >= 10000 ? 0 : 1)}K`

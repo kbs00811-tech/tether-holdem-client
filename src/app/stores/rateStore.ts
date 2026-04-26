@@ -1,15 +1,15 @@
 /**
  * Exchange Rate Store (Beta-G+ 2026-04-27)
  *
- * 서버가 EXCHANGE_RATES WS 메시지로 환율 push:
+ * Server pushes EXCHANGE_RATES WS message:
  *   { usdtKrw: 1400, usdtUsd: 1.00, usdtEur: 0.92, usdtJpy: 156, ts: ... }
  *
- * 사용 시나리오:
- *   - 서버 자산 단위 = USDT cents (정수)
- *   - 클라 표시: 사용자 선호 통화로 환산
- *   - 1 USDT = N FIAT (rateStore 가 보유)
+ * Usage:
+ *   - Server-side accounting unit: USDT cents (integer)
+ *   - Client-side display: converted to user's preferred fiat
+ *   - 1 USDT = N FIAT (held in rateStore)
  *
- * Hand-Freeze: 핸드 시작 시 rate snapshot → useFrozenRate hook 사용
+ * Hand-Freeze: snapshot rate at hand start to prevent in-hand drift.
  */
 
 import { create } from 'zustand';
@@ -20,49 +20,49 @@ export interface ExchangeRates {
   usdtEur: number;
   usdtJpy: number;
   updatedAt: number;
-  /** 환율 소스 메타 (글로벌 표준 입증용 — DevTools 노출 안전) */
+  /** Source attribution (verifiable via DevTools — global rate sources only) */
   sources?: {
-    USDT_PEG: string;  // 예: "Binance/Kraken (2 samples, avg 1.0001)"
-    FX: string;         // 예: "open.er-api.com (US Fed data)"
+    USDT_PEG: string;  // e.g. "Binance/Kraken (2 samples, avg 1.0001)"
+    FX: string;         // e.g. "open.er-api.com (US Fed data)"
   };
 }
 
-/** 사용자 선호 표시 통화 (Beta-G+ 2026-04-27) */
+/** User-preferred display currency (Beta-G+ 2026-04-27) */
 export type DisplayCurrency = 'KRW' | 'USDT' | 'USD' | 'EUR' | 'JPY';
 
 interface RateStore {
   rates: ExchangeRates;
-  /** Hand-Freeze: 핸드 진행 중 사용할 lock 환율 (null = 실시간 사용) */
+  /** Hand-Freeze: locked rate during in-hand (null = use live rates) */
   frozenRates: ExchangeRates | null;
-  /** 사용자 선호 표시 통화 (헤더에서 클릭 cycle) */
+  /** User-preferred display currency (cycled from header) */
   displayCurrency: DisplayCurrency;
   setRates: (r: Partial<ExchangeRates>) => void;
   setDisplayCurrency: (c: DisplayCurrency) => void;
   cycleDisplayCurrency: () => void;
-  /** Hand 시작 시 호출 — 현재 환율 freeze */
+  /** Call at hand start — freeze current rate snapshot */
   freezeForHand: () => void;
-  /** Hand 종료 시 호출 — freeze 해제 */
+  /** Call at hand end — unlock */
   unfreezeForHand: () => void;
-  /** 1 USDT 당 fiat 단위 수 (UI 표시용) — currency 미지원 시 0 */
+  /** Fiat units per 1 USDT (UI forward rate) — 0 if unsupported */
   fiatPerUSDT: (currency: string) => number;
-  /** USDT cents → fiat 표시 금액 */
+  /** USDT cents → fiat display amount */
   toFiat: (usdtCents: number, currency: string) => number;
-  /** Hand-Freeze 상태에서 현재 사용 환율 (frozenRates ?? rates) */
+  /** Effective rates (frozenRates ?? rates) */
   effectiveRates: () => ExchangeRates;
 }
 
 const CURRENCY_CYCLE: DisplayCurrency[] = ['KRW', 'USDT', 'USD'];
 
 function loadDisplayCurrency(): DisplayCurrency {
-  if (typeof window === 'undefined') return 'KRW';
+  if (typeof window === 'undefined') return 'USDT';
   try {
     const saved = localStorage.getItem('display_currency');
     if (saved && (CURRENCY_CYCLE as string[]).includes(saved)) return saved as DisplayCurrency;
-    // 첫 진입: navigator.language 기반 기본값
+    // First load — locale-derived default
     const lang = navigator.language?.toLowerCase() || '';
     if (lang.startsWith('ko')) return 'KRW';
-    return 'USDT'; // 글로벌 default
-  } catch { return 'KRW'; }
+    return 'USDT'; // global default
+  } catch { return 'USDT'; }
 }
 
 export const useRateStore = create<RateStore>((set, get) => ({

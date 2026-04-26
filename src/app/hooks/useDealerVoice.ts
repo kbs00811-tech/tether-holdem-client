@@ -1,10 +1,10 @@
 /**
- * useDealerVoice — 딜러 음성 (Web Speech API TTS)
+ * useDealerVoice — Dealer voice (Web Speech API TTS)
  *
- * 카드 딜링/플랍/턴/리버/쇼다운 순간에 딜러가 말하는 효과.
- * 사운드 파일 없이 브라우저 내장 TTS로 즉시 동작.
+ * Spoken effect during deal/flop/turn/river/showdown moments.
+ * No audio files — browser built-in TTS.
  *
- * 언어: 기본 en-US (선택: ko-KR 한국어)
+ * Default voice: en-US (locale-detected fallback for other languages).
  */
 
 let voicesCached: SpeechSynthesisVoice[] | null = null;

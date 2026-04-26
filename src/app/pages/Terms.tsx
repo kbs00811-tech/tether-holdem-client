@@ -123,9 +123,11 @@ export default function Terms() {
 
         <p className="text-sm text-[#8899AB] leading-relaxed mb-2"><strong className="text-white">11.2 Exchange Rate Sources.</strong></p>
         <p className="text-sm text-[#8899AB] leading-relaxed mb-3">
-          KRW conversion uses Bithumb (primary) and Upbit (fallback) USDT/KRW closing prices.
-          USD/EUR/JPY conversion uses CoinGecko USDT spot rates. Sources may change without notice.
-          The Service makes no warranty as to the accuracy, timeliness, or availability of any rate source.
+          USDT peg is monitored via Binance and Kraken (USDC/USDT and USDT/USD pairs).
+          Fiat conversion (USD, KRW, EUR, JPY, etc.) uses open.er-api.com (US Federal Reserve sourced
+          rates, 154 currencies). Cryptocurrency spot prices use CoinGecko aggregated data.
+          Sources may change without notice. The Service makes no warranty as to the accuracy,
+          timeliness, or availability of any rate source.
         </p>
 
         <p className="text-sm text-[#8899AB] leading-relaxed mb-2"><strong className="text-white">11.3 Rate Volatility Disclaimer.</strong></p>

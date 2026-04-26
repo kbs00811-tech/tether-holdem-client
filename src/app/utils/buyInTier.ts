@@ -1,19 +1,19 @@
 /**
- * Buy-in Tier 시각 강조 (전문가 합의 — 디자인 + 폰트, 2026-04-26)
+ * Buy-in Tier visual emphasis (Design + Typography expert consensus, 2026-04-26)
  *
- * 룸 리스트에서 buy-in 금액을 stake 수준에 따라 4개 tier 색상으로 분류:
- *   - Micro (≤1K)   : slate (회색)
- *   - Low   (≤10K)  : emerald (그린)
- *   - Mid   (≤100K) : orange (오렌지)
- *   - High  (>100K) : gold + ring (금색 + 테두리 강조)
+ * Classifies room buy-in amounts into 4 stake tiers with distinct color treatment:
+ *   - Micro (≤1K)   : slate (neutral grey, low visual noise)
+ *   - Low   (≤10K)  : emerald (green, beginner-friendly)
+ *   - Mid   (≤100K) : orange (mainstream stake)
+ *   - High  (>100K) : gold + ring (high roller, premium ring border)
  *
- * 표기 (compact):
+ * Compact notation:
  *   1,000      → 1K
  *   10,000     → 10K
  *   100,000    → 100K
  *   1,000,000  → 1M
  *
- * 통화 prefix는 부모에서 별도 표시 (₩ 작게 + 숫자 크게 + K 중간).
+ * Currency prefix rendered by parent (small symbol + large digits + medium suffix).
  */
 
 export interface BuyInTier {
@@ -22,7 +22,7 @@ export interface BuyInTier {
   ringClass: string;
 }
 
-/** Tier 분류 — KRW 단위 (또는 currency-agnostic 비례) */
+/** Tier classification — display-unit-agnostic (works with any fiat or USDT) */
 export function getBuyInTier(amount: number): BuyInTier {
   if (amount >= 100_000) {
     // High roller — gold + ring
@@ -57,9 +57,9 @@ export function getBuyInTier(amount: number): BuyInTier {
 }
 
 /**
- * Compact 숫자 표기 — 룸 리스트 buy-in 강조용
- *   1,000  → "1K"
- *   10,000 → "10K"
+ * Compact numeric formatter — for buy-in emphasis in room list.
+ *   1,000     → "1K"
+ *   10,000    → "10K"
  *   1,234,567 → "1.2M"
  */
 export function formatBuyInCompact(n: number): string {
@@ -75,14 +75,14 @@ export function formatBuyInCompact(n: number): string {
 }
 
 /**
- * Buy-in 표시용 분리 토큰
- *   "₩50,000" 또는 "$50.00" 같은 통화 + 압축된 숫자 + 단위 분리
+ * Buy-in display token splitter.
+ *   Splits e.g. "₩50,000" or "$50.00" into prefix + compact-amount + suffix tokens.
  *
- * 반환:
- *   { prefix: '₩', amount: '50', suffix: 'K' }   (KRW 50,000)
- *   { prefix: '$', amount: '50', suffix: '' }    (USD 50)
+ * Returns:
+ *   { prefix: '₩', amount: '50', suffix: 'K' }   (e.g. 50,000)
+ *   { prefix: '$', amount: '50', suffix: '' }    (e.g. 50)
  */
-export function splitBuyInDisplay(n: number, currencySymbol: string = '₩'): {
+export function splitBuyInDisplay(n: number, currencySymbol: string = '₮'): {
   prefix: string;
   amount: string;
   suffix: string;
@@ -99,16 +99,15 @@ export function splitBuyInDisplay(n: number, currencySymbol: string = '₩'): {
 }
 
 /**
- * USDT cents (정수) + 보조 통화로 듀얼 표시 (Beta-G+ 2026-04-27)
+ * Dual-display token splitter for USDT cents + secondary fiat (Beta-G+ 2026-04-27)
  *
- * 사용자 호스트 통화에 따라 메인/보조 결정:
- *   - 한국 (KRW): main=₩X (익숙도) / sub=₮Y (실제 자산)
- *   - 글로벌 (USDT/USD): main=₮Y (실제 자산) / sub=$Z (참조)
+ * Layout strategy by user's preferred display currency:
+ *   - Fiat preferred (any region): main=fiat (familiarity) / sub=USDT (settlement asset)
+ *   - USDT preferred (global default): main=USDT (asset) / sub=USD (reference)
  *
- * 입력:
- *   amount: 표시 단위 (호환성 — KRW 정수 또는 USDT cents)
- *   currencySymbol: 사용자 표시 통화 심볼 (₩/$/₮ 등)
- *   usdtPerUnit: 1 표시 단위 = N USDT (KRW 일 때 1/1400, USDT 일 때 1/100 등)
+ * Args:
+ *   amount: display-unit integer (any fiat or USDT cents)
+ *   currencySymbol: preferred display symbol (e.g. ₩/$/₮)
  */
 export function splitDualDisplay(
   amount: number,

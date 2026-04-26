@@ -1,8 +1,8 @@
 /**
- * USDT 자산 모델 onboarding (Beta-G+ 2026-04-27)
+ * USDT asset-model onboarding (Beta-G+ 2026-04-27)
  *
- * 첫 진입 시 1회 표시 — localStorage 'usdt_onboarded_v1' 플래그.
- * 사용자에게 USDT 단일 자산 + KRW 표시 정보용 명시 (ToS 11조 보조).
+ * Shown once on first visit — localStorage 'usdt_onboarded_v1' flag.
+ * Communicates USDT single-asset model + fiat display informational notice (ToS Section 11).
  */
 
 import { useEffect, useState } from "react";
@@ -17,11 +17,11 @@ export function UsdtOnboardingModal() {
 
   useEffect(() => {
     try {
-      // 이미 본 사용자 + iframe 임베드 (B2C 호스트가 처리) skip
+      // Skip if already shown OR running inside iframe (B2C host handles its own onboarding)
       if (localStorage.getItem('usdt_onboarded_v1') === '1') return;
       const inIframe = window.self !== window.top;
       if (inIframe) return;
-      // 첫 진입 = 약간 지연 (UI 안정화 후)
+      // Brief delay for UI to settle
       const timer = setTimeout(() => setOpen(true), 800);
       return () => clearTimeout(timer);
     } catch {}
@@ -81,7 +81,7 @@ export function UsdtOnboardingModal() {
                 <span className="text-base shrink-0">📊</span>
                 <p className="text-[12px] text-[#C0CDDB] leading-relaxed">
                   <strong className="text-white">Local prices (₩, $, €) shown for convenience</strong>{" "}
-                  — sourced from Bithumb / CoinGecko, updated every 5 minutes. Not legal tender.
+                  — sourced from global rate providers (Binance / Kraken / open.er-api), refreshed every 5 minutes. Informational only.
                 </p>
               </div>
               <div className="flex items-start gap-2.5">
