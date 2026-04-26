@@ -3,6 +3,7 @@ import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import { PokerCard } from "./PokerCard";
 import { WifiOff, Plus, DollarSign, Smile, LogOut, Settings } from "lucide-react";
+import { formatMoney } from "../utils/currency";
 
 interface PlayerSlotProps {
   position: number;
@@ -160,9 +161,8 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, turnDeadline
   const showOpponentCards = !isHero && !isDead && player.status !== "waiting" && !isDealingNow && !hideCards;
 
   const formatStack = (n: number) => {
-    // 100원 단위로 반올림 후 콤마 구분 풀 표시
-    const rounded = Math.round(n / 100) * 100;
-    return `₩${rounded.toLocaleString()}`;
+    // KRW major 로 정규화 후 currency 헬퍼가 USDT/KRW/USD 등 사용자 선호 단위로 변환
+    return formatMoney(Math.round(n / 100));
   };
 
   return (
@@ -613,9 +613,9 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, turnDeadline
           const labels: Record<number, { text: string; color: string; bg: string }> = {
             0: { text: "FOLD",  color: "#FFFFFF", bg: "linear-gradient(135deg, #6B7A90, #4A5A70)" },
             1: { text: "CHECK", color: "#FFFFFF", bg: "linear-gradient(135deg, #34D399, #059669)" },
-            2: { text: `CALL ${recentAction.amount > 0 ? "₩" + Math.floor(recentAction.amount / 100).toLocaleString() : ""}`,
+            2: { text: `CALL ${recentAction.amount > 0 ? formatMoney(Math.floor(recentAction.amount / 100)) : ""}`,
                  color: "#FFFFFF", bg: "linear-gradient(135deg, #60A5FA, #2563EB)" },
-            3: { text: `RAISE ₩${Math.floor(recentAction.amount / 100).toLocaleString()}`,
+            3: { text: `RAISE ${formatMoney(Math.floor(recentAction.amount / 100))}`,
                  color: "#FFFFFF", bg: "linear-gradient(135deg, #FF6B35, #E85D2C)" },
             4: { text: "ALL IN!", color: "#FFFFFF", bg: "linear-gradient(135deg, #EF4444, #B91C1C)" },
           };
@@ -703,7 +703,7 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, turnDeadline
                 <div style={{ flex: 1 }}>
                   <div style={{ fontSize: 16, color: "#FFFFFF", fontWeight: 800 }}>{player.name}</div>
                   <div style={{ fontSize: 12, color: "#FFD700", fontFamily: "'JetBrains Mono', monospace", fontWeight: 700, marginTop: 2 }}>
-                    ₩{player.stack.toLocaleString()}
+                    {formatMoney(player.stack)}
                   </div>
                 </div>
                 <button

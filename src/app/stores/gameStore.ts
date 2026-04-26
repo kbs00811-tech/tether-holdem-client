@@ -14,6 +14,7 @@ import { useStatsStore } from './statsStore';
 import {
   speakNewHand, speakFlop, speakTurn, speakRiver, speakAllIn, speakWinner,
 } from '../hooks/useDealerVoice';
+import { formatMoney } from '../utils/currency';
 
 // 내 playerId — gameStore.myPlayerId 직접 사용 (DEAL_CARDS에서 set됨)
 // (이전: handCards로 추적했으나 서버 sanitize 후 작동 안 함)
@@ -185,7 +186,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         break;
       case 'RECONNECTED' as any:
         console.log(`[GAME] RECONNECTED to room ${(msg as any).roomId} seat=${(msg as any).seat}`);
-        set({ lastError: { code: 'RECONNECTED', message: `이전 게임에 재접속됨 (좌석 ${(msg as any).seat + 1}, 칩 ₩${Math.round((msg as any).stack/100).toLocaleString()})`, ts: Date.now() } });
+        set({ lastError: { code: 'RECONNECTED', message: `이전 게임에 재접속됨 (좌석 ${(msg as any).seat + 1}, 칩 ${formatMoney(Math.round((msg as any).stack/100))})`, ts: Date.now() } });
         break;
       case 'ROOM_LIST':
         console.log(`[GAME] Received ${msg.rooms.length} rooms`);
@@ -544,7 +545,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             ownerRakeback: s.ownerRakeback
               ? { ...s.ownerRakeback, pending: 0, claimed: s.ownerRakeback.claimed + (m.amount || 0) * 100 }
               : null,
-            lastError: { code: 'RAKEBACK_OK', message: `${m.amount?.toLocaleString()}원 지갑에 입금되었습니다`, ts: Date.now() },
+            lastError: { code: 'RAKEBACK_OK', message: `${formatMoney(m.amount ?? 0)} 지갑에 입금되었습니다`, ts: Date.now() },
           }));
         } else {
           set({ lastError: { code: 'RAKEBACK_FAIL', message: m.error || '청구 실패', ts: Date.now() } });
@@ -727,7 +728,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         } else if (remaining === totalPayoutSpots) {
           set({ lastError: { code: 'TOURNAMENT_ITM', message: `💰 ITM! 모두 상금권 진입 (${remaining}명 남음)`, ts: Date.now() } });
         } else if (m.position === 1) {
-          set({ lastError: { code: 'TOURNAMENT_WIN', message: `🏆 ${m.nickname} 우승! ₩${Math.round((m.prize || 0) / 100).toLocaleString()}`, ts: Date.now() } });
+          set({ lastError: { code: 'TOURNAMENT_WIN', message: `🏆 ${m.nickname} 우승! ${formatMoney(Math.round((m.prize || 0) / 100))}`, ts: Date.now() } });
         } else {
           set({ lastError: { code: 'TOURNAMENT_OUT', message: `${m.nickname} 탈락 (${m.position}위)`, ts: Date.now() } });
         }

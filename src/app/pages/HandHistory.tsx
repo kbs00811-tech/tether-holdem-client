@@ -3,6 +3,7 @@ import { ArrowLeft, Search, ChevronDown, ChevronRight } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { Link } from "react-router";
 import { useGameStore } from "../stores/gameStore";
+import { formatMoney } from "../utils/currency";
 
 interface HandRecord {
   handNumber: number;
@@ -84,7 +85,7 @@ export default function HandHistory() {
                     </div>
                     <div className="text-right shrink-0">
                       <div className="text-xs font-mono font-bold text-[#34D399]">
-                        +{Math.round(hand.pot / 100).toLocaleString()}
+                        +{formatMoney(Math.round(hand.pot / 100))}
                       </div>
                     </div>
                     {isExpanded ? <ChevronDown className="h-3.5 w-3.5 text-[#4A5A70]" /> : <ChevronRight className="h-3.5 w-3.5 text-[#4A5A70]" />}
@@ -103,11 +104,11 @@ export default function HandHistory() {
                         <div className="grid grid-cols-3 gap-2 text-[10px]">
                           <div>
                             <span className="text-[#4A5A70] block">Pot</span>
-                            <span className="text-white font-mono font-bold">{Math.round(hand.pot / 100).toLocaleString()}</span>
+                            <span className="text-white font-mono font-bold">{formatMoney(Math.round(hand.pot / 100))}</span>
                           </div>
                           <div>
                             <span className="text-[#4A5A70] block">Rake</span>
-                            <span className="text-[#FF6B35] font-mono font-bold">{Math.round(hand.rake / 100).toLocaleString()}</span>
+                            <span className="text-[#FF6B35] font-mono font-bold">{formatMoney(Math.round(hand.rake / 100))}</span>
                           </div>
                           <div>
                             <span className="text-[#4A5A70] block">Winners</span>
@@ -119,7 +120,7 @@ export default function HandHistory() {
                             {hand.winners.map((w, j) => (
                               <div key={j} className="flex items-center justify-between text-[10px]">
                                 <span className="text-[#8899AB]">{w.nickname}</span>
-                                <span className="text-[#34D399] font-mono font-bold">+{Math.round(w.amount / 100).toLocaleString()}</span>
+                                <span className="text-[#34D399] font-mono font-bold">+{formatMoney(Math.round(w.amount / 100))}</span>
                               </div>
                             ))}
                           </div>

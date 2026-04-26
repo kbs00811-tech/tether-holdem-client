@@ -25,14 +25,15 @@ export interface RoomConfig {
   invites?: string[];  // V12: 초대할 유저 닉네임/이메일 목록 (방 생성 시에만)
 }
 
+// sub 라벨은 사용자 선호 통화 단위로 동적 생성 (formatMoney) — 정적 ₩ 제거.
 const blindPresets = [
-  { label: "Beginner", sub: "₩500/1K", small: 500, big: 1000, color: "#34D399" },
-  { label: "Standard", sub: "₩2K/5K", small: 2000, big: 5000, color: "#60A5FA" },
-  { label: "Standard+", sub: "₩5K/10K", small: 5000, big: 10000, color: "#FF6B35" },
-  { label: "High", sub: "₩10K/20K", small: 10000, big: 20000, color: "#FFD700" },
-  { label: "High+", sub: "₩20K/50K", small: 20000, big: 50000, color: "#FFA500" },
-  { label: "VIP", sub: "₩50K/100K", small: 50000, big: 100000, color: "#A78BFA" },
-  { label: "VIP+", sub: "₩100K/200K", small: 100000, big: 200000, color: "#EF4444" },
+  { label: "Beginner",  small: 500,    big: 1000,   color: "#34D399" },
+  { label: "Standard",  small: 2000,   big: 5000,   color: "#60A5FA" },
+  { label: "Standard+", small: 5000,   big: 10000,  color: "#FF6B35" },
+  { label: "High",      small: 10000,  big: 20000,  color: "#FFD700" },
+  { label: "High+",     small: 20000,  big: 50000,  color: "#FFA500" },
+  { label: "VIP",       small: 50000,  big: 100000, color: "#A78BFA" },
+  { label: "VIP+",      small: 100000, big: 200000, color: "#EF4444" },
 ];
 
 export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModalProps) {
@@ -136,7 +137,7 @@ export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModal
                     border: blindIdx === i ? `1px solid ${p.color}30` : "1px solid rgba(255,255,255,0.04)",
                   }}>
                   <div className="text-[10px] font-bold" style={{ color: blindIdx === i ? p.color : "#4A5A70" }}>{p.label}</div>
-                  <div className="text-[9px] font-mono mt-0.5" style={{ color: blindIdx === i ? p.color : "#3A4A5A" }}>{p.sub}</div>
+                  <div className="text-[9px] font-mono mt-0.5" style={{ color: blindIdx === i ? p.color : "#3A4A5A" }}>{formatMoney(p.small)}/{formatMoney(p.big)}</div>
                 </button>
               ))}
             </div>
@@ -172,9 +173,9 @@ export function CreateRoomModal({ open, onClose, onCreateRoom }: CreateRoomModal
               <span className="text-[9px] text-[#6B7A90]">{t('createRoom.buyInAuto')}</span>
             </div>
             <div className="flex items-center justify-between">
-              <span className="font-mono text-xs text-[#8899AB]">{getSymbol()}{minBuyIn.toLocaleString()}</span>
+              <span className="font-mono text-xs text-[#8899AB]">{formatMoney(minBuyIn)}</span>
               <div className="flex-1 mx-3 h-px" style={{ background: "linear-gradient(90deg, rgba(255,107,53,0.2), rgba(255,215,0,0.2))" }} />
-              <span className="font-mono text-xs text-[#FF6B35] font-semibold">{getSymbol()}{maxBuyIn.toLocaleString()}</span>
+              <span className="font-mono text-xs text-[#FF6B35] font-semibold">{formatMoney(maxBuyIn)}</span>
             </div>
           </div>
 

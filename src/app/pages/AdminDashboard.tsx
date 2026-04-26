@@ -256,7 +256,7 @@ function PartnersLivePanel() {
                     </td>
                     <td className="text-center font-mono text-[9px] text-[#22D3EE]">{p.apiKey}</td>
                     <td className="text-center font-mono text-white text-[10px]">{(p.stats?.totalHands || 0).toLocaleString()}</td>
-                    <td className="text-center font-mono text-[#FFD700] text-[10px]">₩{Math.round((p.stats?.totalRake || 0) / 100).toLocaleString()}</td>
+                    <td className="text-center font-mono text-[#FFD700] text-[10px]">{formatMoney(Math.round((p.stats?.totalRake || 0) / 100))}</td>
                     <td className="text-center">
                       <div className="flex items-center justify-center gap-1">
                         {p.status !== 'active' && (
@@ -333,7 +333,7 @@ function ReconciliationLivePanel() {
                 <td className={`text-center font-mono text-[10px] ${Math.abs(r.diff_hands || 0) > 100 ? 'text-[#EF4444]' : 'text-[#6B7A90]'}`}>
                   {r.diff_hands > 0 ? '+' : ''}{r.diff_hands}
                 </td>
-                <td className="text-center font-mono text-[10px] text-[#FFD700]">₩{Math.round((r.settle_rake || 0) / 100).toLocaleString()}</td>
+                <td className="text-center font-mono text-[10px] text-[#FFD700]">{formatMoney(Math.round((r.settle_rake || 0) / 100))}</td>
                 <td className="text-center text-[10px]">{r.diff_split === 0 ? '✅' : `❌ ${r.diff_split}`}</td>
                 <td className="text-center text-[10px]">{r.is_ok ? '🟢' : '🔴'}</td>
               </tr>
@@ -606,7 +606,7 @@ function ForceCloseRoomPanel() {
                 <tr key={r.id} className="hover:bg-white/[0.01] border-b border-white/[0.02]">
                   <td className="py-1.5 px-2 text-[10px] text-white truncate max-w-[200px]">{r.name || r.id}</td>
                   <td className="text-center font-mono text-[10px]">{r.current_players || 0}/{r.max_seats || 9}</td>
-                  <td className="text-center font-mono text-[10px] text-[#FFD700]">₩{Math.round((r.pot || 0) / 100).toLocaleString()}</td>
+                  <td className="text-center font-mono text-[10px] text-[#FFD700]">{formatMoney(Math.round((r.pot || 0) / 100))}</td>
                   <td className="text-center text-[10px] text-[#6B7A90]">{r.phase || '-'}</td>
                   <td className="text-center">
                     <button onClick={() => { setCloseTarget(r); setReason(''); setConfirmFinal(false); }}
@@ -799,9 +799,9 @@ function TournamentLivePanel() {
                           'text-blue-400 bg-blue-400/[0.08]'
                         }`}>{t.status}</span>
                       </td>
-                      <td className="text-center font-mono text-[10px] text-[#FFD700]">₩{Math.round((t.buyIn || 0) / 100).toLocaleString()}</td>
+                      <td className="text-center font-mono text-[10px] text-[#FFD700]">{formatMoney(Math.round((t.buyIn || 0) / 100))}</td>
                       <td className="text-center font-mono text-[10px] text-white">{t.totalPlayers || 0}/{t.maxPlayers}</td>
-                      <td className="text-center font-mono text-[10px] text-emerald-400">₩{Math.round((t.totalPrizePool || 0) / 100).toLocaleString()}</td>
+                      <td className="text-center font-mono text-[10px] text-emerald-400">{formatMoney(Math.round((t.totalPrizePool || 0) / 100))}</td>
                       <td className="text-center text-[10px] text-[#6B7A90]">
                         {startsIn > 0 ? `+${Math.floor(startsIn / 60000)}분` : '시작됨'}
                       </td>

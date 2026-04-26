@@ -9,6 +9,7 @@ import { CountryPicker } from "./CountryPicker";
 import { useGameStore } from "../stores/gameStore";
 import { wsSend } from "../hooks/useSocket";
 import { useT } from "../../i18n";
+import { formatMoney } from "../utils/currency";
 
 interface SettingsModalProps {
   open: boolean;
@@ -119,19 +120,19 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                   <div className="p-2 rounded-lg text-center" style={{ background: "rgba(0,0,0,0.3)" }}>
                     <div className="text-[8px] text-[#6B7A90] uppercase tracking-wider">{t('settings.ownerRakeback.pending')}</div>
                     <div className="text-[14px] font-mono font-black text-[#FBBF24]">
-                      ₩{Math.floor(ownerRakeback.pending / 100).toLocaleString()}
+                      {formatMoney(Math.floor(ownerRakeback.pending / 100))}
                     </div>
                   </div>
                   <div className="p-2 rounded-lg text-center" style={{ background: "rgba(0,0,0,0.25)" }}>
                     <div className="text-[8px] text-[#6B7A90] uppercase tracking-wider">{t('settings.ownerRakeback.claimed')}</div>
                     <div className="text-[12px] font-mono font-bold text-[#8899AB]">
-                      ₩{Math.floor(ownerRakeback.claimed / 100).toLocaleString()}
+                      {formatMoney(Math.floor(ownerRakeback.claimed / 100))}
                     </div>
                   </div>
                   <div className="p-2 rounded-lg text-center" style={{ background: "rgba(0,0,0,0.25)" }}>
                     <div className="text-[8px] text-[#6B7A90] uppercase tracking-wider">{t('settings.ownerRakeback.total')}</div>
                     <div className="text-[12px] font-mono font-bold text-[#34D399]">
-                      ₩{Math.floor(ownerRakeback.totalEarned / 100).toLocaleString()}
+                      {formatMoney(Math.floor(ownerRakeback.totalEarned / 100))}
                     </div>
                   </div>
                 </div>
