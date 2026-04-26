@@ -213,5 +213,114 @@
     "krw": "원",
     "usd": "$",
     "usdt": "USDT"
+  },
+  "gameTable": {
+    "header": {
+      "watchingMode": "관전 모드",
+      "inviteFriends": "친구 초대",
+      "invite": "초대",
+      "enterFullscreen": "전체화면",
+      "exitFullscreen": "전체화면 해제",
+      "moreMenu": "더보기"
+    },
+    "menu": {
+      "recentHandsCount": "최근 10핸드",
+      "history": "핸드 히스토리",
+      "topUp": "충전",
+      "changeSeat": "좌석 변경",
+      "preAction": "사전 액션",
+      "waitBb": "BB 대기",
+      "rit": "Run It Twice",
+      "emoji": "이모지",
+      "sitOut": "자리 비움"
+    },
+    "sound": {
+      "title": "사운드",
+      "gameSfx": "게임 효과음",
+      "bgm": "배경음악"
+    },
+    "modal": {
+      "inviteTitle": "친구 초대",
+      "inviteDescription": "같은 테이블로 초대합니다 (관전 포함 최대 8명)",
+      "joinFirst": "방에 먼저 입장해 주세요",
+      "roomCode": "방 코드 (영구)",
+      "copy": "복사",
+      "telegramShare": "텔레그램 공유",
+      "officialChannel": "공식 채널 구독",
+      "officialChannelDesc": "새 방 오픈·VIP 이벤트 자동 알림",
+      "deepLinkTitle": "원탭 초대 링크 (/start 불필요)",
+      "deepLinkHint": "친구가 링크 탭 → 시작 한 번 누르면 자동 입장.",
+      "deepLinkNote": "(별도 계정 연동·/start 수동 입력 필요 없음)",
+      "roomLifeNote": "방이 살아있는 동안 유효 · 비공개 방은 로비 목록에 안 보입니다",
+      "inviteCopied": "초대 문구 복사됨",
+      "deepLinkCopied": "딥링크 복사됨 — 친구에게 보내세요",
+      "copyFailed": "복사 실패",
+      "telegramShareTitle": "🃏 홀덤 방 초대",
+      "inGame": "게임 중입니다!",
+      "leaveTable": "테이블을 나가시겠습니까?",
+      "leaveSeatedDesc": "착석 중 나가면 칩이 자동 정산됩니다.\n핸드 진행 중이면 폴드 처리됩니다.",
+      "leaveSpectatingDesc": "관전을 종료하고 로비로 돌아갑니다.",
+      "leaveAfterHand": "이번 핸드 종료 후 자동 퇴장",
+      "leaveCancel": "나가기 예약 취소됨",
+      "keepPlaying": "계속하기",
+      "leaveNow": "지금 나가기",
+      "reserveLeave": "핸드 종료 후 나가기",
+      "handHistoryTitle": "핸드 히스토리",
+      "handHistoryCount": "최근 {count}개 핸드 기록",
+      "noHandHistory": "아직 플레이한 핸드가 없습니다",
+      "noHandHistoryHelper": "게임을 진행하면 여기에 기록됩니다",
+      "replay": "재생",
+      "playersCount": "플레이어 ({count}명)",
+      "rabbitHunt": "만약 끝까지 갔다면",
+      "topUpTitle": "충전",
+      "topUpDescription": "스택에 칩을 추가합니다. 핸드 사이에만 가능합니다.",
+      "changeSeatTitle": "좌석 변경",
+      "changeSeatDescription": "빈 자리를 선택하세요. 현재 핸드가 끝날 때까지 기다려야 합니다.",
+      "seatLabel": "좌석 {n}",
+      "seatYou": "(나)",
+      "seatStatusCurrent": "현재",
+      "seatStatusEmpty": "빈 자리",
+      "seatStatusTaken": "착석 중",
+      "refreshSeats": "빈 자리 새로고침"
+    },
+    "preAction": {
+      "title": "사전 액션",
+      "description": "내 차례가 오면 자동 실행"
+    },
+    "emoji": {
+      "reactions": "반응",
+      "actions": "액션",
+      "taunts": "도발"
+    },
+    "showMuck": {
+      "prompt": "카드를 공개하시겠습니까?",
+      "show": "공개",
+      "muck": "버리기"
+    },
+    "cashOut": {
+      "title": "캐시아웃 가능",
+      "description": "쇼다운 건너뛰고 지금 자기 지분 받기",
+      "yourEquity": "내 지분",
+      "amount": "금액",
+      "fee": "수수료",
+      "confirm": "캐시아웃",
+      "decline": "끝까지 가기"
+    },
+    "topUp": {
+      "minAmount": "최소 ₩50,000 이상 입력하세요",
+      "requested": "충전 요청: ₩{amount}"
+    },
+    "betting": {
+      "waitBbDesc": "다음 BB가 자기 자리에 오면 자동 입장합니다. 즉시 입장하려면 데드 BB를 내세요."
+    },
+    "alerts": {
+      "confirmLeave": "게임 진행 중입니다. 나가시겠습니까?",
+      "awayReturn": "{seconds}초 자리비움 후 복귀"
+    },
+    "fairness": {
+      "currentSeedHash": "현재 핸드 서버 시드 해시 (공개됨)",
+      "previousReveal": "직전 핸드 공개 시드 (hash 검증 가능)",
+      "explanation": "💡 SHA-256(serverSeed) === 이전 hash 면 서버가 시드를 사전 고정했음이 증명됩니다 (사후 조작 불가)"
+    }
   }
 }

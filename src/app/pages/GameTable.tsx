@@ -848,7 +848,7 @@ export default function GameTable() {
     // 새로고침/탭 닫기 방지
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       e.preventDefault();
-      e.returnValue = '게임 진행 중입니다. 나가시겠습니까?';
+      e.returnValue = t('gameTable.alerts.confirmLeave');
       return e.returnValue;
     };
 
@@ -1050,7 +1050,7 @@ export default function GameTable() {
                 border: "1px solid rgba(52,211,153,0.35)",
                 boxShadow: "0 0 12px rgba(52,211,153,0.2)",
               }}
-              title="관전 모드"
+              title={t('gameTable.header.watchingMode')}
             >
               <span style={{ fontSize: 13 }}>👁</span>
               <span className="hidden sm:inline text-[10px] font-black tracking-wider" style={{ color: "#34D399", letterSpacing: "0.08em" }}>
@@ -1099,17 +1099,17 @@ export default function GameTable() {
                 border: "1px solid rgba(34,211,238,0.5)",
                 color: "#22D3EE",
               }}
-              title="친구 초대"
+              title={t('gameTable.header.inviteFriends')}
             >
               <span style={{ fontSize: 13 }}>🎮</span>
-              <span className="hidden sm:inline">초대</span>
+              <span className="hidden sm:inline">{t('gameTable.header.invite')}</span>
             </motion.button>
           )}
           {/* V18: 전체화면 토글 — 44×44 터치 타깃 (탭 실패 방지) */}
           <button onClick={toggleFullscreen}
             className="w-11 h-11 rounded-lg flex items-center justify-center shrink-0"
             style={{ background: "rgba(255,255,255,0.05)", border: "1px solid rgba(255,255,255,0.08)" }}
-            title={isFullscreen ? "전체화면 해제" : "전체화면"}>
+            title={isFullscreen ? t('gameTable.header.exitFullscreen') : t('gameTable.header.enterFullscreen')}>
             {isFullscreen
               ? <Minimize2 className="h-5 w-5 text-[#8899AB]" />
               : <Maximize2 className="h-5 w-5 text-[#8899AB]" />}
@@ -1122,7 +1122,7 @@ export default function GameTable() {
                 background: showMenu ? "rgba(52,211,153,0.1)" : "rgba(255,255,255,0.05)",
                 border: showMenu ? "1px solid rgba(52,211,153,0.3)" : "1px solid rgba(255,255,255,0.08)",
               }}
-              title="더보기">
+              title={t('gameTable.header.moreMenu')}>
               <MoreVertical className="h-5 w-5" style={{ color: showMenu ? "#34D399" : "#8899AB" }} />
             </button>
             <AnimatePresence>
@@ -1576,8 +1576,8 @@ export default function GameTable() {
                     <span className="text-base">🎮</span>
                   </div>
                   <div className="min-w-0">
-                    <h3 className="text-sm font-black text-white">친구 초대</h3>
-                    <p className="text-[10px] text-[#4A5A70] truncate">같은 테이블로 초대합니다 (관전 포함 최대 8명)</p>
+                    <h3 className="text-sm font-black text-white">{t('gameTable.modal.inviteTitle')}</h3>
+                    <p className="text-[10px] text-[#4A5A70] truncate">{t('gameTable.modal.inviteDescription')}</p>
                   </div>
                 </div>
                 <button
@@ -1596,7 +1596,7 @@ export default function GameTable() {
               >
                 {!currentRoomId ? (
                   <div className="text-center py-6">
-                    <div className="text-[11px] text-[#6B7A90]">방에 먼저 입장해 주세요</div>
+                    <div className="text-[11px] text-[#6B7A90]">{t('gameTable.modal.joinFirst')}</div>
                   </div>
                 ) : (
                   <>
@@ -1611,7 +1611,7 @@ export default function GameTable() {
                         <>
                           <div className="mb-3 p-3 rounded-xl text-center"
                             style={{ background: "linear-gradient(135deg, rgba(34,211,238,0.12), rgba(34,211,238,0.06))", border: "1px solid rgba(34,211,238,0.3)" }}>
-                            <div className="text-[9px] text-[#6B7A90] uppercase tracking-wider mb-1">방 코드 (영구)</div>
+                            <div className="text-[9px] text-[#6B7A90] uppercase tracking-wider mb-1">{t('gameTable.modal.roomCode')}</div>
                             <div className="text-[28px] font-mono font-black text-[#22D3EE] tracking-[0.15em]">
                               {code}
                             </div>
@@ -1627,9 +1627,9 @@ export default function GameTable() {
                               onClick={() => {
                                 try {
                                   navigator.clipboard.writeText(msg);
-                                  toast.success('초대 문구 복사됨');
+                                  toast.success(t('gameTable.modal.inviteCopied'));
                                 } catch {
-                                  toast.error('복사 실패');
+                                  toast.error(t('gameTable.modal.copyFailed'));
                                 }
                               }}
                               className="py-3 rounded-xl text-center text-[12px] font-black transition-all"
@@ -1639,7 +1639,7 @@ export default function GameTable() {
                                 boxShadow: "0 4px 16px rgba(255,107,53,0.35)",
                               }}
                             >
-                              📋 복사
+                              📋 {t('gameTable.modal.copy')}
                             </button>
                             <a
                               href={`https://t.me/share/url?url=${encodeURIComponent(deepLink)}&text=${encodeURIComponent(`🃏 홀덤 방 초대 — ${roomName}\n방 코드: ${code}\n\n링크 탭 한 번으로 바로 입장!`)}`}
@@ -1653,7 +1653,7 @@ export default function GameTable() {
                                 textDecoration: "none",
                               }}
                             >
-                              📤 텔레그램 공유
+                              📤 {t('gameTable.modal.telegramShare')}
                             </a>
                           </div>
 
@@ -1671,9 +1671,9 @@ export default function GameTable() {
                           >
                             <span className="text-base shrink-0">📢</span>
                             <div className="flex-1 min-w-0">
-                              <div className="text-[11px] font-bold text-[#0088CC] leading-tight">공식 채널 구독</div>
+                              <div className="text-[11px] font-bold text-[#0088CC] leading-tight">{t('gameTable.modal.officialChannel')}</div>
                               <div className="text-[9px] text-[#6B7A90] leading-tight mt-0.5">
-                                새 방 오픈·VIP 이벤트 자동 알림
+                                {t('gameTable.modal.officialChannelDesc')}
                               </div>
                             </div>
                             <span className="shrink-0 px-2.5 py-1 rounded-md text-[10px] font-black text-white"
@@ -1684,7 +1684,7 @@ export default function GameTable() {
 
                           {/* P2 업그레이드: 딥링크 복사 (친구가 링크만 탭하면 바로 입장) */}
                           <div className="p-3 rounded-xl mb-2" style={{ background: "rgba(0,136,204,0.08)", border: "1px solid rgba(0,136,204,0.25)" }}>
-                            <div className="text-[10px] font-bold text-[#0088CC] mb-2">🔗 원탭 초대 링크 (/start 불필요)</div>
+                            <div className="text-[10px] font-bold text-[#0088CC] mb-2">🔗 {t('gameTable.modal.deepLinkTitle')}</div>
                             <div className="flex gap-2 items-center">
                               <code className="flex-1 min-h-[44px] px-3 py-2 rounded-lg text-[10px] bg-black/40 text-[#22D3EE] font-mono truncate flex items-center" style={{ border: "1px solid rgba(255,255,255,0.08)" }}>
                                 {deepLink}
@@ -1693,20 +1693,20 @@ export default function GameTable() {
                                 onClick={() => {
                                   try {
                                     navigator.clipboard.writeText(deepLink);
-                                    toast.success('딥링크 복사됨 — 친구에게 보내세요');
+                                    toast.success(t('gameTable.modal.deepLinkCopied'));
                                   } catch {
-                                    toast.error('복사 실패');
+                                    toast.error(t('gameTable.modal.copyFailed'));
                                   }
                                 }}
                                 className="min-w-[56px] min-h-[44px] px-3 rounded-lg text-[11px] font-black text-white transition-all shrink-0"
                                 style={{ background: "linear-gradient(135deg, #0088CC, #0066AA)" }}
                               >
-                                복사
+                                {t('gameTable.modal.copy')}
                               </button>
                             </div>
                             <p className="text-[9px] text-[#6B7A90] mt-2 leading-relaxed">
-                              💡 친구가 링크 탭 → <b className="text-[#22D3EE]">시작</b> 한 번 누르면 자동 입장.<br/>
-                              (별도 계정 연동·/start 수동 입력 필요 없음)
+                              💡 {t('gameTable.modal.deepLinkHint')}<br/>
+                              {t('gameTable.modal.deepLinkNote')}
                             </p>
                           </div>
 
@@ -1719,7 +1719,7 @@ export default function GameTable() {
                           />
 
                           <p className="text-[9px] text-[#4A5A70] text-center leading-tight mt-2">
-                            💡 방이 살아있는 동안 유효 · 비공개 방은 로비 목록에 안 보입니다
+                            💡 {t('gameTable.modal.roomLifeNote')}
                           </p>
                         </>
                       );
@@ -2045,10 +2045,10 @@ export default function GameTable() {
       {leaveReserved && seated && (
         <div className="shrink-0 z-20 px-3 py-1.5 flex items-center justify-between text-[11px] font-bold"
           style={{ background: "linear-gradient(90deg, rgba(240,185,11,0.15), rgba(240,185,11,0.05))", borderBottom: "1px solid rgba(240,185,11,0.3)", color: "#F0B90B" }}>
-          <span>⏱️ 나가기 예약됨 — 이번 핸드 종료 후 자동 퇴장</span>
-          <button onClick={() => { setLeaveReserved(false); toast.success(t('common.cancel')); }}
+          <span>⏱️ {t('gameTable.modal.leaveAfterHand')}</span>
+          <button onClick={() => { setLeaveReserved(false); toast.success(t('gameTable.modal.leaveCancel')); }}
             className="px-2 py-0.5 rounded text-[10px] border border-[#F0B90B]/40">
-            취소
+            {t('common.cancel')}
           </button>
         </div>
       )}
@@ -3486,12 +3486,12 @@ export default function GameTable() {
                 <span style={{ fontSize: 28 }}>{seated ? '⚠️' : '👋'}</span>
               </div>
               <div className="text-base font-bold text-white mb-1">
-                {seated ? '게임 중입니다!' : '테이블을 나가시겠습니까?'}
+                {seated ? t('gameTable.modal.inGame') : t('gameTable.modal.leaveTable')}
               </div>
               <div className="text-xs text-[#6B7A90] mb-5 leading-relaxed">
                 {seated
-                  ? '착석 중 나가면 칩이 자동 정산됩니다.\n핸드 진행 중이면 폴드 처리됩니다.'
-                  : '관전을 종료하고 로비로 돌아갑니다.'}
+                  ? t('gameTable.modal.leaveSeatedDesc')
+                  : t('gameTable.modal.leaveSpectatingDesc')}
               </div>
               <div className="flex flex-col gap-2">
                 {/* Reserved leave — safely leave after next hand */}

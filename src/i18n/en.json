@@ -213,5 +213,114 @@
     "krw": "₩",
     "usd": "$",
     "usdt": "USDT"
+  },
+  "gameTable": {
+    "header": {
+      "watchingMode": "Watching",
+      "inviteFriends": "Invite Friends",
+      "invite": "Invite",
+      "enterFullscreen": "Fullscreen",
+      "exitFullscreen": "Exit Fullscreen",
+      "moreMenu": "More"
+    },
+    "menu": {
+      "recentHandsCount": "Recent 10 hands",
+      "history": "Hand History",
+      "topUp": "Top Up",
+      "changeSeat": "Change Seat",
+      "preAction": "Pre-Action",
+      "waitBb": "Wait BB",
+      "rit": "Run It Twice",
+      "emoji": "Emoji",
+      "sitOut": "Sit Out"
+    },
+    "sound": {
+      "title": "Sound",
+      "gameSfx": "Game SFX",
+      "bgm": "BGM"
+    },
+    "modal": {
+      "inviteTitle": "Invite Friends",
+      "inviteDescription": "Invite to the same table (up to 8 incl. spectators)",
+      "joinFirst": "Please join the room first",
+      "roomCode": "Room Code (permanent)",
+      "copy": "Copy",
+      "telegramShare": "Share on Telegram",
+      "officialChannel": "Subscribe Official Channel",
+      "officialChannelDesc": "Auto alerts: new tables · VIP events",
+      "deepLinkTitle": "One-tap Invite Link (no /start needed)",
+      "deepLinkHint": "Friend taps link → presses Start once → joins automatically.",
+      "deepLinkNote": "(no separate account link · no manual /start)",
+      "roomLifeNote": "Valid while room is alive · Private rooms hidden from lobby",
+      "inviteCopied": "Invite text copied",
+      "deepLinkCopied": "Deep link copied — share with friends",
+      "copyFailed": "Copy failed",
+      "telegramShareTitle": "🃏 Holdem Room Invite",
+      "inGame": "Game in progress!",
+      "leaveTable": "Leave the table?",
+      "leaveSeatedDesc": "Leaving while seated will auto-cash out your chips.\nIf in the middle of a hand, you'll fold.",
+      "leaveSpectatingDesc": "End watching and return to lobby.",
+      "leaveAfterHand": "You will leave after this hand",
+      "leaveCancel": "Leave reservation cancelled",
+      "keepPlaying": "Keep Playing",
+      "leaveNow": "Leave Now",
+      "reserveLeave": "Leave after hand",
+      "handHistoryTitle": "Hand History",
+      "handHistoryCount": "Last {count} hands",
+      "noHandHistory": "No hands played yet",
+      "noHandHistoryHelper": "Your hands will appear here as you play",
+      "replay": "Replay",
+      "playersCount": "Players ({count})",
+      "rabbitHunt": "If it had run out",
+      "topUpTitle": "Top Up",
+      "topUpDescription": "Add more chips to your stack. Only available between hands.",
+      "changeSeatTitle": "Change Seat",
+      "changeSeatDescription": "Select an empty seat. You must wait until the current hand ends.",
+      "seatLabel": "Seat {n}",
+      "seatYou": "(You)",
+      "seatStatusCurrent": "Current",
+      "seatStatusEmpty": "Empty",
+      "seatStatusTaken": "Taken",
+      "refreshSeats": "Refresh available seats"
+    },
+    "preAction": {
+      "title": "Pre-Action",
+      "description": "Auto-execute when it's your turn"
+    },
+    "emoji": {
+      "reactions": "Reactions",
+      "actions": "Actions",
+      "taunts": "Taunt"
+    },
+    "showMuck": {
+      "prompt": "Show your cards?",
+      "show": "Show",
+      "muck": "Muck"
+    },
+    "cashOut": {
+      "title": "Cash Out Available",
+      "description": "Skip the showdown, take your equity now",
+      "yourEquity": "Your Equity",
+      "amount": "Amount",
+      "fee": "Fee",
+      "confirm": "Cash Out",
+      "decline": "Run Cards"
+    },
+    "topUp": {
+      "minAmount": "Minimum ₩50,000 required",
+      "requested": "Top Up requested: ₩{amount}"
+    },
+    "betting": {
+      "waitBbDesc": "Auto-join when next BB reaches your seat. Post a dead BB to join immediately."
+    },
+    "alerts": {
+      "confirmLeave": "Game in progress. Leave anyway?",
+      "awayReturn": "Returned after {seconds}s away"
+    },
+    "fairness": {
+      "currentSeedHash": "Current hand server seed hash (public)",
+      "previousReveal": "Previous hand revealed seed (hash verifiable)",
+      "explanation": "💡 SHA-256(serverSeed) === previous hash proves the server pre-committed the seed (no after-the-fact tampering)."
+    }
   }
 }
