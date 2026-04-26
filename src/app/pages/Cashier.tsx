@@ -2,7 +2,21 @@ import { formatMoney, getSymbol } from "../utils/currency";
 import { Wallet, ExternalLink, ArrowUpFromLine, ArrowDownToLine, Shield, Zap, RefreshCw } from "lucide-react";
 import { motion } from "motion/react";
 
-const TETHER_BET_CASHIER_URL = "http://localhost:5173/cashier"; // 프로덕션: https://tether.bet/cashier
+// Beta-G (2026-04-26): localhost 하드코딩 제거 → env + 합리적 fallback
+//   VITE_CASHIER_URL > B2C 호스트 (iframe parent referrer) > tethergame.io 표준
+const TETHER_BET_CASHIER_URL = (() => {
+  const fromEnv = (import.meta.env as any).VITE_CASHIER_URL as string | undefined;
+  if (fromEnv) return fromEnv;
+  // iframe 안에 있으면 호스트(B2C)로 보냄
+  if (typeof document !== 'undefined' && document.referrer) {
+    try {
+      const ref = new URL(document.referrer);
+      return `${ref.origin}/cashier`;
+    } catch {}
+  }
+  // production fallback (KRW B2C 호스트)
+  return 'https://www.tethergame.io/cashier';
+})();
 
 export default function Cashier() {
   const balance = 10000000;
