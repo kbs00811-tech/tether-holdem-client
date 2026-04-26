@@ -27,21 +27,21 @@
     "sitOut": "離席",
     "sitIn": "着席",
     "standUp": "退席",
-    "topUp": "チャージ",
+    "topUp": "チップ追加",
     "buyIn": "バイイン"
   },
   "game": {
     "waiting": "待機中...",
     "playing": "プレイ中",
-    "dealing": "配布中...",
+    "dealing": "ディール中...",
     "showdown": "ショーダウン",
     "result": "結果",
-    "nextHand": "次のハンド準備中...",
-    "yourTurn": "あなたの番",
+    "nextHand": "次のハンドが始まります...",
+    "yourTurn": "あなたの番です",
     "spectating": "観戦中 · 空席をクリックして着席",
-    "quickSit": "クイックシート",
-    "waitingForPlayers": "プレイヤー待ち...",
-    "waitingForAction": "アクション待ち...",
+    "quickSit": "クイック着席",
+    "waitingForPlayers": "プレイヤー待機中...",
+    "waitingForAction": "アクション待機中...",
     "handNumber": "ハンド",
     "pot": "ポット",
     "mainPot": "メインポット",
@@ -58,12 +58,12 @@
     "ante": "アンティ"
   },
   "lobby": {
-    "title": "ホールデムテーブル",
+    "title": "ホールデム テーブル",
     "tablesAvailable": "{count}テーブル",
-    "create": "ルーム作成",
+    "create": "作成",
     "join": "参加",
     "full": "満席",
-    "online": "オンライン",
+    "online": "接続中",
     "tables": "テーブル",
     "active": "アクティブ",
     "quickPlay": "クイックプレイ",
@@ -72,7 +72,7 @@
     "tournamentManual": "トーナメントマニュアル",
     "comingSoon": "近日公開",
     "spectateEnter": "観戦",
-    "roomCreated": "ルームが作成されました",
+    "roomCreated": "ルームを作成しました",
     "tableIsFull": "テーブルが満席です",
     "noRoomsAvailable": "利用可能なルームがありません",
     "listView": "リスト表示",
@@ -81,66 +81,157 @@
     "standard": "スタンダード",
     "highRoller": "ハイローラー",
     "headsUp": "ヘッズアップ",
-    "vip": "VIP"
+    "vip": "VIP",
+    "labels": {
+      "roomCode": "🔑 ルームコード",
+      "country": "🌍 国",
+      "tableFelt": "🎨 テーブルフェルト",
+      "telegramNotifications": "📱 Telegram 通知"
+    },
+    "placeholder": {
+      "roomCode": "8文字の招待コード"
+    },
+    "helper": {
+      "countryHint": "(アバターの横に国旗で表示)"
+    },
+    "table": {
+      "header": {
+        "table": "テーブル",
+        "blinds": "ブラインド",
+        "buyIn": "バイイン",
+        "players": "プレイヤー",
+        "action": "アクション"
+      }
+    },
+    "status": {
+      "live": "● LIVE"
+    },
+    "titles": {
+      "bgmOff": "BGM オフ",
+      "bgmOn": "BGM オン",
+      "selectMusic": "音楽を選択",
+      "listView": "リスト表示",
+      "gridView": "カード表示",
+      "editNickname": "ニックネーム編集"
+    },
+    "telegram": {
+      "channelTitle": "Telegram チャンネル登録 · 新ルーム即時通知",
+      "channelDesc": "VIP テーブル · イベント告知も先に受信",
+      "linkedWith": "● 連携済み {username}",
+      "desc": "アプリを閉じても自分の番・勝利・招待通知を Telegram で受信",
+      "linkButton": "📲 Telegram アプリで連携",
+      "linkHint": "ボタンをタップ → Telegram が開いたら [スタート] をタップ\n完了後プロフィールを再度開いて連携確認",
+      "generatingLink": "🔄 連携リンク生成中...",
+      "unlinkConfirm": "Telegram の連携を解除しますか?",
+      "unlinkButton": "連携解除",
+      "notif": {
+        "turn": "⏰ 自分の番 (AFK 15秒+)",
+        "win": "🏆 勝利 / ビッグポット獲得",
+        "allIn": "🔥 オールイン状況",
+        "invite": "🎯 ルーム参加リクエスト (ホスト)"
+      }
+    },
+    "toast": {
+      "telegramChannelPrompt": "📢 Telegram チャンネルに参加!",
+      "telegramChannelDesc": "新ルーム・VIP イベント通知をいち早く受け取りましょう",
+      "privateRoomOnly": "🔒 プライベートルーム — ルームコードでのみ入室可能",
+      "spectateEnter": "👁 {name} を観戦中",
+      "roomCreatingInvite": "\"{name}\" · 友達招待を準備中...",
+      "invalidRoomCode": "ルームコードは8文字の英数字 (0-9, a-f) です",
+      "serverConnecting": "サーバー接続待機中...",
+      "searchingRoom": "ルームを検索中...",
+      "invalidCode": "❌ {message}",
+      "invalidCodeFallback": "ルームコード確認失敗 — 正しいコードか確認してください",
+      "countrySet": "🌍 国 → {code}",
+      "countryUnset": "🌍 国 未選択",
+      "feltChanged": "テーブルカラー: {name}"
+    },
+    "buttons": {
+      "join": "参加",
+      "fullProfile": "プロフィール",
+      "handHistory": "ハンド履歴",
+      "changeAvatar": "アバター変更"
+    }
   },
   "createRoom": {
     "title": "ルーム作成",
     "roomName": "ルーム名",
-    "namePlaceholder": "例: VIPラウンジ",
+    "namePlaceholder": "例: VIP ラウンジ",
     "blinds": "ブラインド",
     "buyIn": "バイイン",
     "maxPlayers": "最大人数",
     "private": "プライベート",
     "password": "パスワード",
-    "passwordPlaceholder": "パスワードを入力",
+    "passwordPlaceholder": "パスワード入力",
     "straddle": "ストラドル",
     "create": "テーブル作成",
-    "subtitle": "自分だけのホールデムテーブルを作りましょう",
+    "subtitle": "自分のホールデムテーブルを作成",
     "enterName": "テーブル名を入力してください",
-    "inviteAdded": "既に招待済みです",
-    "maxInvites": "最大{max}人",
-    "telegramInvite": "Telegram招待（任意・最大8人）",
-    "telegramNotify": "Telegram通知を送信",
+    "inviteAdded": "既に追加された招待",
+    "maxInvites": "最大 {max}人",
+    "telegramInvite": "Telegram 招待 (任意 · 最大8人)",
+    "telegramNotify": "Telegram 通知を送信",
     "add": "追加",
-    "telegramBotNotice": "Telegramボットが@usernameにルームリンクをDM送信します",
+    "telegramBotNotice": "Telegram ボットが @username にルームリンクを DM 送信します",
     "inviteOnlyOnCreate": "招待はルーム作成時のみ可能です",
     "buyInAuto": "自動: 20BB ~ 100BB",
-    "telegramIdFormat": "Telegram ID形式: @username（5~32文字、英数字/_）"
+    "telegramIdFormat": "Telegram ID 形式: @username (5~32文字 英数字/_)",
+    "privateLabel": "プライベートルーム (ルームコードでのみ入室)",
+    "privateHelper": "⚙️ ロビーリストから非表示。友達招待モーダルの<b>ルームコード</b>を受け取った人のみ入室可能。",
+    "inviteFriendsLabel": "友達招待",
+    "inviteFriendsHelper": "ルーム作成後に自動で開く<b>「友達招待」</b>モーダルでルームコードのコピー + Telegram 自動送信が可能。"
   },
   "buyInModal": {
     "title": "バイイン",
     "min": "最小",
     "max": "最大",
     "balance": "残高",
-    "insufficientBalance": "残高が不足しています",
+    "insufficientBalance": "残高不足",
     "confirm": "バイイン確認"
   },
   "profile": {
     "title": "マイプロフィール",
     "nickname": "ニックネーム",
-    "nicknameRule": "2〜16文字（英数字）",
+    "nicknameRule": "2~16文字 (英数字)",
     "avatar": "アバター",
     "changeAvatar": "アバター変更",
     "stats": "統計",
-    "hands": "ハンド",
-    "won": "勝利",
+    "hands": "ハンド数",
+    "won": "勝数",
     "winRate": "勝率",
-    "net": "純利益",
+    "net": "純損益",
     "handHistory": "ハンド履歴",
-    "fullProfile": "プロフィール詳細",
+    "fullProfile": "プロフィール",
     "nicknameSaved": "ニックネームを保存しました",
     "avatarSaved": "アバターを保存しました",
-    "pendingChanges": "未保存の変更あり"
+    "pendingChanges": "未保存の変更"
   },
   "settings": {
     "sound": "サウンド",
     "soundOn": "ON",
     "soundOff": "OFF",
     "bgm": "BGM",
-    "lobbyMusic": "ロビーBGM",
+    "lobbyMusic": "ロビー音楽",
     "volume": "音量",
     "language": "言語",
-    "theme": "テーマ"
+    "theme": "テーマ",
+    "nicknamePlaceholder": "2~16文字 (日本語/英語/数字)",
+    "nicknameHelper": "日本語、英語、数字、スペース、ドット/アンダースコア/ハイフン使用可 · 2~16文字 · 保存即時反映",
+    "ownerRakeback": {
+      "title": "オーナー レーキバック",
+      "autoEarn": "({percent}% 自動付与)",
+      "pending": "未請求",
+      "claimed": "請求済み",
+      "total": "合計獲得",
+      "claim": "💰 ウォレットへ請求",
+      "claimMin": "(最低 ₩1,000 必要)",
+      "helper": "自分が作成したルームで発生したレーキの {percent}% が自動付与されます"
+    },
+    "country": "Country",
+    "countrySub": "(任意、アバター横の国旗)",
+    "tableFelt": "テーブルフェルト",
+    "tableFeltSub": "(テーブルカラー)",
+    "runItOnAllIn": "オールイン時のボード回数"
   },
   "chat": {
     "title": "チャット",
@@ -148,42 +239,549 @@
     "send": "送信"
   },
   "alert": {
-    "insufficientBalance": "残高が不足しています",
-    "connectionLost": "サーバーとの接続が切れました",
+    "insufficientBalance": "残高不足",
+    "connectionLost": "接続切断",
     "reconnecting": "再接続中...",
-    "reconnected": "再接続しました",
-    "kicked": "テーブルから退場しました",
-    "backgroundDetected": "バックグラウンド検出 — 自動離席",
-    "leaveConfirm": "ゲーム中です。退出しますか？",
-    "afterHandLeave": "ハンド終了後に退出します",
+    "reconnected": "再接続完了",
+    "kicked": "テーブルから退出処理されました",
+    "backgroundDetected": "バックグラウンド検出 — 自動 Sit Out",
+    "leaveConfirm": "ゲーム進行中です。退出しますか?",
+    "afterHandLeave": "現在のハンド終了後に退出します",
     "tryAfterHand": "ハンド終了後にお試しください",
-    "passwordRequired": "パスワードを入力してください",
-    "passwordCancelled": "パスワードがキャンセルされました",
-    "topUpAfterHand": "ハンド終了後にチャージ可能です"
+    "passwordRequired": "ルームのパスワードを入力してください",
+    "passwordCancelled": "パスワードキャンセル",
+    "topUpAfterHand": "現在のハンド終了後にチップ追加可能"
   },
   "timer": {
-    "timeBank": "タイムバンク使用中",
+    "timeBank": "TIME BANK 起動",
     "seconds": "秒"
   },
   "error": {
     "crashTitle": "エラーが発生しました",
-    "crashMessage": "ゲームでエラーが発生しました",
+    "crashMessage": "ゲーム中にエラーが発生しました",
     "retry": "再試行",
-    "goToLobby": "ロビーへ",
+    "goToLobby": "ロビーへ戻る",
     "networkError": "ネットワークエラー"
   },
   "tournament": {
     "title": "トーナメント",
-    "comingSoon": "トーナメント準備中",
-    "comingSoonDesc": "MTT、Sit & Go、PKOなど\n多彩なトーナメントが間もなく開催！",
-    "weekendChampionship": "ウィークエンドチャンピオンシップ",
+    "comingSoon": "トーナメント 近日公開",
+    "comingSoonDesc": "MTT、Sit & Go、PKO など\n各種トーナメント形式 順次オープン!",
+    "weekendChampionship": "ウィークエンド チャンピオンシップ",
     "prizePool": "保証賞金プール",
-    "registered": "登録済み",
-    "buyIn": "バイイン"
+    "registered": "登録済",
+    "buyIn": "バイイン",
+    "headerBadge": "トーナメント",
+    "headerTitle": "ポーカートーナメント",
+    "headerSubtitle": "保証賞金プール付きプレミアムトーナメント",
+    "heroDescription": "今週最大のトーナメント",
+    "filterAll": "全て",
+    "filterRegular": "レギュラー",
+    "filterTurbo": "ターボ",
+    "filterHyper": "ハイパー",
+    "filterPKO": "ノックアウト",
+    "statusRegistering": "登録中",
+    "statusLive": "● ライブ",
+    "guaranteed": "保証",
+    "players": "プレイヤー",
+    "start": "開始",
+    "starts": "開始",
+    "register": "登録",
+    "lateRegInfo": "レイト登録情報",
+    "lateReg": "レイト登録",
+    "watchLive": "ライブ観戦",
+    "rebuy": "リバイ",
+    "viewDetails": "詳細 & 参加申込",
+    "noMatch": "条件に一致するトーナメントがありません",
+    "registeringToast": "{name} に登録中…",
+    "registeredToast": "登録完了!",
+    "startTime": "開始時間",
+    "startingStack": "スタートスタック",
+    "left": "残り",
+    "filled": "% 埋まり"
   },
   "currency": {
     "krw": "₩",
     "usd": "$",
     "usdt": "USDT"
+  },
+  "manual": {
+    "game": {
+      "header": {
+        "title": "テキサス ホールデム マニュアル",
+        "subtitle": "プレミアム ポーカーガイド",
+        "tournamentLink": "トーナメントガイド",
+        "toc": "目次"
+      },
+      "labels": {
+        "advantage": "優位度",
+        "odds": "確率"
+      },
+      "sections": {
+        "basics": "基礎",
+        "positions": "ポジション",
+        "rounds": "ベッティング ラウンド",
+        "actions": "アクション",
+        "hands": "ハンドランキング",
+        "strategies": "戦略",
+        "features": "機能",
+        "etiquette": "エチケット"
+      },
+      "basics": {
+        "title": "テキサス ホールデムとは?",
+        "intro": "世界で最も人気のあるポーカーゲーム。各プレイヤーは<strong>2枚のホールカード</strong>を受け取り、テーブル中央に<strong>5枚のコミュニティカード</strong>が公開されます。7枚から最強の5枚の組み合わせを作ったプレイヤーが勝利します。",
+        "stats": {
+          "playersLabel": "人数",
+          "playersValue": "2~9人",
+          "typeLabel": "ゲーム種類",
+          "typeValue": "Cash Game",
+          "handLabel": "1ハンド",
+          "handValue": "約1~3分"
+        },
+        "suits": "カードのスート",
+        "suitsNote": "* テキサス ホールデムでは全スートが同等の価値です",
+        "goalTitle": "🎯 ゲームの目標",
+        "goalText": "単に良いカードをもらうだけではなく、<strong>相手をフォールドさせるか</strong>または<strong>最強のハンドでショーダウンに勝ち</strong>ポットを獲得することです。"
+      },
+      "positions": {
+        "title": "ポジション ガイド",
+        "intro": "ポジションはテキサス ホールデムで最も重要な概念。後にアクションするほど情報が多く有利です。",
+        "items": {
+          "btn": { "short": "ディーラー", "desc": "最も有利なポジション。最後にアクション。全情報を見て判断可能。" },
+          "co": { "short": "カットオフ", "desc": "ディーラー直前。BTN に次ぐ良いポジション。ワイドオープン可能。" },
+          "hj": { "short": "ハイジャック", "desc": "CO 直前。ミドルポジション。良いハンドのみプレイ。" },
+          "mp": { "short": "ミドル", "desc": "中間ポジション。スタンダードレンジ。" },
+          "utg": { "short": "アンダー ザ ガン", "desc": "最も不利なアクションポジション。非常にタイトにプレイ。" },
+          "sb": { "short": "スモールブラインド", "desc": "BTN 隣の席。強制ベット ½。ポストフロップは常に first-to-act。" },
+          "bb": { "short": "ビッグブラインド", "desc": "強制ベット 1×。無料でフロップを見るオプション。ディフェンドは wide。" }
+        }
+      },
+      "rounds": {
+        "title": "ベッティング ラウンド",
+        "intro": "1ハンドは5段階で進行します。",
+        "items": {
+          "preflop": { "desc": "カード2枚配布。UTG からアクション開始。", "cards": "2枚 (ホールカード)" },
+          "flop": { "desc": "コミュニティカード3枚公開。SB からアクション。", "cards": "3枚公開" },
+          "turn": { "desc": "4枚目のカード公開。SB からアクション。", "cards": "4枚目" },
+          "river": { "desc": "5枚目のカード公開。最終ベッティングラウンド。", "cards": "5枚目" },
+          "showdown": { "desc": "残ったプレイヤーがカード公開。最強のハンドが勝利。", "cards": "カード公開" }
+        }
+      },
+      "actions": {
+        "title": "アクション",
+        "intro": "自分の番に選べる5つのアクション。",
+        "items": {
+          "fold": { "short": "フォールド", "desc": "ハンドを諦める。チップは失わない。今回のハンドから抜ける。" },
+          "check": { "short": "チェック", "desc": "ベットしない。次のプレイヤーへパス。(コール対象がない時のみ)" },
+          "call": { "short": "コール", "desc": "直前のベットと同額をベット。" },
+          "raise": { "short": "レイズ", "desc": "直前のベットより多くベット。最低2倍。" },
+          "allIn": { "short": "オールイン", "desc": "残りチップ全額ベット。これ以上アクションなし。" }
+        }
+      },
+      "hands": {
+        "title": "ハンドランキング (強い順)",
+        "intro": "10種類のハンドの組み合わせ。上から下へ強い。",
+        "items": {
+          "royalFlush": "同じスートの 10-J-Q-K-A",
+          "straightFlush": "同じスートの5枚連続",
+          "fourOfAKindName": "Four of a Kind (フォーカード)",
+          "fourOfAKind": "同じ数字4枚",
+          "fullHouse": "スリーオブアカインド + ペア",
+          "flush": "同じスートの5枚",
+          "straight": "5枚連続 (スート無関係)",
+          "threeOfAKindName": "Three of a Kind (スリーカード)",
+          "threeOfAKind": "同じ数字3枚",
+          "twoPair": "ペア2組",
+          "onePair": "同じ数字2枚",
+          "highCard": "組み合わせなし"
+        }
+      },
+      "strategies": {
+        "title": "初心者戦略",
+        "items": {
+          "tight": { "title": "タイトに開始", "desc": "良いハンドのみプレイ。ペア、AK、AQ、AJ 中心。" },
+          "position": { "title": "ポジション活用", "desc": "後ろのポジション (BTN、CO) でより多くハンドをプレイ。" },
+          "potOdds": { "title": "ポットオッズ", "desc": "コールに必要な額 / (ポット + コール) = 必要勝率。" },
+          "noBluff": { "title": "ブラフ自制", "desc": "初心者はバリュー中心。ブラフは状況把握後。" },
+          "bankroll": { "title": "バンクロール管理", "desc": "スタックの5%のみを一度にベット。絶対に無理しない。" },
+          "observe": { "title": "観察", "desc": "相手のパターン把握。誰がタイトか、誰がルースか。" },
+          "emotion": { "title": "感情コントロール", "desc": "ティルト(興奮)は最大の敵。大損失後は少し休む。" }
+        }
+      },
+      "features": {
+        "title": "特殊機能",
+        "items": {
+          "cardSqueeze": { "title": "Card Squeeze", "desc": "自分のカードをドラッグしてゆっくり公開。本物のカジノ体験。" },
+          "timeBank": { "title": "Time Bank", "desc": "重要な決定に追加時間使用。30秒 + ボーナス時間。" },
+          "rabbitHunt": { "title": "Rabbit Hunt", "desc": "ハンド終了後に未公開カード確認。" },
+          "runItTwice": { "title": "Run It Twice", "desc": "オールイン後にボードを2回実行。分散減少。" },
+          "insurance": { "title": "Insurance", "desc": "オールイン時に保険加入。安全な収益保証。" },
+          "bombPot": { "title": "Bomb Pot", "desc": "特定ハンドで全員強制コール + ビッグポット。" },
+          "provablyFair": { "title": "Provably Fair", "desc": "SHA256 検証可能なシャッフル。改ざん不可。" },
+          "spectate": { "title": "観戦モード", "desc": "着席せずにゲーム観戦可能。" }
+        }
+      },
+      "etiquette": {
+        "title": "ゲーム エチケット",
+        "do": {
+          "fastAction": "自分の番に素早くアクション",
+          "showCards": "ショーダウン時にカードを即座に公開",
+          "greet": "勝者に \"GG\"、\"NH\" のような挨拶",
+          "watchChat": "観戦モードではチャットを控える"
+        },
+        "dont": {
+          "slowRoll": "スローロール (勝ちカードをわざとゆっくり公開)",
+          "abuse": "暴言/中傷チャット",
+          "discuss": "ハンド進行中に他人のカード議論",
+          "collusion": "コルージョン (他プレイヤーと結託してプレイ)",
+          "tank": "時間稼ぎ (Tank)。重要な決定以外は速やかに"
+        }
+      }
+    },
+    "tournament": {
+      "header": {
+        "title": "トーナメント マニュアル",
+        "subtitle": "TETHER.BET HOLDEM トーナメント完全ガイド",
+        "gameLink": "ゲームマニュアル →"
+      },
+      "labels": {
+        "duration": "所要時間",
+        "interval": "レベル間隔",
+        "levels": "総レベル数",
+        "multiplier": "上昇率",
+        "strategy": "戦略",
+        "play": "✓ プレイスタイル",
+        "avoid": "✗ 避けるべきこと"
+      },
+      "sections": {
+        "types": "種類",
+        "structure": "ブラインド構造",
+        "stages": "段階",
+        "icm": "ICM 理論",
+        "prize": "賞金分配",
+        "rules": "特殊ルール",
+        "stack": "スタック管理",
+        "strategy": "段階別戦略"
+      },
+      "types": {
+        "title": "トーナメント種類",
+        "intro": "6つの主要トーナメント形式をマスターしましょう。",
+        "items": {
+          "mtt": {
+            "desc": "数十~数千人が参加する大規模トーナメント",
+            "duration": "4~12時間",
+            "f1": "参加費 + 手数料", "f2": "緩やかなブラインド上昇", "f3": "ファイナルテーブルまで進出", "f4": "巨額の賞金プール"
+          },
+          "sng": {
+            "desc": "定員が埋まれば即時開始される単一/小規模トーナメント",
+            "duration": "30分~2時間",
+            "f1": "6~9人単一テーブル", "f2": "速いブラインド", "f3": "上位30% インマネー", "f4": "短いプレイ時間"
+          },
+          "pko": {
+            "desc": "脱落させるたびにバウンティが累積するトーナメント",
+            "duration": "3~8時間",
+            "f1": "参加費 50% バウンティ", "f2": "脱落時に半分即時支給", "f3": "半分は自分の頭に追加", "f4": "アグレッシブプレイ誘発"
+          },
+          "bountyHunter": {
+            "desc": "特定プレイヤーを倒すとバウンティ支給",
+            "duration": "3~6時間",
+            "f1": "固定バウンティ", "f2": "ターゲットシステム", "f3": "追加賞金チャンス", "f4": "メイン賞金プール + バウンティ"
+          },
+          "spinAndGo": {
+            "desc": "ランダム賞金倍率が適用される3人 SNG",
+            "duration": "5~15分",
+            "f1": "3人ハイパーターボ", "f2": "最大1000倍賞金", "f3": "即時開始", "f4": "宝くじ型トーナメント"
+          },
+          "freezeout": {
+            "desc": "リバイ/アドオンなしの一発勝負トーナメント",
+            "duration": "2~6時間",
+            "f1": "1回限定エントリー", "f2": "脱落したらすぐ終了", "f3": "リスク低", "f4": "初心者向け"
+          }
+        }
+      },
+      "structure": {
+        "title": "ブラインド構造",
+        "intro": "4つの標準ブラインド速度を学びましょう。",
+        "items": {
+          "standard": { "name": "Standard (スタンダード)", "interval": "20~30分", "multiplier": "1.3~1.5x", "desc": "プロトーナメント標準。技術が最も発揮される。" },
+          "turbo": { "name": "Turbo (ターボ)", "interval": "8~10分", "multiplier": "1.5x", "desc": "速い進行、運の要素増加。" },
+          "hyperTurbo": { "name": "Hyper Turbo (ハイパーターボ)", "interval": "3~5分", "multiplier": "1.5~2x", "desc": "超高速進行。プッシュ/フォールド中心。" },
+          "deepStack": { "name": "Deep Stack (ディープスタック)", "interval": "30~60分", "multiplier": "1.25x", "desc": "200BB+ 開始スタック。ポストフロップ重視。" }
+        },
+        "exampleTitle": "標準ブラインド進行例"
+      },
+      "stages": {
+        "title": "トーナメント段階",
+        "intro": "開始から優勝まで6段階の流れ。",
+        "items": {
+          "early": { "name": "序盤 (Early Stage)", "desc": "ディープスタックプレイ、ゆっくりチップを集める", "strategy": "タイトアグレッシブ" },
+          "middle": { "name": "中盤 (Middle Stage)", "desc": "アンティ導入、スティール開始", "strategy": "ポジション活用" },
+          "bubble": { "name": "バブル (Bubble)", "desc": "インマネー直前、ICM プレッシャー最大", "strategy": "ショートスタック圧迫" },
+          "itm": { "name": "インマネー (ITM)", "desc": "賞金圏進入、ラダーを上る", "strategy": "選択的アグレッシブ" },
+          "ft": { "name": "ファイナルテーブル", "desc": "最終9人、賞金格差大", "strategy": "ICM 基準の判断" },
+          "hu": { "name": "ヘッズアップ", "desc": "1対1の決勝、優勝決定", "strategy": "アグレッシブ" }
+        }
+      },
+      "icm": {
+        "title": "ICM (Independent Chip Model)",
+        "intro": "トーナメントで最も重要な数学的概念。",
+        "definitionTitle": "ICM とは?",
+        "definition": "ICM はトーナメントのチップスタックを実際の現金価値に変換する数学モデルです。キャッシュゲームと違い、トーナメントではチップ1枚の価値が同じではありません。ショートスタックのチップがビッグスタックのチップより価値があります。",
+        "formula": "$EV = Σ (P[i位到達] × 賞金[i])",
+        "formulaNote": "// 各順位到達確率 × 該当賞金の合計",
+        "examplesTitle": "ICM が適用される状況",
+        "examples": {
+          "bubble": { "stack": "バブル", "desc": "ICM プレッシャー最大。チップ価値 = 賞金価値の非対称", "action": "タイトプレイ、ビッグスタック回避" },
+          "ft": { "stack": "ファイナルテーブル", "desc": "各段階ごとに賞金差が大きい", "action": "ICM 計算後にコール/プッシュ判断" },
+          "hu": { "stack": "ヘッズアップ", "desc": "ICM 影響最小。チップ EV = 現金 EV", "action": "アグレッシブプレイ可能" },
+          "shortStack": { "stack": "ショートスタック", "desc": "プッシュ/フォールド チャート使用", "action": "Nash Equilibrium 基準" }
+        },
+        "principlesTitle": "核心原則",
+        "principles": {
+          "p1": "最後の BB の価値 > 最初の BB の価値 (脱落 = ゲーム終了)",
+          "p2": "脱落時の EV 損失はチップ EV より常に大きい",
+          "p3": "ICM のため +cEV コールが -$EV になり得る",
+          "p4": "ミドルスタックは最も保守的に、ビッグ/ショートはアグレッシブに"
+        }
+      },
+      "prize": {
+        "title": "賞金分配構造",
+        "intro": "100人 MTT 基準の標準賞金分配。",
+        "tableTitle": "標準賞金分配表",
+        "ranks": {
+          "r1": "1位", "r2": "2位", "r3": "3位", "r4": "4位", "r5": "5位",
+          "r6to9": "6~9位", "r10to18": "10~18位", "r19plus": "19% 以下",
+          "p1": "25~30%", "p2": "15~18%", "p3": "10~13%", "p4": "8~10%", "p5": "6~8%",
+          "p6to9": "各 3~5%", "p10to18": "各 1.5~2%", "p19plus": "各 1%"
+        },
+        "topHeavy": { "title": "Top-Heavy 構造", "desc": "上位入賞者に賞金が集中する方式。WSOP、EPT などメジャートーナメント。" },
+        "flat": { "title": "Flat 構造", "desc": "賞金が比較的均等に分配。より多くの人がインマネー。サテライトでよく使用。" },
+        "formula": "賞金プール = 参加費 × 人数 - 手数料 (通常 8~12%)",
+        "noteTopPercent": "通常は上位 10~15% がインマネー",
+        "noteFt": "ファイナルテーブル9人が全賞金プールの 70~80% を占める",
+        "noteWinner": "優勝者単独で約 25~30% を獲得"
+      },
+      "rules": {
+        "title": "特殊ルール",
+        "intro": "トーナメント特有の6つの特殊ルール。",
+        "items": {
+          "lateReg": { "name": "Late Registration (レイト登録)", "desc": "トーナメント開始後も一定時間登録可能", "detail": "通常5~8レベルまで。遅く登録するほど開始スタックの BB 数が小さくなる。" },
+          "reentry": { "name": "Re-entry (再参加)", "desc": "脱落後に再度参加費を払って再エントリー", "detail": "通常1~3回制限。レイト登録期間内のみ可能。" },
+          "rebuy": { "name": "Re-buy (リバイ)", "desc": "スタックが一定以下の時に追加チップ購入", "detail": "リバイ期間中のみ。開始スタックより少ない時のみ可能。" },
+          "addon": { "name": "Add-on (アドオン)", "desc": "リバイ期間終了時点で1回追加購入", "detail": "スタック関係なく全プレイヤーに適用。開始スタックの 1.5~2倍。" },
+          "handForHand": { "name": "Hand-for-Hand (ハンドフォーハンド)", "desc": "バブル直前に全テーブルが同時に1ハンドずつ進行", "detail": "同時脱落時はチップが多い人が上位順位。公平性保証。" },
+          "syncBreak": { "name": "Synchronized Break (同期休憩)", "desc": "全トーナメントが同時に休憩", "detail": "通常毎時5~10分。トイレ、食事、戦略整理時間。" }
+        }
+      },
+      "stack": {
+        "title": "スタック別プレイガイド",
+        "intro": "スタックサイズに応じた6つの戦略。",
+        "items": {
+          "deep": { "play": "ポストフロップ中心。インプライドオッズ活用。セットマイニング可能。", "avoid": "オールイン回避、ミドルペアに注意" },
+          "standard": { "play": "標準 GTO プレイ。全プレイラインが可能。", "avoid": "無計画な 3-bet ディフェンス" },
+          "medium": { "play": "ポジション中心、3-bet 抑制し SPR 管理。", "avoid": "ディープスタック用ハンド (スモールペア、スーテッドコネクターのコール)" },
+          "short": { "play": "オープンプッシュ可能。リシューブチャート活用。", "avoid": "リンプ、ミニレイズ、コールのみのプレイ" },
+          "pushFold": { "play": "Nash プッシュ/フォールド チャートのみ使用。コールなし。", "avoid": "ポストフロップ進入" },
+          "desperation": { "play": "どの2枚でもプッシュ検討。最初の空席にオールイン。", "avoid": "最後の BB まで待つ" }
+        },
+        "mRatioTitle": "M-Ratio 公式",
+        "mRatioFormula": "M = 自分のスタック / (SB + BB + 全アンティ合計)"
+      },
+      "strategy": {
+        "title": "段階別戦略ガイド",
+        "intro": "序盤からヘッズアップまでの段階別核心戦略。",
+        "items": {
+          "early": {
+            "stage": "序盤 (Early)", "bb": "100~200BB",
+            "tip1": "プレミアムハンドのみプレイ (上位10%)",
+            "tip2": "リバイトーナメントはより緩く",
+            "tip3": "観察: 相手タイプ把握 (フィッシュ/レグ)",
+            "tip4": "インプライドオッズでセットマイニング可能"
+          },
+          "middle": {
+            "stage": "中盤 (Middle)", "bb": "30~80BB",
+            "tip1": "アンティ導入 → より多くのハンドをプレイ",
+            "tip2": "スティールとリスティール積極活用",
+            "tip3": "ショートスタック圧迫、ビッグスタック回避",
+            "tip4": "ポジションを最優先で活用"
+          },
+          "bubble": {
+            "stage": "バブル (Bubble)", "bb": "15~30BB",
+            "tip1": "ICM プレッシャー最大 - コーリングレンジ狭く",
+            "tip2": "ショートスタックの時はプッシュ頻繁",
+            "tip3": "ビッグスタックの時は全員圧迫",
+            "tip4": "ミドルスタックの時は絶対に脱落回避"
+          },
+          "itm": {
+            "stage": "インマネー (ITM)", "bb": "10~25BB",
+            "tip1": "ラダーを上る - 1段階 = 大金",
+            "tip2": "ショートスタック脱落待ち",
+            "tip3": "選択的アグレッシブ (厳選プレイのみ)",
+            "tip4": "ICM 計算機を頭の中で回す"
+          },
+          "ft": {
+            "stage": "ファイナルテーブル", "bb": "変動",
+            "tip1": "各段階の賞金格差を認識",
+            "tip2": "ディール提案可能 (ICM/Chip-chop)",
+            "tip3": "ヘッズアップ直前が最大 ICM プレッシャー",
+            "tip4": "優勝 = 名誉 + 巨額賞金"
+          },
+          "hu": {
+            "stage": "ヘッズアップ (HU)", "bb": "変動",
+            "tip1": "ICM 影響消滅 - アグレッシブに",
+            "tip2": "ボタン (SB) アグレッション = 80%+",
+            "tip3": "どの2枚にも価値あり",
+            "tip4": "相手の弱点を素早く把握"
+          }
+        },
+        "victoryTitle": "優勝の7原則",
+        "victory": {
+          "p1": "生存最優先 - 意味のないチップは意味なし",
+          "p2": "ポジションは黄金 - 常にポジションを認識",
+          "p3": "ICM プレッシャーを活用 - 相手を圧迫",
+          "p4": "攻撃が最大の防御 - パッシブは死",
+          "p5": "スタックを常に意識 - BB 単位で考える",
+          "p6": "ティルト回避 - 1ハンドがトーナメントを台無しにする",
+          "p7": "忍耐と決断力のバランス - 待機と爆発"
+        }
+      }
+    }
+  },
+  "gameTable": {
+    "header": {
+      "watchingMode": "観戦中",
+      "inviteFriends": "友達招待",
+      "invite": "招待",
+      "enterFullscreen": "全画面",
+      "exitFullscreen": "全画面解除",
+      "moreMenu": "その他"
+    },
+    "menu": {
+      "recentHandsCount": "最近10ハンド",
+      "history": "ハンド履歴",
+      "topUp": "チップ追加",
+      "changeSeat": "座席変更",
+      "preAction": "プリアクション",
+      "waitBb": "BB 待機",
+      "rit": "Run It Twice",
+      "emoji": "絵文字",
+      "sitOut": "離席"
+    },
+    "sound": {
+      "title": "サウンド",
+      "gameSfx": "ゲーム効果音",
+      "muteOn": "🔊 ON",
+      "muteOff": "🔇 OFF",
+      "popupTitle": "🎵 サウンド",
+      "gameLabel": "🎮 Game",
+      "bgmLabel": "🎵 BGM"
+    },
+    "modal": {
+      "inviteTitle": "友達招待",
+      "inviteDescription": "同じテーブルへ招待 (観戦含め最大8人)",
+      "joinFirst": "先にルームに参加してください",
+      "roomCode": "ルームコード (永続)",
+      "copy": "コピー",
+      "telegramShare": "Telegram 共有",
+      "officialChannel": "公式チャンネル登録",
+      "officialChannelDesc": "新ルーム・VIP イベント自動通知",
+      "deepLinkTitle": "ワンタップ招待リンク (/start 不要)",
+      "deepLinkHint": "友達がリンクをタップ → スタートを1回押せば自動入室。",
+      "deepLinkNote": "(別途アカウント連携・/start 手動入力不要)",
+      "roomLifeNote": "ルームが生きている間有効 · プライベートルームはロビーリストに非表示",
+      "inviteCopied": "招待文をコピーしました",
+      "deepLinkCopied": "ディープリンクをコピーしました — 友達に送信",
+      "copyFailed": "コピー失敗",
+      "telegramShareTitle": "🃏 ホールデムルーム招待",
+      "inGame": "ゲーム進行中です!",
+      "leaveTable": "テーブルから退出しますか?",
+      "leaveSeatedDesc": "着席中に退出するとチップが自動精算されます。\nハンド進行中ならフォールド処理されます。",
+      "leaveSpectatingDesc": "観戦を終了してロビーへ戻ります。",
+      "leaveAfterHand": "今回のハンド終了後に自動退出",
+      "leaveCancel": "退出予約をキャンセルしました",
+      "keepPlaying": "続行",
+      "leaveNow": "今すぐ退出",
+      "reserveLeave": "ハンド後に退出",
+      "handHistoryTitle": "ハンド履歴",
+      "handHistoryCount": "最近 {count}個のハンド記録",
+      "noHandHistory": "まだプレイしたハンドがありません",
+      "noHandHistoryHelper": "ゲームを進行するとここに記録されます",
+      "replay": "再生",
+      "playersCount": "プレイヤー ({count}人)",
+      "rabbitHunt": "もし最後まで行ったら",
+      "topUpTitle": "チップ追加",
+      "topUpDescription": "スタックにチップを追加。ハンド間のみ可能。",
+      "changeSeatTitle": "座席変更",
+      "changeSeatDescription": "空席を選択。現在のハンド終了まで待つ必要あり。",
+      "seatLabel": "席 {n}",
+      "seatYou": "(自分)",
+      "seatStatusCurrent": "現在",
+      "seatStatusEmpty": "空席",
+      "seatStatusTaken": "着席中",
+      "refreshSeats": "空席更新"
+    },
+    "preAction": {
+      "title": "プリアクション",
+      "description": "自分の番が来たら自動実行"
+    },
+    "emoji": {
+      "reactions": "リアクション",
+      "actions": "アクション",
+      "taunts": "挑発"
+    },
+    "showMuck": {
+      "prompt": "カードを公開しますか?",
+      "show": "公開",
+      "muck": "マック"
+    },
+    "cashOut": {
+      "title": "キャッシュアウト可能",
+      "description": "ショーダウンをスキップして今すぐエクイティを受け取る",
+      "yourEquity": "自分のエクイティ",
+      "amount": "金額",
+      "fee": "手数料",
+      "confirm": "キャッシュアウト",
+      "decline": "最後まで行く"
+    },
+    "topUp": {
+      "minAmount": "最低 ₩50,000 以上入力してください",
+      "requested": "チップ追加リクエスト: ₩{amount}"
+    },
+    "betting": {
+      "waitBbDesc": "次の BB が自分の席に来たら自動入室。すぐ入室するならデッド BB を支払ってください。"
+    },
+    "alerts": {
+      "confirmLeave": "ゲーム進行中です。退出しますか?",
+      "awayReturn": "{seconds}秒の離席後に復帰"
+    },
+    "fairness": {
+      "currentSeedHash": "現在のハンドのサーバーシードハッシュ (公開)",
+      "previousReveal": "直前のハンドの公開シード (ハッシュ検証可能)",
+      "explanation": "💡 SHA-256(serverSeed) === 前のハッシュ ならサーバーがシードを事前固定したことが証明されます (事後改ざん不可)"
+    },
+    "defaults": {
+      "roomName": "ホールデムルーム"
+    },
+    "invite": {
+      "messageHeader": "🃏 ホールデム友達招待!",
+      "roomNameLabel": "ルーム名",
+      "roomCodeLabel": "ルームコード",
+      "messageHint": "👇 下のリンクをタップすればすぐ入室!",
+      "shareTitle": "🃏 ホールデムルーム招待",
+      "shareTapLink": "リンクをタップでそのまま入室!"
+    },
+    "replay": {
+      "prev": "◀ 前へ",
+      "next": "次へ ▶",
+      "auto": "自動",
+      "winner": "🏆 WINNER"
+    },
+    "rabbit": {
+      "view": "見る"
+    },
+    "drama": {
+      "badBeat": "😱 BAD BEAT!",
+      "cooler": "🧊 COOLER!"
+    }
   }
 }

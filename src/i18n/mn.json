@@ -4,63 +4,63 @@
     "cancel": "Цуцлах",
     "close": "Хаах",
     "save": "Хадгалах",
-    "loading": "Ачааллаж байна...",
+    "loading": "Ачаалж байна...",
     "error": "Алдаа",
-    "success": "Амжилттай",
+    "success": "Амжилт",
     "back": "Буцах",
     "next": "Дараах",
     "yes": "Тийм",
     "no": "Үгүй",
     "copy": "Хуулах",
-    "copied": "Хуулагдсан",
+    "copied": "Хуулсан",
     "search": "Хайх",
     "all": "Бүгд",
     "none": "Байхгүй"
   },
   "action": {
-    "fold": "Хаях",
-    "check": "Шалгах",
-    "call": "Дуудах",
-    "raise": "Өсгөх",
-    "allIn": "Бүгдийг",
-    "bet": "Бооцоо",
-    "sitOut": "Суудлаас босох",
-    "sitIn": "Суух",
-    "standUp": "Гарах",
-    "topUp": "Цэнэглэх",
-    "buyIn": "Худалдан авах"
+    "fold": "Fold",
+    "check": "Check",
+    "call": "Call",
+    "raise": "Raise",
+    "allIn": "All In",
+    "bet": "Bet",
+    "sitOut": "Сууцнаас гарах",
+    "sitIn": "Сууцанд буцах",
+    "standUp": "Ширээнээс гарах",
+    "topUp": "Чип нэмэх",
+    "buyIn": "Buy-in"
   },
   "game": {
     "waiting": "Хүлээж байна...",
     "playing": "Тоглож байна",
-    "dealing": "Хуваарилж байна...",
-    "showdown": "Нээлт",
+    "dealing": "Хувааж байна...",
+    "showdown": "Showdown",
     "result": "Үр дүн",
-    "nextHand": "Дараагийн гар бэлтгэж байна...",
+    "nextHand": "Дараагийн hand эхэлж байна...",
     "yourTurn": "Таны ээлж",
-    "spectating": "Үзэж байна · Хоосон суудал дээр дарна уу",
+    "spectating": "Үзэж байна · Хоосон сууцыг дарж сууна",
     "quickSit": "Хурдан суух",
     "waitingForPlayers": "Тоглогчдыг хүлээж байна...",
-    "waitingForAction": "Үйлдэл хүлээж байна...",
-    "handNumber": "Гар",
-    "pot": "Пот",
-    "mainPot": "Үндсэн пот",
-    "sidePot": "Хажуугийн пот",
+    "waitingForAction": "Үйлдлийг хүлээж байна...",
+    "handNumber": "Hand",
+    "pot": "Pot",
+    "mainPot": "Гол pot",
+    "sidePot": "Side pot",
     "winner": "Ялагч",
-    "rake": "Рэйк",
-    "preflop": "Прифлоп",
-    "flop": "Флоп",
-    "turn": "Тёрн",
-    "river": "Ривер",
-    "dealer": "Дилер",
+    "rake": "Rake",
+    "preflop": "Preflop",
+    "flop": "Flop",
+    "turn": "Turn",
+    "river": "River",
+    "dealer": "Dealer",
     "smallBlind": "SB",
     "bigBlind": "BB",
-    "ante": "Анте"
+    "ante": "Ante"
   },
   "lobby": {
-    "title": "Холдем ширээнүүд",
+    "title": "Hold'em ширээ",
     "tablesAvailable": "{count} ширээ",
-    "create": "Өрөө үүсгэх",
+    "create": "Үүсгэх",
     "join": "Нэгдэх",
     "full": "Дүүрсэн",
     "online": "онлайн",
@@ -68,123 +68,720 @@
     "active": "Идэвхтэй",
     "quickPlay": "Хурдан тоглох",
     "tournament": "Тэмцээн",
-    "gameManual": "Тоглоомын заавар",
-    "tournamentManual": "Тэмцээний заавар",
+    "gameManual": "Тоглоомын гарын авлага",
+    "tournamentManual": "Тэмцээний гарын авлага",
     "comingSoon": "Удахгүй",
     "spectateEnter": "Үзэх",
-    "roomCreated": "Өрөө амжилттай үүсгэгдлээ",
+    "roomCreated": "Өрөө амжилттай үүссэн",
     "tableIsFull": "Ширээ дүүрсэн",
     "noRoomsAvailable": "Боломжтой өрөө байхгүй",
-    "listView": "Жагсаалт",
-    "gridView": "Картын харагдац",
-    "beginner": "Анхлан",
+    "listView": "Жагсаалтаар",
+    "gridView": "Карт",
+    "beginner": "Анхан шат",
     "standard": "Стандарт",
-    "highRoller": "Өндөр бооцоо",
-    "headsUp": "Хэдс-Ап",
-    "vip": "VIP"
+    "highRoller": "High Roller",
+    "headsUp": "Heads-Up",
+    "vip": "VIP",
+    "labels": {
+      "roomCode": "🔑 Өрөөний код",
+      "country": "🌍 Улс",
+      "tableFelt": "🎨 Ширээний өнгө",
+      "telegramNotifications": "📱 Telegram мэдэгдэл"
+    },
+    "placeholder": {
+      "roomCode": "8 тэмдэгт урилгын код"
+    },
+    "helper": {
+      "countryHint": "(аватарын хажууд тугтай харагдана)"
+    },
+    "table": {
+      "header": {
+        "table": "Ширээ",
+        "blinds": "Blinds",
+        "buyIn": "Buy-in",
+        "players": "Тоглогч",
+        "action": "Үйлдэл"
+      }
+    },
+    "status": {
+      "live": "● LIVE"
+    },
+    "titles": {
+      "bgmOff": "BGM Off",
+      "bgmOn": "BGM On",
+      "selectMusic": "Хөгжим сонгох",
+      "listView": "Жагсаалт",
+      "gridView": "Карт",
+      "editNickname": "Хочийг засах"
+    },
+    "telegram": {
+      "channelTitle": "Telegram сувагт бүртгүүлэх · шинэ ширээний шуурхай мэдэгдэл",
+      "channelDesc": "VIP ширээ · арга хэмжээний зарлал хамгийн түрүүнд",
+      "linkedWith": "● Холбогдсон {username}",
+      "desc": "Апп хаагдсан ч ээлж/хожил/урилгын мэдэгдлийг Telegram-аар авах",
+      "linkButton": "📲 Telegram аппаар холбох",
+      "linkHint": "Товч дар → Telegram нээгдэхэд [Эхлэх] товч дар\nДуусгаад профайлаа дахин нээж холболтыг шалгана",
+      "generatingLink": "🔄 Холбоосыг үүсгэж байна...",
+      "unlinkConfirm": "Telegram холболтыг салгах уу?",
+      "unlinkButton": "Холболт салгах",
+      "notif": {
+        "turn": "⏰ Миний ээлж (AFK 15с+)",
+        "win": "🏆 Хожил / Том pot",
+        "allIn": "🔥 All-in нөхцөл",
+        "invite": "🎯 Өрөөнд нэгдэх хүсэлт (хост)"
+      }
+    },
+    "toast": {
+      "telegramChannelPrompt": "📢 Telegram сувагт нэгдээрэй!",
+      "telegramChannelDesc": "Шинэ өрөө, VIP арга хэмжээний мэдэгдлийг хамгийн түрүүнд аваарай",
+      "privateRoomOnly": "🔒 Хувийн өрөө — өрөөний кодоор л орох боломжтой",
+      "spectateEnter": "👁 {name}-г үзэж байна",
+      "roomCreatingInvite": "\"{name}\" · найз урилгыг бэлдэж байна...",
+      "invalidRoomCode": "Өрөөний код 8 үсэг тоо (0-9, a-f) байх ёстой",
+      "serverConnecting": "Сервертэй холбогдохыг хүлээж байна...",
+      "searchingRoom": "Өрөө хайж байна...",
+      "invalidCode": "❌ {message}",
+      "invalidCodeFallback": "Өрөөний код буруу — шалгаад дахин оролдоно уу",
+      "countrySet": "🌍 Улс → {code}",
+      "countryUnset": "🌍 Улс сонгоогүй",
+      "feltChanged": "Ширээний өнгө: {name}"
+    },
+    "buttons": {
+      "join": "Нэгдэх",
+      "fullProfile": "Бүрэн профайл",
+      "handHistory": "Hand түүх",
+      "changeAvatar": "Аватар солих"
+    }
   },
   "createRoom": {
     "title": "Өрөө үүсгэх",
     "roomName": "Өрөөний нэр",
-    "namePlaceholder": "Жнь: VIP Лоунж",
-    "blinds": "Блайнд",
-    "buyIn": "Худалдан авалт",
-    "maxPlayers": "Хамгийн их тоглогч",
+    "namePlaceholder": "Жишээ: VIP Lounge",
+    "blinds": "Blinds",
+    "buyIn": "Buy-in",
+    "maxPlayers": "Дээд тоглогч",
     "private": "Хувийн",
     "password": "Нууц үг",
-    "passwordPlaceholder": "Нууц үг оруулна уу",
-    "straddle": "Страддл",
+    "passwordPlaceholder": "Нууц үгээ оруул",
+    "straddle": "Straddle",
     "create": "Ширээ үүсгэх",
-    "subtitle": "Өөрийн холдем ширээг үүсгэнэ үү",
-    "enterName": "Ширээний нэрийг оруулна уу",
-    "inviteAdded": "Аль хэдийн урисан",
-    "maxInvites": "Хамгийн их {max} тоглогч",
-    "telegramInvite": "Telegram урилга (сонголтоор, хамгийн их 8)",
-    "telegramNotify": "Telegram мэдэгдэл илгээх",
+    "subtitle": "Өөрийн Hold'em ширээг үүсгэх",
+    "enterName": "Ширээний нэрээ оруулна уу",
+    "inviteAdded": "Аль хэдийн уригдсан",
+    "maxInvites": "Дээд {max} хүн",
+    "telegramInvite": "Telegram урилга (сонголт · дээд 8 хүн)",
+    "telegramNotify": "Telegram мэдэгдэл явуулах",
     "add": "Нэмэх",
-    "telegramBotNotice": "Telegram бот @username руу өрөөний линкийг DM илгээнэ",
-    "inviteOnlyOnCreate": "Зөвхөн өрөө үүсгэх үед урих боломжтой",
-    "buyInAuto": "Автомат: 20BB ~ 100BB",
-    "telegramIdFormat": "Telegram ID формат: @username (5-32 тэмдэгт, үсэг/тоо/_)"
+    "telegramBotNotice": "Telegram бот @username руу өрөөний холбоосыг DM илгээнэ",
+    "inviteOnlyOnCreate": "Урилга зөвхөн өрөө үүсгэх үед боломжтой",
+    "buyInAuto": "Авто: 20BB ~ 100BB",
+    "telegramIdFormat": "Telegram ID хэлбэр: @username (5-32 тэмдэгт, үсэг тоо/_)",
+    "privateLabel": "Хувийн өрөө (зөвхөн кодоор орно)",
+    "privateHelper": "⚙️ Лоббигийн жагсаалтаас нуугдсан. Найз урилгын модалын <b>өрөөний код</b>-той хүн л орж чадна.",
+    "inviteFriendsLabel": "Найзаа урих",
+    "inviteFriendsHelper": "Үүсгэсний дараа <b>«Найзаа урих»</b> модал автоматаар нээгдэж — өрөөний кодыг хуулж Telegram-аар хуваалцаж болно."
   },
   "buyInModal": {
-    "title": "Худалдан авах",
-    "min": "Хамгийн бага",
-    "max": "Хамгийн их",
+    "title": "Buy In",
+    "min": "Доод",
+    "max": "Дээд",
     "balance": "Үлдэгдэл",
-    "insufficientBalance": "Үлдэгдэл хүрэлцэхгүй байна",
-    "confirm": "Баталгаажуулах"
+    "insufficientBalance": "Үлдэгдэл хүрэлцэхгүй",
+    "confirm": "Buy In баталгаажуулах"
   },
   "profile": {
     "title": "Миний профайл",
-    "nickname": "Нэр",
-    "nicknameRule": "2-16 тэмдэгт",
+    "nickname": "Хоч",
+    "nicknameRule": "2-16 тэмдэгт (үсэг/тоо)",
     "avatar": "Аватар",
     "changeAvatar": "Аватар солих",
     "stats": "Статистик",
-    "hands": "Гар",
-    "won": "Ялсан",
-    "winRate": "Ялалтын %",
-    "net": "Цэвэр ашиг",
-    "handHistory": "Гарын түүх",
+    "hands": "Hand",
+    "won": "Хожсон",
+    "winRate": "% Хожил",
+    "net": "Цэвэр",
+    "handHistory": "Hand түүх",
     "fullProfile": "Бүрэн профайл",
-    "nicknameSaved": "Нэр хадгалагдлаа",
-    "avatarSaved": "Аватар хадгалагдлаа",
+    "nicknameSaved": "Хоч хадгалагдсан",
+    "avatarSaved": "Аватар хадгалагдсан",
     "pendingChanges": "Хадгалаагүй өөрчлөлт"
   },
   "settings": {
     "sound": "Дуу",
     "soundOn": "ON",
     "soundOff": "OFF",
-    "bgm": "Хөгжим",
-    "lobbyMusic": "Лобби хөгжим",
-    "volume": "Дууны түвшин",
+    "bgm": "BGM",
+    "lobbyMusic": "Лоббигийн хөгжим",
+    "volume": "Дууны хэмжээ",
     "language": "Хэл",
-    "theme": "Загвар"
+    "theme": "Загвар",
+    "nicknamePlaceholder": "2-16 тэмдэгт (Монгол/Англи/Тоо)",
+    "nicknameHelper": "Монгол, англи, тоо, зай, цэг/доогуур зураас/зураас оруулж болно · 2-16 тэмдэгт · шууд хадгалагдана",
+    "ownerRakeback": {
+      "title": "Эзний Rakeback",
+      "autoEarn": "({percent}% автоматаар цуглуулна)",
+      "pending": "Шаардсан",
+      "claimed": "Авсан",
+      "total": "Нийт цуглуулсан",
+      "claim": "💰 Хэтэвчинд авах",
+      "claimMin": "(хамгийн багадаа ₩1,000 хэрэгтэй)",
+      "helper": "Таны үүсгэсэн өрөөний rake-ийн {percent}% автоматаар цуглуулагдана"
+    },
+    "country": "Улс",
+    "countrySub": "(сонголт, аватарын хажууд туг)",
+    "tableFelt": "Ширээний өнгө",
+    "tableFeltSub": "(ширээний өнгө)",
+    "runItOnAllIn": "All-in үед board тоо"
   },
   "chat": {
     "title": "Чат",
-    "placeholder": "Мессеж бичих...",
+    "placeholder": "Зурвас бичих...",
     "send": "Илгээх"
   },
   "alert": {
     "insufficientBalance": "Үлдэгдэл хүрэлцэхгүй",
-    "connectionLost": "Холболт тасарлаа",
-    "reconnecting": "Дахин холбогдож байна...",
-    "reconnected": "Дахин холбогдлоо",
-    "kicked": "Та ширээнээс гарлаа",
-    "backgroundDetected": "Дэвсгэр илэрсэн — Автомат Sit Out",
-    "leaveConfirm": "Тоглоом үргэлжилж байна. Гарах уу?",
-    "afterHandLeave": "Гар дууссаны дараа гарна",
-    "tryAfterHand": "Энэ гар дууссаны дараа оролдоно уу",
-    "passwordRequired": "Нууц үг оруулна уу",
-    "passwordCancelled": "Нууц үг цуцлагдлаа",
-    "topUpAfterHand": "Гар дууссаны дараа цэнэглэх боломжтой"
+    "connectionLost": "Холболт тасарсан",
+    "reconnecting": "Дахин холбож байна...",
+    "reconnected": "Дахин холбогдсон",
+    "kicked": "Та ширээнээс хасагдсан",
+    "backgroundDetected": "Арын суурь илрүүлсэн — Авто Sit Out",
+    "leaveConfirm": "Тоглоом явагдаж байна. Гарах уу?",
+    "afterHandLeave": "Одоогийн hand-ийн дараа гарна",
+    "tryAfterHand": "Энэ hand дууссаны дараа оролдоно уу",
+    "passwordRequired": "Өрөөний нууц үгийг оруул",
+    "passwordCancelled": "Нууц үг цуцлагдсан",
+    "topUpAfterHand": "Одоогийн hand дууссаны дараа чип нэмж болно"
   },
   "timer": {
-    "timeBank": "ЦАГИЙН БАНК ашиглаж байна",
-    "seconds": "сек"
+    "timeBank": "TIME BANK Идэвхтэй",
+    "seconds": "с"
   },
   "error": {
-    "crashTitle": "Алдаа гарлаа",
-    "crashMessage": "Тоглоомд алдаа гарлаа",
+    "crashTitle": "Алдаа гарсан",
+    "crashMessage": "Тоглоомд алдаа гарсан",
     "retry": "Дахин оролдох",
     "goToLobby": "Лобби руу буцах",
     "networkError": "Сүлжээний алдаа"
   },
   "tournament": {
-    "title": "Тэмцээнүүд",
+    "title": "Тэмцээн",
     "comingSoon": "Тэмцээн удахгүй",
-    "comingSoonDesc": "MTT, Sit & Go, PKO болон бусад\nтэмцээний формат удахгүй нээгдэнэ!",
-    "weekendChampionship": "Амралтын аварга шалгаруулалт",
+    "comingSoonDesc": "MTT, Sit & Go, PKO болон өөр\nтэмцээний хэлбэрүүд удахгүй нээгдэнэ!",
+    "weekendChampionship": "Амралтын өдрийн аварга шалгаруулалт",
     "prizePool": "Баталгаатай шагналын сан",
     "registered": "бүртгүүлсэн",
-    "buyIn": "Худалдан авалт"
+    "buyIn": "Buy-in",
+    "headerBadge": "Тэмцээн",
+    "headerTitle": "Покер тэмцээн",
+    "headerSubtitle": "Баталгаатай шагналын сантай дээд зэрэглэлийн тэмцээн",
+    "heroDescription": "Долоо хоногийн хамгийн том тэмцээн",
+    "filterAll": "Бүгд",
+    "filterRegular": "Энгийн",
+    "filterTurbo": "Turbo",
+    "filterHyper": "Hyper",
+    "filterPKO": "Knockout",
+    "statusRegistering": "Бүртгэж байна",
+    "statusLive": "● Live",
+    "guaranteed": "Баталгаатай",
+    "players": "Тоглогч",
+    "start": "Эхлэх",
+    "starts": "Эхлэх",
+    "register": "Бүртгүүлэх",
+    "lateRegInfo": "Late Reg мэдээлэл",
+    "lateReg": "Late Reg",
+    "watchLive": "Шууд үзэх",
+    "rebuy": "Rebuy",
+    "viewDetails": "Дэлгэрэнгүй & Бүртгэх",
+    "noMatch": "Энэ шүүлтэд тохирох тэмцээн алга",
+    "registeringToast": "{name}-д бүртгэж байна…",
+    "registeredToast": "Бүртгэгдлээ!",
+    "startTime": "Эхлэх цаг",
+    "startingStack": "Эхлэх stack",
+    "left": "үлдсэн",
+    "filled": "% дүүрсэн"
   },
   "currency": {
     "krw": "₩",
     "usd": "$",
-    "usdt": "USDT",
-    "mnt": "₮"
+    "usdt": "USDT"
+  },
+  "manual": {
+    "game": {
+      "header": {
+        "title": "Texas Hold'em гарын авлага",
+        "subtitle": "Дээд зэрэглэлийн покер заавар",
+        "tournamentLink": "Тэмцээний заавар",
+        "toc": "Агуулга"
+      },
+      "labels": {
+        "advantage": "Давуу тал",
+        "odds": "Магадлал"
+      },
+      "sections": {
+        "basics": "Үндэс",
+        "positions": "Байрлал",
+        "rounds": "Бэт раунд",
+        "actions": "Үйлдэл",
+        "hands": "Hand зэрэглэл",
+        "strategies": "Стратеги",
+        "features": "Онцлог",
+        "etiquette": "Ёс зүй"
+      },
+      "basics": {
+        "title": "Texas Hold'em гэж юу вэ?",
+        "intro": "Дэлхийд хамгийн алдартай покер тоглоом. Тоглогч бүр <strong>2 hole карт</strong> авч, ширээний төв дунд <strong>5 нийтийн карт</strong> ил тавьдаг. 7 картаас хамгийн хүчтэй 5 картын хослолыг хийсэн тоглогч хождог.",
+        "stats": {
+          "playersLabel": "Тоглогч",
+          "playersValue": "2-9",
+          "typeLabel": "Тоглоомын төрөл",
+          "typeValue": "Cash Game",
+          "handLabel": "Нэг hand",
+          "handValue": "~1-3 минут"
+        },
+        "suits": "Картын суит",
+        "suitsNote": "* Texas Hold'em-д бүх суит ижил үнэ цэнэтэй",
+        "goalTitle": "🎯 Зорилго",
+        "goalText": "Зөвхөн сайн карт авах биш — <strong>өрсөлдөгчийг fold хийлгэх</strong> эсвэл <strong>хамгийн хүчтэй hand-аар showdown-д хожиж</strong> pot-ийг авах."
+      },
+      "positions": {
+        "title": "Байрлалын заавар",
+        "intro": "Байрлал нь Texas Hold'em-ийн хамгийн чухал ойлголт. Сүүлд үйлдэл хийх тусам мэдээлэл их, давуу талтай.",
+        "items": {
+          "btn": { "short": "Dealer", "desc": "Хамгийн давуу байрлал. Сүүлд үйлдэл. Бүх мэдээлэлтэйгээр шийдвэрлэнэ." },
+          "co": { "short": "Cutoff", "desc": "BTN-ийн өмнө. BTN-ний дараа хоёр дахь сайн байрлал. Wide open OK." },
+          "hj": { "short": "Hijack", "desc": "CO-ийн өмнө. Дунд байрлал. Зөвхөн сайн hand тоглох." },
+          "mp": { "short": "Дунд", "desc": "Дунд байрлал. Стандарт хүрээ." },
+          "utg": { "short": "Under The Gun", "desc": "Хамгийн муу үйлдлийн байрлал. Маш нягт тогло." },
+          "sb": { "short": "Small Blind", "desc": "BTN-ийн хажууд. Албадлагатай ½ bet. Postflop үргэлж first-to-act." },
+          "bb": { "short": "Big Blind", "desc": "Албадлагатай 1× bet. Үнэгүй flop үзэх сонголт. Wide хамгаал." }
+        }
+      },
+      "rounds": {
+        "title": "Бэт раунд",
+        "intro": "Нэг hand 5 үе шатаар явагдана.",
+        "items": {
+          "preflop": { "desc": "2 карт авах. UTG-ээс үйлдэл эхэлнэ.", "cards": "2 (hole)" },
+          "flop": { "desc": "3 нийтийн карт ил гарна. SB-аас үйлдэл.", "cards": "3 карт" },
+          "turn": { "desc": "4 дэх карт ил гарна. SB-аас үйлдэл.", "cards": "4 дэх" },
+          "river": { "desc": "5 дахь карт ил гарна. Сүүлчийн bet раунд.", "cards": "5 дахь" },
+          "showdown": { "desc": "Үлдсэн тоглогчид карт нээнэ. Хамгийн хүчтэй hand хождог.", "cards": "Нээх" }
+        }
+      },
+      "actions": {
+        "title": "Үйлдлүүд",
+        "intro": "Өөрийн ээлж дээр сонгож болох 5 үйлдэл.",
+        "items": {
+          "fold": { "short": "Fold", "desc": "Hand-ыг орхих. Чип алдахгүй. Энэ hand-аас гарна." },
+          "check": { "short": "Check", "desc": "Bet хийхгүй. Дараагийн тоглогч руу дамжуулна. (call хийх юм байхгүй үед л)" },
+          "call": { "short": "Call", "desc": "Өмнөх bet-тэй ижил хэмжээгээр bet хийнэ." },
+          "raise": { "short": "Raise", "desc": "Өмнөх bet-ээс илүү bet. Хамгийн багадаа 2 дахин." },
+          "allIn": { "short": "All-in", "desc": "Үлдсэн бүх чипээ bet хийнэ. Дахиж үйлдэл байхгүй." }
+        }
+      },
+      "hands": {
+        "title": "Hand зэрэглэл (хүчтэйгээс эхэлж)",
+        "intro": "10 hand хослол. Дээрээс доош сулаар.",
+        "items": {
+          "royalFlush": "Нэг суитын 10-J-Q-K-A",
+          "straightFlush": "Нэг суитын 5 дараалсан",
+          "fourOfAKindName": "Four of a Kind (Quads)",
+          "fourOfAKind": "Ижил тоотой 4 карт",
+          "fullHouse": "Three of a Kind + хос",
+          "flush": "Нэг суитын 5 карт",
+          "straight": "5 дараалсан (суит харгалзахгүй)",
+          "threeOfAKindName": "Three of a Kind (Trips)",
+          "threeOfAKind": "Ижил тоотой 3 карт",
+          "twoPair": "Хоёр хос",
+          "onePair": "Ижил тоотой 2 карт",
+          "highCard": "Хослол байхгүй"
+        }
+      },
+      "strategies": {
+        "title": "Анхан шатны стратеги",
+        "items": {
+          "tight": { "title": "Нягт эхлэх", "desc": "Зөвхөн сайн hand тогло. Хос, AK, AQ, AJ-д төвлөр." },
+          "position": { "title": "Байрлалыг ашиглах", "desc": "Хожуу байрлал (BTN, CO)-аас илүү hand тогло." },
+          "potOdds": { "title": "Pot Odds", "desc": "Call хийх ёстой / (Pot + call) = шаардлагатай хожих хувь." },
+          "noBluff": { "title": "Bluff-ыг хязгаарлах", "desc": "Анхан шатны хүн value-bet хийдэг. Bluff бол нөхцөл байдлыг ойлгосны дараа." },
+          "bankroll": { "title": "Банкроллын удирдлага", "desc": "Stack-ийн зөвхөн 5%-ыг л нэг удаа bet хий. Хэзээ ч хэт зариагүй." },
+          "observe": { "title": "Ажиглах", "desc": "Өрсөлдөгчдийг унш. Хэн нягт, хэн сул вэ?" },
+          "emotion": { "title": "Сэтгэл хөдлөлийн хяналт", "desc": "Tilt бол хамгийн муу дайсан. Том алдагдлын дараа амрах." }
+        }
+      },
+      "features": {
+        "title": "Онцлог функц",
+        "items": {
+          "cardSqueeze": { "title": "Card Squeeze", "desc": "Картаа чирэн аажмаар нээ — жинхэнэ казиногийн мэдрэмж." },
+          "timeBank": { "title": "Time Bank", "desc": "Том шийдвэрт нэмэлт цаг ашигла. 30с + бонус." },
+          "rabbitHunt": { "title": "Rabbit Hunt", "desc": "Hand дууссаны дараа нээгдээгүй картыг үзэх." },
+          "runItTwice": { "title": "Run It Twice", "desc": "All-in дээр board-ыг 2 удаа явуулна. Variance бууруулна." },
+          "insurance": { "title": "Insurance", "desc": "All-in дээр даатгал авна. Аюулгүй ашиг баталгаажуулна." },
+          "bombPot": { "title": "Bomb Pot", "desc": "Тодорхой hand дээр бүгдийг force-call → том pot." },
+          "provablyFair": { "title": "Provably Fair", "desc": "SHA256 шалгах боломжтой холих. Залилан боломжгүй." },
+          "spectate": { "title": "Үзэх горим", "desc": "Сууцалгүйгээр тоглоомыг үзэх." }
+        }
+      },
+      "etiquette": {
+        "title": "Тоглоомын ёс зүй",
+        "do": {
+          "fastAction": "Өөрийн ээлж дээр түргэн үйлдэл",
+          "showCards": "Showdown дээр картаа шууд нээ",
+          "greet": "Ялагчид \"GG\", \"NH\" гэх мэт мэндлэх",
+          "watchChat": "Үзэх горим дээр чатлахаас зайлсхий"
+        },
+        "dont": {
+          "slowRoll": "Slow-rolling (хожсон hand-аа санаатайгаар удаан нээх)",
+          "abuse": "Доромжлох/гутаах чат",
+          "discuss": "Hand явж байх үед бусдын картыг ярилцах",
+          "collusion": "Collusion (өөр тоглогчтой хуйвалдах)",
+          "tank": "Жижиг шийдвэрт цаг сунгах"
+        }
+      }
+    },
+    "tournament": {
+      "header": {
+        "title": "Тэмцээний гарын авлага",
+        "subtitle": "TETHER.BET HOLDEM тэмцээний бүрэн заавар",
+        "gameLink": "Тоглоомын заавар →"
+      },
+      "labels": {
+        "duration": "Үргэлжлэх хугацаа",
+        "interval": "Түвшний хугацаа",
+        "levels": "Нийт түвшин",
+        "multiplier": "Өсөлтийн хувь",
+        "strategy": "Стратеги",
+        "play": "✓ Тоглох арга",
+        "avoid": "✗ Зайлсхийх"
+      },
+      "sections": {
+        "types": "Төрлүүд",
+        "structure": "Blind бүтэц",
+        "stages": "Үе шат",
+        "icm": "ICM онол",
+        "prize": "Шагналын тарилт",
+        "rules": "Тусгай дүрэм",
+        "stack": "Stack удирдлага",
+        "strategy": "Үе шатын стратеги"
+      },
+      "types": {
+        "title": "Тэмцээний төрлүүд",
+        "intro": "6 үндсэн тэмцээний хэлбэрийг эзэмш.",
+        "items": {
+          "mtt": {
+            "desc": "Хэдэн арваас мянган тоглогчтой томоохон тэмцээн",
+            "duration": "4-12 цаг",
+            "f1": "Buy-in + хураамж", "f2": "Удаан blind өсөлт", "f3": "Final-table хүртэл", "f4": "Том шагналын сан"
+          },
+          "sng": {
+            "desc": "Дүүрсэн үед эхэлдэг ганц/жижиг ширээний тэмцээн",
+            "duration": "30 мин-2 цаг",
+            "f1": "6-9 тоглогчтой ганц ширээ", "f2": "Хурдан blind", "f3": "Дээд 30% мөнгөтэй", "f4": "Богино тоглох цаг"
+          },
+          "pko": {
+            "desc": "Хүн унагах тоолонд bounty хуримтлуулдаг тэмцээн",
+            "duration": "3-8 цаг",
+            "f1": "Buy-in-ийн 50% bounty", "f2": "KO үед хагасыг шууд олгоно", "f3": "Хагас нь толгой дээр нэмэгдэнэ", "f4": "Идэвхтэй тоглолтыг дэмжинэ"
+          },
+          "bountyHunter": {
+            "desc": "Тодорхой тоглогчдыг унагах үед bounty",
+            "duration": "3-6 цаг",
+            "f1": "Тогтмол bounty", "f2": "Бай систем", "f3": "Нэмэлт шагналын боломж", "f4": "Үндсэн сан + bounties"
+          },
+          "spinAndGo": {
+            "desc": "Санамсаргүй шагналын үржүүлэгчтэй 3 тоглогчийн SNG",
+            "duration": "5-15 мин",
+            "f1": "3 тоглогчийн hyper turbo", "f2": "Дээд 1000x шагнал", "f3": "Шууд эхлэх", "f4": "Сугалааны хэлбэрийн тэмцээн"
+          },
+          "freezeout": {
+            "desc": "Rebuy/addon байхгүй нэг боломжтой тэмцээн",
+            "duration": "2-6 цаг",
+            "f1": "Зөвхөн нэг entry", "f2": "Чип 0 болоход төгсөнө", "f3": "Бага эрсдэл", "f4": "Анхан шатанд тохиромжтой"
+          }
+        }
+      },
+      "structure": {
+        "title": "Blind бүтэц",
+        "intro": "4 стандарт blind хурдыг сурах.",
+        "items": {
+          "standard": { "name": "Standard", "interval": "20-30 мин", "multiplier": "1.3-1.5x", "desc": "Мэргэжлийн тэмцээний стандарт. Ур чадвар хамгийн их хамаарна." },
+          "turbo": { "name": "Turbo", "interval": "8-10 мин", "multiplier": "1.5x", "desc": "Хурдан хөдөлгөөнтэй, илүү variance." },
+          "hyperTurbo": { "name": "Hyper Turbo", "interval": "3-5 мин", "multiplier": "1.5-2x", "desc": "Маш хурдан. Push/fold төвлөрсөн." },
+          "deepStack": { "name": "Deep Stack", "interval": "30-60 мин", "multiplier": "1.25x", "desc": "200BB+ эхлэлийн stack. Postflop чухал." }
+        },
+        "exampleTitle": "Стандарт blind өсөлтийн жишээ"
+      },
+      "stages": {
+        "title": "Тэмцээний үе шат",
+        "intro": "Эхнээс ялалт хүртэл 6 үе шатын урсгал.",
+        "items": {
+          "early": { "name": "Эхэн (Early Stage)", "desc": "Deep stack тоглолт, аажмаар чип хуримтлуулна", "strategy": "Tight Aggressive" },
+          "middle": { "name": "Дунд (Middle Stage)", "desc": "Antes эхэлж, steal эхэлнэ", "strategy": "Байрлал ашиглах" },
+          "bubble": { "name": "Bubble", "desc": "Pre-ITM, дээд ICM дарамт", "strategy": "Богино stack-уудыг дарамтлах" },
+          "itm": { "name": "Мөнгөн доторх (ITM)", "desc": "Шагнал эхэлж, шатаар дээш", "strategy": "Сонгомол идэвхтэй" },
+          "ft": { "name": "Final Table", "desc": "Сүүлийн 9, том шагналын зөрүү", "strategy": "ICM-д суурилсан шийдвэр" },
+          "hu": { "name": "Heads-Up", "desc": "1v1 финал, ялагчийг шийднэ", "strategy": "Идэвхтэй" }
+        }
+      },
+      "icm": {
+        "title": "ICM (Independent Chip Model)",
+        "intro": "Тэмцээний хамгийн чухал математикийн ойлголт.",
+        "definitionTitle": "ICM гэж юу вэ?",
+        "definition": "ICM нь тэмцээний чип stack-ыг бодит мөнгөн үнэ цэнэ рүү хөрвүүлэх математик загвар юм. Cash game-ээс ялгаатай нь, чипийн үнэ цэнэ 1:1 БИШ — богино stack-ийн чип том stack-ийн чипээс илүү үнэтэй.",
+        "formula": "$EV = Σ (P[i дугаарт хүрэх] × Шагнал[i])",
+        "formulaNote": "// Дугаар бүрт хүрэх магадлал × шагнал",
+        "examplesTitle": "ICM хаана хамаарах",
+        "examples": {
+          "bubble": { "stack": "Bubble", "desc": "Дээд ICM дарамт. Чипийн үнэ ≠ шагналын үнэ.", "action": "Нягт тоглолт, том stack-аас зайлсхий" },
+          "ft": { "stack": "Final Table", "desc": "Шат бүрт том шагналын зөрүү", "action": "Call/push-ийн өмнө ICM тоол" },
+          "hu": { "stack": "Heads-Up", "desc": "Хамгийн бага ICM. Чип EV = $ EV", "action": "Идэвхтэй тоглолт OK" },
+          "shortStack": { "stack": "Богино stack", "desc": "Push/fold chart ашиглах", "action": "Nash Equilibrium-д суурилсан" }
+        },
+        "principlesTitle": "Үндсэн зарчим",
+        "principles": {
+          "p1": "Сүүлчийн BB > эхний BB (out = тоглоом дуусна)",
+          "p2": "KO дээрх алдсан EV үргэлж чип EV-ээс их",
+          "p3": "+cEV call ICM дор -$EV байж болно",
+          "p4": "Дунд stack хамгийн нягт, том/богино идэвхтэй тоглодог"
+        }
+      },
+      "prize": {
+        "title": "Шагналын тарилт",
+        "intro": "100 тоглогчийн MTT-ийн стандарт шагналын бүтэц.",
+        "tableTitle": "Стандарт шагналын хүснэгт",
+        "ranks": {
+          "r1": "1-р", "r2": "2-р", "r3": "3-р", "r4": "4-р", "r5": "5-р",
+          "r6to9": "6-9-р", "r10to18": "10-18-р", "r19plus": "19% доор",
+          "p1": "25-30%", "p2": "15-18%", "p3": "10-13%", "p4": "8-10%", "p5": "6-8%",
+          "p6to9": "тус бүр 3-5%", "p10to18": "тус бүр 1.5-2%", "p19plus": "тус бүр 1%"
+        },
+        "topHeavy": { "title": "Top-Heavy", "desc": "Шагнал дээд талд төвлөрсөн. WSOP, EPT гэх мэт томоохонд." },
+        "flat": { "title": "Flat", "desc": "Илүү тэгш тарилттай. ITM-д илүү олон хүрэх. Satellite-д ихэвчлэн ашигладаг." },
+        "formula": "Шагналын сан = Buy-in × тоглогч тоо - хураамж (ихэвчлэн 8-12%)",
+        "noteTopPercent": "Ихэвчлэн дээд 10-15% мөнгөн доторх",
+        "noteFt": "Эцсийн 9 нь нийт сангийн 70-80%-ыг авдаг",
+        "noteWinner": "Ялагч ганцаараа ~25-30% авдаг"
+      },
+      "rules": {
+        "title": "Тусгай дүрэм",
+        "intro": "Тэмцээний өвөрмөц 6 тусгай дүрэм.",
+        "items": {
+          "lateReg": { "name": "Late Registration", "desc": "Эхэлсний дараа хязгаарлагдсан хугацаанд бүртгэх", "detail": "Ихэвчлэн 5-8 түвшин хүртэл. Хожуу орох тусам эхлэлийн BB бага." },
+          "reentry": { "name": "Re-entry", "desc": "KO-ийн дараа дахин buy-in төлж дахин орох", "detail": "Ихэвчлэн 1-3 удаа дээд тал нь. Зөвхөн late reg цонхонд." },
+          "rebuy": { "name": "Re-buy", "desc": "Босгоос бага үед нэмэлт чип худалдан авах", "detail": "Зөвхөн rebuy үе. Stack эхлэлийнхээс бага байх ёстой." },
+          "addon": { "name": "Add-on", "desc": "Rebuy үеийн сүүлд нэг удаагийн худалдан авалт", "detail": "Stack харгалзахгүй бүх тоглогчид. Эхлэлийн 1.5-2 дахин." },
+          "handForHand": { "name": "Hand-for-Hand", "desc": "Bubble-ийн өмнө бүх ширээ нэг hand зэрэг тоглодог", "detail": "Зэрэг KO үед том stack илүү сайн зэрэгтэй. Шударга байдал баталгаажуулна." },
+          "syncBreak": { "name": "Synchronized Break", "desc": "Бүх тэмцээн нэгэн зэрэг амарна", "detail": "Ихэвчлэн цагт 5-10 мин. Угаалга, хоол, стратеги цаг." }
+        }
+      },
+      "stack": {
+        "title": "Stack-ын тоглоомын заавар",
+        "intro": "Stack-ийн хэмжээгээр 6 стратеги.",
+        "items": {
+          "deep": { "play": "Postflop голчлох. Implied odds ашиглах. Set-mining OK.", "avoid": "All-in зайлсхий, дунд хосыг анхаар" },
+          "standard": { "play": "Стандарт GTO. Бүх тоглолтын шугамууд боломжтой.", "avoid": "Үл бодсон 3-bet хамгаалалт" },
+          "medium": { "play": "Байрлалд суурилсан, 3-bet цөөн, SPR удирдах.", "avoid": "Deep-stack hand (жижиг хос, suited connector-ыг call хийх)" },
+          "short": { "play": "Open-shove OK. Re-shove chart ашигла.", "avoid": "Limp, min-raise, зөвхөн calling-only" },
+          "pushFold": { "play": "Зөвхөн Nash push/fold chart. Call байхгүй.", "avoid": "Postflop руу орох" },
+          "desperation": { "play": "Ямар ч хоёр карт push. Эхний нээгдсэн дээр shove.", "avoid": "Сүүлийн BB хүртэл хүлээх" }
+        },
+        "mRatioTitle": "M-Ratio томьёо",
+        "mRatioFormula": "M = Stack / (SB + BB + бүх antes)"
+      },
+      "strategy": {
+        "title": "Үе шатын стратегийн заавар",
+        "intro": "Эхэн үеэс heads-up хүртэлх үндсэн стратеги.",
+        "items": {
+          "early": {
+            "stage": "Эхэн (Early)", "bb": "100-200BB",
+            "tip1": "Зөвхөн дээд зэргийн hand (дээд 10%)",
+            "tip2": "Rebuy тэмцээнд илүү сул",
+            "tip3": "Ажиглалт: өрсөлдөгчдийг ангил (fish/reg)",
+            "tip4": "Set-mining via implied odds OK"
+          },
+          "middle": {
+            "stage": "Дунд (Middle)", "bb": "30-80BB",
+            "tip1": "Antes нэмэгдэж → илүү олон hand тогло",
+            "tip2": "Steal, re-steal-ыг идэвхтэй ашигла",
+            "tip3": "Богино stack-уудыг дарамтлах, том-аас зайлсхий",
+            "tip4": "Байрлалыг хамгийн дээдээр тавь"
+          },
+          "bubble": {
+            "stage": "Bubble", "bb": "15-30BB",
+            "tip1": "Дээд ICM дарамт — calling range нарийн",
+            "tip2": "Богино stack-аар олон удаа push",
+            "tip3": "Том stack-аар бүгдийг дарамтлах",
+            "tip4": "Дунд stack-аар KO-ыг ямар ч үнээр зайлсхий"
+          },
+          "itm": {
+            "stage": "ITM", "bb": "10-25BB",
+            "tip1": "Шатаар дээш — нэг шат = том мөнгө",
+            "tip2": "Богино stack-ийн KO-ыг хүлээх",
+            "tip3": "Сонгомол идэвхтэй (сонгосон тоглолт)",
+            "tip4": "ICM тооцоог толгойдоо эргүүлэх"
+          },
+          "ft": {
+            "stage": "Final Table", "bb": "хувьсах",
+            "tip1": "Шагналын зөрүүг ойлгох",
+            "tip2": "Deal-making OK (ICM/Chip-chop)",
+            "tip3": "Pre-HU нь дээд ICM дарамт",
+            "tip4": "Ялалт = нэр төр + хамгийн том шагнал"
+          },
+          "hu": {
+            "stage": "Heads-Up (HU)", "bb": "хувьсах",
+            "tip1": "ICM алга — идэвхтэй бай",
+            "tip2": "Button (SB) идэвхжил = 80%+",
+            "tip3": "Ямар ч хоёр карт үнэтэй",
+            "tip4": "Өрсөлдөгчийн сул талыг хурдан унш"
+          }
+        },
+        "victoryTitle": "Ялалтын 7 зарчим",
+        "victory": {
+          "p1": "Амьд үлдэх нь нэгдүгээрт — утгагүй чип утгагүй",
+          "p2": "Байрлал бол алт — өөрийнхийг үргэлж мэд",
+          "p3": "ICM дарамтыг ашигла — өрсөлдөгчдийг дарамтлах",
+          "p4": "Довтолгоо нь хамгийн сайн хамгаалалт — пассив = үхэл",
+          "p5": "Stack-аа үргэлж мэд — BB-ээр сэтгэ",
+          "p6": "Tilt-ээс зайлсхий — нэг hand тэмцээнийг сүйрүүлж чадна",
+          "p7": "Тэвчээр, шийдэмгий байдал тэнцвэртэй — хүлээгээд тэсэр"
+        }
+      }
+    }
+  },
+  "gameTable": {
+    "header": {
+      "watchingMode": "Үзэж байна",
+      "inviteFriends": "Найзаа урих",
+      "invite": "Урих",
+      "enterFullscreen": "Бүрэн дэлгэц",
+      "exitFullscreen": "Бүрэн дэлгэцээс гарах",
+      "moreMenu": "Илүү"
+    },
+    "menu": {
+      "recentHandsCount": "Сүүлийн 10 hand",
+      "history": "Hand түүх",
+      "topUp": "Чип нэмэх",
+      "changeSeat": "Сууц солих",
+      "preAction": "Pre-Action",
+      "waitBb": "BB хүлээх",
+      "rit": "Run It Twice",
+      "emoji": "Эможи",
+      "sitOut": "Сууцнаас гарах"
+    },
+    "sound": {
+      "title": "Дуу",
+      "gameSfx": "Тоглоомын дуу",
+      "muteOn": "🔊 ON",
+      "muteOff": "🔇 OFF",
+      "popupTitle": "🎵 Дуу",
+      "gameLabel": "🎮 Game",
+      "bgmLabel": "🎵 BGM"
+    },
+    "modal": {
+      "inviteTitle": "Найзаа урих",
+      "inviteDescription": "Нэг ширээнд урих (үзэгчтэй хамт дээд 8 хүн)",
+      "joinFirst": "Эхлээд өрөөнд нэгдээрэй",
+      "roomCode": "Өрөөний код (тогтмол)",
+      "copy": "Хуулах",
+      "telegramShare": "Telegram-аар хуваалцах",
+      "officialChannel": "Албан ёсны сувагт бүртгүүлэх",
+      "officialChannelDesc": "Шинэ ширээ · VIP арга хэмжээ авто мэдэгдэл",
+      "deepLinkTitle": "Нэг товчны урилгын линк (/start шаардлагагүй)",
+      "deepLinkHint": "Найз линк дар → Start товч нэг удаа дар → автоматаар орно.",
+      "deepLinkNote": "(тусгай данс холбох·гар /start шаардлагагүй)",
+      "roomLifeNote": "Өрөө амьд байх үед хүчинтэй · Хувийн өрөө лоббид харагдахгүй",
+      "inviteCopied": "Урилгын текст хуулсан",
+      "deepLinkCopied": "Deep link хуулсан — найзууддаа илгээ",
+      "copyFailed": "Хуулалт амжилтгүй",
+      "telegramShareTitle": "🃏 Hold'em өрөөний урилга",
+      "inGame": "Тоглоом явж байна!",
+      "leaveTable": "Ширээнээс гарах уу?",
+      "leaveSeatedDesc": "Сууцалж байхдаа гарвал чипийг автоматаар тооцно.\nHand явж байгаа бол fold болно.",
+      "leaveSpectatingDesc": "Үзэхээ дуусгаад лобби руу буцна.",
+      "leaveAfterHand": "Энэ hand дууссаны дараа гарна",
+      "leaveCancel": "Гарах захиалга цуцлагдсан",
+      "keepPlaying": "Үргэлжлүүлэх",
+      "leaveNow": "Одоо гарах",
+      "reserveLeave": "Hand-ын дараа гарах",
+      "handHistoryTitle": "Hand түүх",
+      "handHistoryCount": "Сүүлийн {count} hand тэмдэглэл",
+      "noHandHistory": "Одоогоор hand тоглоогүй",
+      "noHandHistoryHelper": "Тоглож эхэлбэл энд тэмдэглэгдэнэ",
+      "replay": "Дахин үзэх",
+      "playersCount": "Тоглогч ({count})",
+      "rabbitHunt": "Хэрэв төгсгөл хүртэл явсан бол",
+      "topUpTitle": "Чип нэмэх",
+      "topUpDescription": "Stack-ад илүү чип нэмэх. Зөвхөн hand-ийн хооронд боломжтой.",
+      "changeSeatTitle": "Сууц солих",
+      "changeSeatDescription": "Хоосон сууц сонго. Одоогийн hand дуустал хүлээнэ.",
+      "seatLabel": "Сууц {n}",
+      "seatYou": "(Та)",
+      "seatStatusCurrent": "Одоогийн",
+      "seatStatusEmpty": "Хоосон",
+      "seatStatusTaken": "Эзэлсэн",
+      "refreshSeats": "Хоосон сууц сэргээх"
+    },
+    "preAction": {
+      "title": "Pre-Action",
+      "description": "Таны ээлж ирэх үед автоматаар хийнэ"
+    },
+    "emoji": {
+      "reactions": "Хариу үйлдэл",
+      "actions": "Үйлдэл",
+      "taunts": "Доромжлох"
+    },
+    "showMuck": {
+      "prompt": "Картаа харуулах уу?",
+      "show": "Харуулах",
+      "muck": "Muck"
+    },
+    "cashOut": {
+      "title": "Cash Out боломжтой",
+      "description": "Showdown алгасч одоо эзэмшил хувийг авна",
+      "yourEquity": "Таны эзэмшил",
+      "amount": "Хэмжээ",
+      "fee": "Хураамж",
+      "confirm": "Cash Out",
+      "decline": "Үргэлжлүүлэх"
+    },
+    "topUp": {
+      "minAmount": "Хамгийн багадаа ₩50,000 оруул",
+      "requested": "Чип нэмэх хүсэлт: ₩{amount}"
+    },
+    "betting": {
+      "waitBbDesc": "Дараагийн BB таны сууцанд ирэх үед автоматаар нэгдэнэ. Шууд орохын тулд dead BB төлнө үү."
+    },
+    "alerts": {
+      "confirmLeave": "Тоглоом явж байна. Гарах уу?",
+      "awayReturn": "{seconds}с эзгүй байсны дараа буцсан"
+    },
+    "fairness": {
+      "currentSeedHash": "Одоогийн hand-ын серверийн seed hash (нийтэд)",
+      "previousReveal": "Өмнөх hand-ын ил seed (hash шалгах боломжтой)",
+      "explanation": "💡 SHA-256(serverSeed) === өмнөх hash нь сервер seed-ыг урьдчилан тогтоосон гэдгийг батлана (дараа залилан хийх боломжгүй)."
+    },
+    "defaults": {
+      "roomName": "Hold'em өрөө"
+    },
+    "invite": {
+      "messageHeader": "🃏 Hold'em найзыг урилга!",
+      "roomNameLabel": "Өрөөний нэр",
+      "roomCodeLabel": "Өрөөний код",
+      "messageHint": "👇 Доорх линкийг дарж шууд орно!",
+      "shareTitle": "🃏 Hold'em өрөөний урилга",
+      "shareTapLink": "Линк дарж шууд орно!"
+    },
+    "replay": {
+      "prev": "◀ Өмнөх",
+      "next": "Дараах ▶",
+      "auto": "Авто",
+      "winner": "🏆 WINNER"
+    },
+    "rabbit": {
+      "view": "Үзэх"
+    },
+    "drama": {
+      "badBeat": "😱 BAD BEAT!",
+      "cooler": "🧊 COOLER!"
+    }
   }
 }

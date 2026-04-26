@@ -670,7 +670,11 @@
     "sound": {
       "title": "Sound",
       "gameSfx": "Game SFX",
-      "bgm": "BGM"
+      "muteOn": "🔊 ON",
+      "muteOff": "🔇 OFF",
+      "popupTitle": "🎵 Sound",
+      "gameLabel": "🎮 Game",
+      "bgmLabel": "🎵 BGM"
     },
     "modal": {
       "inviteTitle": "Invite Friends",
@@ -774,13 +778,6 @@
     },
     "rabbit": {
       "view": "View"
-    },
-    "sound": {
-      "muteOn": "🔊 ON",
-      "muteOff": "🔇 OFF",
-      "popupTitle": "🎵 Sound",
-      "gameLabel": "🎮 Game",
-      "bgmLabel": "🎵 BGM"
     },
     "drama": {
       "badBeat": "😱 BAD BEAT!",

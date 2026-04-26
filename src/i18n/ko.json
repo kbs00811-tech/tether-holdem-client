@@ -688,7 +688,11 @@
     "sound": {
       "title": "사운드",
       "gameSfx": "게임 효과음",
-      "bgm": "배경음악"
+      "muteOn": "🔊 ON",
+      "muteOff": "🔇 OFF",
+      "popupTitle": "🎵 사운드",
+      "gameLabel": "🎮 Game",
+      "bgmLabel": "🎵 BGM"
     },
     "modal": {
       "inviteTitle": "친구 초대",
@@ -792,13 +796,6 @@
     },
     "rabbit": {
       "view": "보기"
-    },
-    "sound": {
-      "muteOn": "🔊 ON",
-      "muteOff": "🔇 OFF",
-      "popupTitle": "🎵 사운드",
-      "gameLabel": "🎮 Game",
-      "bgmLabel": "🎵 BGM"
     },
     "drama": {
       "badBeat": "😱 BAD BEAT!",

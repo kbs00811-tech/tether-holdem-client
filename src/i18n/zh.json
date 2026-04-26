@@ -19,15 +19,15 @@
   },
   "action": {
     "fold": "弃牌",
-    "check": "过牌",
+    "check": "看牌",
     "call": "跟注",
     "raise": "加注",
     "allIn": "全下",
     "bet": "下注",
-    "sitOut": "离座",
-    "sitIn": "入座",
-    "standUp": "站起",
-    "topUp": "补筹",
+    "sitOut": "暂离",
+    "sitIn": "回归",
+    "standUp": "离桌",
+    "topUp": "加码",
     "buyIn": "买入"
   },
   "game": {
@@ -36,41 +36,41 @@
     "dealing": "发牌中...",
     "showdown": "摊牌",
     "result": "结果",
-    "nextHand": "下一手准备中...",
+    "nextHand": "下一局即将开始...",
     "yourTurn": "轮到你了",
-    "spectating": "观战中 · 点击空座入座",
+    "spectating": "观战中 · 点击空位入座",
     "quickSit": "快速入座",
     "waitingForPlayers": "等待玩家...",
-    "waitingForAction": "等待操作...",
+    "waitingForAction": "等待动作...",
     "handNumber": "手牌",
     "pot": "底池",
     "mainPot": "主池",
     "sidePot": "边池",
-    "winner": "赢家",
+    "winner": "获胜者",
     "rake": "抽水",
-    "preflop": "翻前",
+    "preflop": "翻牌前",
     "flop": "翻牌",
     "turn": "转牌",
     "river": "河牌",
     "dealer": "庄家",
-    "smallBlind": "小盲",
-    "bigBlind": "大盲",
-    "ante": "前注"
+    "smallBlind": "SB",
+    "bigBlind": "BB",
+    "ante": "底注"
   },
   "lobby": {
-    "title": "德扑牌桌",
-    "tablesAvailable": "{count}个牌桌",
-    "create": "创建房间",
+    "title": "德州扑克牌桌",
+    "tablesAvailable": "{count}张牌桌",
+    "create": "创建",
     "join": "加入",
-    "full": "满员",
+    "full": "已满",
     "online": "在线",
     "tables": "牌桌",
     "active": "活跃",
-    "quickPlay": "快速开始",
+    "quickPlay": "快速游戏",
     "tournament": "锦标赛",
-    "gameManual": "游戏指南",
-    "tournamentManual": "锦标赛指南",
-    "comingSoon": "即将推出",
+    "gameManual": "游戏手册",
+    "tournamentManual": "锦标赛手册",
+    "comingSoon": "即将上线",
     "spectateEnter": "观战",
     "roomCreated": "房间创建成功",
     "tableIsFull": "牌桌已满",
@@ -79,38 +79,112 @@
     "gridView": "卡片视图",
     "beginner": "新手",
     "standard": "标准",
-    "highRoller": "豪客",
+    "highRoller": "高额",
     "headsUp": "单挑",
-    "vip": "VIP"
+    "vip": "VIP",
+    "labels": {
+      "roomCode": "🔑 房间代码",
+      "country": "🌍 国家",
+      "tableFelt": "🎨 牌桌颜色",
+      "telegramNotifications": "📱 Telegram 通知"
+    },
+    "placeholder": {
+      "roomCode": "8位邀请代码"
+    },
+    "helper": {
+      "countryHint": "(头像旁显示国旗)"
+    },
+    "table": {
+      "header": {
+        "table": "牌桌",
+        "blinds": "盲注",
+        "buyIn": "买入",
+        "players": "玩家",
+        "action": "动作"
+      }
+    },
+    "status": {
+      "live": "● LIVE"
+    },
+    "titles": {
+      "bgmOff": "BGM 关闭",
+      "bgmOn": "BGM 开启",
+      "selectMusic": "选择音乐",
+      "listView": "列表视图",
+      "gridView": "卡片视图",
+      "editNickname": "编辑昵称"
+    },
+    "telegram": {
+      "channelTitle": "订阅 Telegram 频道 · 新房间即时通知",
+      "channelDesc": "VIP 牌桌 · 活动公告优先获取",
+      "linkedWith": "● 已连接 {username}",
+      "desc": "即使关闭应用也能在 Telegram 接收轮次/胜利/邀请通知",
+      "linkButton": "📲 通过 Telegram 应用连接",
+      "linkHint": "点击按钮 → Telegram 打开后点击 [开始]\n完成后再打开个人资料确认连接",
+      "generatingLink": "🔄 正在生成连接链接...",
+      "unlinkConfirm": "解除 Telegram 连接吗?",
+      "unlinkButton": "解除连接",
+      "notif": {
+        "turn": "⏰ 轮到我了 (AFK 15秒+)",
+        "win": "🏆 获胜 / 大底池获得",
+        "allIn": "🔥 全下情况",
+        "invite": "🎯 房间加入请求 (房主)"
+      }
+    },
+    "toast": {
+      "telegramChannelPrompt": "📢 加入 Telegram 频道!",
+      "telegramChannelDesc": "第一时间获取新房间和 VIP 活动通知",
+      "privateRoomOnly": "🔒 私密房间 — 仅可使用房间代码进入",
+      "spectateEnter": "👁 观战 {name}",
+      "roomCreatingInvite": "\"{name}\" · 正在准备好友邀请...",
+      "invalidRoomCode": "房间代码必须是8位字母数字 (0-9, a-f)",
+      "serverConnecting": "等待服务器连接...",
+      "searchingRoom": "搜索房间中...",
+      "invalidCode": "❌ {message}",
+      "invalidCodeFallback": "房间代码无效 — 请检查后重试",
+      "countrySet": "🌍 国家 → {code}",
+      "countryUnset": "🌍 未选择国家",
+      "feltChanged": "牌桌颜色: {name}"
+    },
+    "buttons": {
+      "join": "加入",
+      "fullProfile": "完整资料",
+      "handHistory": "手牌历史",
+      "changeAvatar": "更换头像"
+    }
   },
   "createRoom": {
     "title": "创建房间",
     "roomName": "房间名称",
-    "namePlaceholder": "例: VIP包间",
+    "namePlaceholder": "例: VIP 包间",
     "blinds": "盲注",
     "buyIn": "买入",
     "maxPlayers": "最大人数",
     "private": "私密",
     "password": "密码",
     "passwordPlaceholder": "输入密码",
-    "straddle": "主动盲注",
+    "straddle": "Straddle",
     "create": "创建牌桌",
-    "subtitle": "创建属于你的德扑牌桌",
+    "subtitle": "创建你自己的德州扑克牌桌",
     "enterName": "请输入牌桌名称",
-    "inviteAdded": "已邀请过",
-    "maxInvites": "最多{max}人",
-    "telegramInvite": "Telegram邀请（可选，最多8人）",
-    "telegramNotify": "发送Telegram通知",
+    "inviteAdded": "已邀请",
+    "maxInvites": "最多 {max}人",
+    "telegramInvite": "Telegram 邀请 (可选 · 最多8人)",
+    "telegramNotify": "发送 Telegram 通知",
     "add": "添加",
-    "telegramBotNotice": "Telegram机器人将通过DM向@username发送房间链接",
-    "inviteOnlyOnCreate": "仅在创建房间时可以邀请",
+    "telegramBotNotice": "Telegram 机器人将通过 @username 发送房间链接 DM",
+    "inviteOnlyOnCreate": "仅可在创建房间时邀请",
     "buyInAuto": "自动: 20BB ~ 100BB",
-    "telegramIdFormat": "Telegram ID格式: @username（5~32字符，字母数字/_）"
+    "telegramIdFormat": "Telegram ID 格式: @username (5~32位字母数字/_)",
+    "privateLabel": "私密房间 (仅可通过房间代码进入)",
+    "privateHelper": "⚙️ 从大厅列表隐藏。仅持有好友邀请模态框中<b>房间代码</b>的人可进入。",
+    "inviteFriendsLabel": "好友邀请",
+    "inviteFriendsHelper": "创建房间后会自动打开<b>「好友邀请」</b>模态框,可复制房间代码并自动通过 Telegram 发送。"
   },
   "buyInModal": {
     "title": "买入",
-    "min": "最低",
-    "max": "最高",
+    "min": "最小",
+    "max": "最大",
     "balance": "余额",
     "insufficientBalance": "余额不足",
     "confirm": "确认买入"
@@ -118,29 +192,46 @@
   "profile": {
     "title": "我的资料",
     "nickname": "昵称",
-    "nicknameRule": "2-16个字符",
+    "nicknameRule": "2~16个字符 (字母/数字)",
     "avatar": "头像",
     "changeAvatar": "更换头像",
     "stats": "统计",
-    "hands": "手牌数",
+    "hands": "手牌",
     "won": "胜利",
     "winRate": "胜率",
-    "net": "净盈利",
-    "handHistory": "手牌记录",
-    "fullProfile": "详细资料",
+    "net": "净收益",
+    "handHistory": "手牌历史",
+    "fullProfile": "完整资料",
     "nicknameSaved": "昵称已保存",
     "avatarSaved": "头像已保存",
-    "pendingChanges": "有未保存的更改"
+    "pendingChanges": "未保存的更改"
   },
   "settings": {
     "sound": "声音",
-    "soundOn": "开",
-    "soundOff": "关",
-    "bgm": "背景音乐",
+    "soundOn": "ON",
+    "soundOff": "OFF",
+    "bgm": "BGM",
     "lobbyMusic": "大厅音乐",
     "volume": "音量",
     "language": "语言",
-    "theme": "主题"
+    "theme": "主题",
+    "nicknamePlaceholder": "2~16个字符 (中文/英文/数字)",
+    "nicknameHelper": "支持中文、英文、数字、空格、点/下划线/连字符 · 2~16字符 · 保存即时生效",
+    "ownerRakeback": {
+      "title": "房主返水",
+      "autoEarn": "({percent}% 自动返水)",
+      "pending": "未领取",
+      "claimed": "已领取",
+      "total": "累计获得",
+      "claim": "💰 领取到钱包",
+      "claimMin": "(最低 ₩1,000 才可领取)",
+      "helper": "你创建的房间产生的抽水的 {percent}% 自动返水"
+    },
+    "country": "国家",
+    "countrySub": "(可选,头像旁国旗)",
+    "tableFelt": "牌桌颜色",
+    "tableFeltSub": "(牌桌色彩)",
+    "runItOnAllIn": "全下时发牌次数"
   },
   "chat": {
     "title": "聊天",
@@ -149,41 +240,548 @@
   },
   "alert": {
     "insufficientBalance": "余额不足",
-    "connectionLost": "连接已断开",
-    "reconnecting": "重新连接中...",
-    "reconnected": "已重新连接",
-    "kicked": "您已被移出牌桌",
-    "backgroundDetected": "检测到后台运行 — 自动离座",
-    "leaveConfirm": "游戏进行中，确定离开吗？",
-    "afterHandLeave": "本手结束后自动离开",
-    "tryAfterHand": "请在本手结束后重试",
+    "connectionLost": "连接断开",
+    "reconnecting": "正在重连...",
+    "reconnected": "重连成功",
+    "kicked": "已被请离牌桌",
+    "backgroundDetected": "检测到后台 — 自动暂离",
+    "leaveConfirm": "游戏进行中。要离开吗?",
+    "afterHandLeave": "本局结束后自动离开",
+    "tryAfterHand": "请在本局结束后再试",
     "passwordRequired": "请输入房间密码",
     "passwordCancelled": "密码已取消",
-    "topUpAfterHand": "本手结束后可补筹"
+    "topUpAfterHand": "本局结束后可加码"
   },
   "timer": {
-    "timeBank": "时间银行使用中",
+    "timeBank": "TIME BANK 启动",
     "seconds": "秒"
   },
   "error": {
-    "crashTitle": "出现错误",
-    "crashMessage": "游戏发生错误",
+    "crashTitle": "出错了",
+    "crashMessage": "游戏中发生错误",
     "retry": "重试",
     "goToLobby": "返回大厅",
     "networkError": "网络错误"
   },
   "tournament": {
     "title": "锦标赛",
-    "comingSoon": "锦标赛即将推出",
-    "comingSoonDesc": "MTT、Sit & Go、PKO等\n多种锦标赛模式即将开放！",
-    "weekendChampionship": "周末冠军赛",
-    "prizePool": "保底奖池",
+    "comingSoon": "锦标赛即将上线",
+    "comingSoonDesc": "MTT、Sit & Go、PKO 等\n各类锦标赛形式即将开放!",
+    "weekendChampionship": "周末锦标赛",
+    "prizePool": "保证奖金池",
     "registered": "已报名",
-    "buyIn": "买入"
+    "buyIn": "买入",
+    "headerBadge": "锦标赛",
+    "headerTitle": "扑克锦标赛",
+    "headerSubtitle": "保证奖金池的高级锦标赛",
+    "heroDescription": "本周最大的锦标赛",
+    "filterAll": "全部",
+    "filterRegular": "常规",
+    "filterTurbo": "Turbo",
+    "filterHyper": "Hyper",
+    "filterPKO": "淘汰赛",
+    "statusRegistering": "报名中",
+    "statusLive": "● 直播",
+    "guaranteed": "保证",
+    "players": "玩家",
+    "start": "开始",
+    "starts": "开始时间",
+    "register": "报名",
+    "lateRegInfo": "迟到报名信息",
+    "lateReg": "迟到报名",
+    "watchLive": "观看直播",
+    "rebuy": "重买",
+    "viewDetails": "详情 & 报名",
+    "noMatch": "没有符合条件的锦标赛",
+    "registeringToast": "正在报名 {name}…",
+    "registeredToast": "报名成功!",
+    "startTime": "开始时间",
+    "startingStack": "起始筹码",
+    "left": "剩余",
+    "filled": "% 已填"
   },
   "currency": {
     "krw": "₩",
     "usd": "$",
     "usdt": "USDT"
+  },
+  "manual": {
+    "game": {
+      "header": {
+        "title": "德州扑克手册",
+        "subtitle": "高端扑克指南",
+        "tournamentLink": "锦标赛指南",
+        "toc": "目录"
+      },
+      "labels": {
+        "advantage": "优势度",
+        "odds": "概率"
+      },
+      "sections": {
+        "basics": "基础",
+        "positions": "位置",
+        "rounds": "下注轮",
+        "actions": "动作",
+        "hands": "牌型排名",
+        "strategies": "策略",
+        "features": "功能",
+        "etiquette": "礼仪"
+      },
+      "basics": {
+        "title": "什么是德州扑克?",
+        "intro": "世界上最受欢迎的扑克游戏。每个玩家收到<strong>2张底牌</strong>,牌桌中央公开<strong>5张公共牌</strong>。在7张牌中组成最强的5张牌组合的玩家获胜。",
+        "stats": {
+          "playersLabel": "人数",
+          "playersValue": "2~9人",
+          "typeLabel": "游戏类型",
+          "typeValue": "现金游戏",
+          "handLabel": "每局",
+          "handValue": "约1~3分钟"
+        },
+        "suits": "牌的花色",
+        "suitsNote": "* 德州扑克中所有花色等价 (相同价值)",
+        "goalTitle": "🎯 游戏目标",
+        "goalText": "不仅仅是拿到好牌,还要<strong>迫使对手弃牌</strong>或<strong>用最强牌型在摊牌中获胜</strong>来赢得底池。"
+      },
+      "positions": {
+        "title": "位置指南",
+        "intro": "位置是德州扑克中最重要的概念。后行动意味着信息更多,优势更大。",
+        "items": {
+          "btn": { "short": "庄家", "desc": "最有利的位置。最后行动。掌握所有信息后做决定。" },
+          "co": { "short": "Cutoff", "desc": "庄家前。仅次于 BTN 的好位置。可宽松开局。" },
+          "hj": { "short": "Hijack", "desc": "CO 前。中位。仅打好牌。" },
+          "mp": { "short": "中位", "desc": "中间位置。标准范围。" },
+          "utg": { "short": "枪口位", "desc": "最不利的行动位置。非常紧地玩。" },
+          "sb": { "short": "小盲注", "desc": "BTN 旁。强制下注 ½。翻后总是 first-to-act。" },
+          "bb": { "short": "大盲注", "desc": "强制下注 1×。免费看翻牌的选项。可宽松防守。" }
+        }
+      },
+      "rounds": {
+        "title": "下注轮",
+        "intro": "每局牌分为5个阶段。",
+        "items": {
+          "preflop": { "desc": "发2张牌。从 UTG 开始动作。", "cards": "2张 (底牌)" },
+          "flop": { "desc": "公开3张公共牌。从 SB 开始动作。", "cards": "3张公开" },
+          "turn": { "desc": "公开第4张牌。从 SB 开始动作。", "cards": "第4张" },
+          "river": { "desc": "公开第5张牌。最后下注轮。", "cards": "第5张" },
+          "showdown": { "desc": "剩余玩家亮牌。最强牌型获胜。", "cards": "亮牌" }
+        }
+      },
+      "actions": {
+        "title": "动作",
+        "intro": "轮到你时可选择的5种动作。",
+        "items": {
+          "fold": { "short": "弃牌", "desc": "放弃这手牌。不损失筹码。退出本局。" },
+          "check": { "short": "看牌", "desc": "不下注。传给下一玩家。(仅当无需跟注时)" },
+          "call": { "short": "跟注", "desc": "下注与上一注相同的金额。" },
+          "raise": { "short": "加注", "desc": "下注超过上一注。最少2倍。" },
+          "allIn": { "short": "全下", "desc": "下注剩余全部筹码。不再有动作。" }
+        }
+      },
+      "hands": {
+        "title": "牌型排名 (从强到弱)",
+        "intro": "10种牌型组合。从上至下逐渐变弱。",
+        "items": {
+          "royalFlush": "同花的 10-J-Q-K-A",
+          "straightFlush": "同花5张连续",
+          "fourOfAKindName": "Four of a Kind (四条)",
+          "fourOfAKind": "相同点数4张",
+          "fullHouse": "三条 + 一对",
+          "flush": "同花5张",
+          "straight": "5张连续 (花色无关)",
+          "threeOfAKindName": "Three of a Kind (三条)",
+          "threeOfAKind": "相同点数3张",
+          "twoPair": "两对",
+          "onePair": "相同点数2张",
+          "highCard": "无组合"
+        }
+      },
+      "strategies": {
+        "title": "新手策略",
+        "items": {
+          "tight": { "title": "紧打开局", "desc": "只玩好牌。以对子、AK、AQ、AJ 为主。" },
+          "position": { "title": "利用位置", "desc": "在后位 (BTN, CO) 玩更多牌。" },
+          "potOdds": { "title": "底池赔率", "desc": "跟注金额 / (底池 + 跟注) = 所需胜率。" },
+          "noBluff": { "title": "克制诈唬", "desc": "新手以价值为主。诈唬等熟悉局面后。" },
+          "bankroll": { "title": "资金管理", "desc": "每次只下筹码的5%。绝不冒险。" },
+          "observe": { "title": "观察", "desc": "把握对手模式。谁紧谁松?" },
+          "emotion": { "title": "情绪控制", "desc": "Tilt(失控)是最大敌人。大输后稍作休息。" }
+        }
+      },
+      "features": {
+        "title": "特殊功能",
+        "items": {
+          "cardSqueeze": { "title": "Card Squeeze", "desc": "拖动你的牌慢慢揭晓。真实赌场体验。" },
+          "timeBank": { "title": "Time Bank", "desc": "重要决定时使用额外时间。30秒 + 奖励时间。" },
+          "rabbitHunt": { "title": "Rabbit Hunt", "desc": "本局结束后查看未发的牌。" },
+          "runItTwice": { "title": "Run It Twice", "desc": "全下后发两轮牌。降低方差。" },
+          "insurance": { "title": "Insurance", "desc": "全下时购买保险。锁定安全收益。" },
+          "bombPot": { "title": "Bomb Pot", "desc": "特定手牌全员强制跟注 + 大底池。" },
+          "provablyFair": { "title": "Provably Fair", "desc": "可通过 SHA256 验证的洗牌。无法作弊。" },
+          "spectate": { "title": "观战模式", "desc": "无需入座即可观战。" }
+        }
+      },
+      "etiquette": {
+        "title": "游戏礼仪",
+        "do": {
+          "fastAction": "轮到自己快速行动",
+          "showCards": "摊牌时及时亮牌",
+          "greet": "向获胜者打招呼 \"GG\"、\"NH\"",
+          "watchChat": "观战时避免聊天"
+        },
+        "dont": {
+          "slowRoll": "Slow-roll (故意慢慢亮出胜牌)",
+          "abuse": "辱骂/侮辱聊天",
+          "discuss": "局中讨论他人的牌",
+          "collusion": "串通 (与其他玩家合谋)",
+          "tank": "拖延时间 (Tank)。除重要决定外快速"
+        }
+      }
+    },
+    "tournament": {
+      "header": {
+        "title": "锦标赛手册",
+        "subtitle": "TETHER.BET HOLDEM 锦标赛完全指南",
+        "gameLink": "游戏手册 →"
+      },
+      "labels": {
+        "duration": "时长",
+        "interval": "等级间隔",
+        "levels": "总等级数",
+        "multiplier": "增长率",
+        "strategy": "策略",
+        "play": "✓ 玩法",
+        "avoid": "✗ 避免"
+      },
+      "sections": {
+        "types": "类型",
+        "structure": "盲注结构",
+        "stages": "阶段",
+        "icm": "ICM 理论",
+        "prize": "奖金分配",
+        "rules": "特殊规则",
+        "stack": "筹码管理",
+        "strategy": "阶段策略"
+      },
+      "types": {
+        "title": "锦标赛类型",
+        "intro": "掌握6种主要锦标赛形式。",
+        "items": {
+          "mtt": {
+            "desc": "数十至数千人参与的大规模锦标赛",
+            "duration": "4~12小时",
+            "f1": "买入 + 服务费", "f2": "缓慢盲注上升", "f3": "进入终桌", "f4": "巨额奖金池"
+          },
+          "sng": {
+            "desc": "满员即开的单/小桌锦标赛",
+            "duration": "30分~2小时",
+            "f1": "6~9人单桌", "f2": "快速盲注", "f3": "前30%进入奖金圈", "f4": "短时游戏"
+          },
+          "pko": {
+            "desc": "每淘汰一人累积赏金的锦标赛",
+            "duration": "3~8小时",
+            "f1": "买入50%为赏金", "f2": "淘汰即支付一半", "f3": "另一半加在自己头上", "f4": "鼓励激进打法"
+          },
+          "bountyHunter": {
+            "desc": "击败特定玩家可获得赏金",
+            "duration": "3~6小时",
+            "f1": "固定赏金", "f2": "目标系统", "f3": "额外奖金机会", "f4": "主奖池 + 赏金"
+          },
+          "spinAndGo": {
+            "desc": "随机奖金倍数的3人 SNG",
+            "duration": "5~15分钟",
+            "f1": "3人超快", "f2": "最高1000倍奖金", "f3": "即时开始", "f4": "彩票型锦标赛"
+          },
+          "freezeout": {
+            "desc": "无重买/补码的一次性锦标赛",
+            "duration": "2~6小时",
+            "f1": "限1次入场", "f2": "出局即结束", "f3": "风险低", "f4": "适合新手"
+          }
+        }
+      },
+      "structure": {
+        "title": "盲注结构",
+        "intro": "了解4种标准盲注速度。",
+        "items": {
+          "standard": { "name": "Standard (标准)", "interval": "20~30分钟", "multiplier": "1.3~1.5x", "desc": "职业锦标赛标准。技术体现最充分。" },
+          "turbo": { "name": "Turbo", "interval": "8~10分钟", "multiplier": "1.5x", "desc": "快速进行,运气因素增加。" },
+          "hyperTurbo": { "name": "Hyper Turbo (超 Turbo)", "interval": "3~5分钟", "multiplier": "1.5~2x", "desc": "超高速进行。以推/弃为主。" },
+          "deepStack": { "name": "Deep Stack (深筹)", "interval": "30~60分钟", "multiplier": "1.25x", "desc": "200BB+ 起始筹码。翻后重要。" }
+        },
+        "exampleTitle": "标准盲注进程示例"
+      },
+      "stages": {
+        "title": "锦标赛阶段",
+        "intro": "从开始到夺冠的6阶段流程。",
+        "items": {
+          "early": { "name": "前期 (Early Stage)", "desc": "深筹打法,慢慢积累筹码", "strategy": "紧凶型" },
+          "middle": { "name": "中期 (Middle Stage)", "desc": "引入底注,开始偷盲", "strategy": "利用位置" },
+          "bubble": { "name": "泡沫期 (Bubble)", "desc": "进入奖金圈前夕,ICM 压力最大", "strategy": "压制短筹" },
+          "itm": { "name": "进入奖金圈 (ITM)", "desc": "进入奖金,逐级上升", "strategy": "选择性激进" },
+          "ft": { "name": "终桌", "desc": "最后9人,奖金差距大", "strategy": "基于 ICM 决策" },
+          "hu": { "name": "单挑", "desc": "1对1决赛,决定冠军", "strategy": "激进型" }
+        }
+      },
+      "icm": {
+        "title": "ICM (Independent Chip Model)",
+        "intro": "锦标赛中最重要的数学概念。",
+        "definitionTitle": "什么是 ICM?",
+        "definition": "ICM 是将锦标赛筹码量转换为实际现金价值的数学模型。与现金游戏不同,锦标赛中每枚筹码价值不同。短筹的筹码比大筹的筹码更有价值。",
+        "formula": "$EV = Σ (P[第 i 名] × 奖金[i])",
+        "formulaNote": "// 各名次到达概率 × 该奖金的总和",
+        "examplesTitle": "ICM 适用场景",
+        "examples": {
+          "bubble": { "stack": "泡沫期", "desc": "ICM 压力最大。筹码价值 ≠ 奖金价值", "action": "紧打,避开大筹" },
+          "ft": { "stack": "终桌", "desc": "每个等级奖金差距大", "action": "ICM 计算后决定跟注/推注" },
+          "hu": { "stack": "单挑", "desc": "ICM 影响最小。筹码 EV = 现金 EV", "action": "可激进打法" },
+          "shortStack": { "stack": "短筹", "desc": "使用推/弃图表", "action": "基于 Nash 均衡" }
+        },
+        "principlesTitle": "核心原则",
+        "principles": {
+          "p1": "最后 BB 的价值 > 第一个 BB 的价值 (淘汰 = 游戏结束)",
+          "p2": "淘汰损失的 EV 总是大于筹码 EV",
+          "p3": "由于 ICM,+cEV 跟注可能 -$EV",
+          "p4": "中筹最保守,大/短筹更激进"
+        }
+      },
+      "prize": {
+        "title": "奖金分配结构",
+        "intro": "100人 MTT 标准奖金分配。",
+        "tableTitle": "标准奖金分配表",
+        "ranks": {
+          "r1": "第1", "r2": "第2", "r3": "第3", "r4": "第4", "r5": "第5",
+          "r6to9": "第6~9", "r10to18": "第10~18", "r19plus": "19% 以下",
+          "p1": "25~30%", "p2": "15~18%", "p3": "10~13%", "p4": "8~10%", "p5": "6~8%",
+          "p6to9": "各 3~5%", "p10to18": "各 1.5~2%", "p19plus": "各 1%"
+        },
+        "topHeavy": { "title": "Top-Heavy 结构", "desc": "奖金集中于上位入围者。WSOP、EPT 等大型锦标赛。" },
+        "flat": { "title": "Flat 结构", "desc": "奖金相对均匀分配。更多人进入奖金圈。卫星赛常用。" },
+        "formula": "奖金池 = 买入 × 人数 - 服务费 (通常 8~12%)",
+        "noteTopPercent": "通常前 10~15% 进入奖金圈",
+        "noteFt": "终桌9人占总奖金池的 70~80%",
+        "noteWinner": "冠军独获约 25~30%"
+      },
+      "rules": {
+        "title": "特殊规则",
+        "intro": "锦标赛特有的6条特殊规则。",
+        "items": {
+          "lateReg": { "name": "Late Registration (迟到报名)", "desc": "锦标赛开始后一段时间内仍可报名", "detail": "通常至5~8级。报名越晚,起始筹码 BB 数越少。" },
+          "reentry": { "name": "Re-entry (重新报名)", "desc": "淘汰后再交买入重新参加", "detail": "通常限1~3次。仅在迟到报名期内。" },
+          "rebuy": { "name": "Re-buy (重买)", "desc": "筹码低于一定值时购买额外筹码", "detail": "仅在重买期内。筹码必须低于起始筹码。" },
+          "addon": { "name": "Add-on (补码)", "desc": "重买期结束时一次性额外购买", "detail": "无论筹码多少所有玩家可用。通常为起始筹码的1.5~2倍。" },
+          "handForHand": { "name": "Hand-for-Hand (同步发牌)", "desc": "泡沫期前所有桌同时进行一手牌", "detail": "同时淘汰时筹码多的人排名靠前。保证公平。" },
+          "syncBreak": { "name": "Synchronized Break (同步休息)", "desc": "整个锦标赛同时休息", "detail": "通常每小时5~10分钟。如厕、用餐、整理战略时间。" }
+        }
+      },
+      "stack": {
+        "title": "筹码管理指南",
+        "intro": "根据筹码量的6种策略。",
+        "items": {
+          "deep": { "play": "翻后中心。利用隐含赔率。可摸三条。", "avoid": "避免全下,小心中对" },
+          "standard": { "play": "标准 GTO 打法。所有路线可用。", "avoid": "盲目 3-bet 防守" },
+          "medium": { "play": "以位置为主,减少 3-bet 并管理 SPR。", "avoid": "深筹用手牌(小对、连张跟注)" },
+          "short": { "play": "可开局推注。利用反推图表。", "avoid": "limp、迷你加注、只跟注的打法" },
+          "pushFold": { "play": "仅使用 Nash 推/弃图表。不跟注。", "avoid": "进入翻后" },
+          "desperation": { "play": "任何两张牌都考虑推。第一个空场就全下。", "avoid": "等到最后一个 BB" }
+        },
+        "mRatioTitle": "M-Ratio 公式",
+        "mRatioFormula": "M = 我的筹码 / (SB + BB + 所有底注总和)"
+      },
+      "strategy": {
+        "title": "阶段策略指南",
+        "intro": "从前期到单挑的阶段核心策略。",
+        "items": {
+          "early": {
+            "stage": "前期 (Early)", "bb": "100~200BB",
+            "tip1": "只玩高级牌 (前10%)",
+            "tip2": "重买锦标赛可宽松些",
+            "tip3": "观察:把握对手类型 (鱼/规)",
+            "tip4": "可利用隐含赔率摸三条"
+          },
+          "middle": {
+            "stage": "中期 (Middle)", "bb": "30~80BB",
+            "tip1": "底注引入 → 玩更多手牌",
+            "tip2": "积极利用偷盲与反偷",
+            "tip3": "压制短筹,避开大筹",
+            "tip4": "位置最优先利用"
+          },
+          "bubble": {
+            "stage": "泡沫期 (Bubble)", "bb": "15~30BB",
+            "tip1": "ICM 压力最大 - 跟注范围窄",
+            "tip2": "短筹时频繁推",
+            "tip3": "大筹时压制全员",
+            "tip4": "中筹时绝对避免淘汰"
+          },
+          "itm": {
+            "stage": "进入奖金圈 (ITM)", "bb": "10~25BB",
+            "tip1": "逐级上升 - 一级 = 大钱",
+            "tip2": "等待短筹淘汰",
+            "tip3": "选择性激进 (精选打法)",
+            "tip4": "脑中转动 ICM 计算器"
+          },
+          "ft": {
+            "stage": "终桌", "bb": "变动",
+            "tip1": "认知各级奖金差距",
+            "tip2": "可提议 deal (ICM/Chip-chop)",
+            "tip3": "单挑前是最大 ICM 压力",
+            "tip4": "夺冠 = 荣誉 + 巨额奖金"
+          },
+          "hu": {
+            "stage": "单挑 (HU)", "bb": "变动",
+            "tip1": "ICM 影响消失 - 激进打法",
+            "tip2": "按钮 (SB) 激进度 = 80%+",
+            "tip3": "任意两张牌都有价值",
+            "tip4": "迅速发现对手弱点"
+          }
+        },
+        "victoryTitle": "夺冠的7原则",
+        "victory": {
+          "p1": "生存最优先 - 无意义的筹码无意义",
+          "p2": "位置是黄金 - 时刻意识位置",
+          "p3": "利用 ICM 压力 - 压制对手",
+          "p4": "进攻是最好的防守 - 被动 = 死亡",
+          "p5": "时刻意识筹码 - 以 BB 为单位思考",
+          "p6": "避免 tilt - 一手牌可毁掉锦标赛",
+          "p7": "耐心与决断的平衡 - 等待与爆发"
+        }
+      }
+    }
+  },
+  "gameTable": {
+    "header": {
+      "watchingMode": "观战中",
+      "inviteFriends": "好友邀请",
+      "invite": "邀请",
+      "enterFullscreen": "全屏",
+      "exitFullscreen": "退出全屏",
+      "moreMenu": "更多"
+    },
+    "menu": {
+      "recentHandsCount": "最近10局",
+      "history": "手牌历史",
+      "topUp": "加码",
+      "changeSeat": "换座",
+      "preAction": "预先动作",
+      "waitBb": "等待 BB",
+      "rit": "Run It Twice",
+      "emoji": "表情",
+      "sitOut": "暂离"
+    },
+    "sound": {
+      "title": "声音",
+      "gameSfx": "游戏音效",
+      "muteOn": "🔊 ON",
+      "muteOff": "🔇 OFF",
+      "popupTitle": "🎵 声音",
+      "gameLabel": "🎮 Game",
+      "bgmLabel": "🎵 BGM"
+    },
+    "modal": {
+      "inviteTitle": "好友邀请",
+      "inviteDescription": "邀请到同一牌桌 (含观战最多8人)",
+      "joinFirst": "请先进入房间",
+      "roomCode": "房间代码 (永久)",
+      "copy": "复制",
+      "telegramShare": "Telegram 分享",
+      "officialChannel": "订阅官方频道",
+      "officialChannelDesc": "新房间・VIP 活动自动通知",
+      "deepLinkTitle": "一键邀请链接 (无需 /start)",
+      "deepLinkHint": "好友点击链接 → 按一次开始就自动入场。",
+      "deepLinkNote": "(无需账户连接·无需手动 /start)",
+      "roomLifeNote": "房间存在期间有效 · 私密房间不在大厅显示",
+      "inviteCopied": "邀请文本已复制",
+      "deepLinkCopied": "深链接已复制 — 请发送给好友",
+      "copyFailed": "复制失败",
+      "telegramShareTitle": "🃏 德州扑克房间邀请",
+      "inGame": "游戏进行中!",
+      "leaveTable": "离开牌桌吗?",
+      "leaveSeatedDesc": "入座中离开会自动结算筹码。\n手牌进行中会被自动弃牌。",
+      "leaveSpectatingDesc": "结束观战返回大厅。",
+      "leaveAfterHand": "本局结束后自动离开",
+      "leaveCancel": "已取消离开预约",
+      "keepPlaying": "继续",
+      "leaveNow": "立即离开",
+      "reserveLeave": "本局后离开",
+      "handHistoryTitle": "手牌历史",
+      "handHistoryCount": "最近 {count} 局记录",
+      "noHandHistory": "尚未玩过任何手牌",
+      "noHandHistoryHelper": "进行游戏后会在这里记录",
+      "replay": "回放",
+      "playersCount": "玩家 ({count}人)",
+      "rabbitHunt": "如果发到底",
+      "topUpTitle": "加码",
+      "topUpDescription": "向筹码堆添加筹码。仅可在手牌之间。",
+      "changeSeatTitle": "换座",
+      "changeSeatDescription": "选择空位。需等待当前手牌结束。",
+      "seatLabel": "座位 {n}",
+      "seatYou": "(你)",
+      "seatStatusCurrent": "当前",
+      "seatStatusEmpty": "空位",
+      "seatStatusTaken": "占用",
+      "refreshSeats": "刷新空位"
+    },
+    "preAction": {
+      "title": "预先动作",
+      "description": "轮到自己时自动执行"
+    },
+    "emoji": {
+      "reactions": "反应",
+      "actions": "动作",
+      "taunts": "挑衅"
+    },
+    "showMuck": {
+      "prompt": "亮出你的牌吗?",
+      "show": "亮牌",
+      "muck": "盖牌"
+    },
+    "cashOut": {
+      "title": "可套现",
+      "description": "跳过摊牌,立即领取你的权益",
+      "yourEquity": "你的权益",
+      "amount": "金额",
+      "fee": "手续费",
+      "confirm": "套现",
+      "decline": "继续发牌"
+    },
+    "topUp": {
+      "minAmount": "请输入最低 ₩50,000 以上",
+      "requested": "加码请求: ₩{amount}"
+    },
+    "betting": {
+      "waitBbDesc": "下一个 BB 到达自己座位时自动入场。要立即入场请支付 dead BB。"
+    },
+    "alerts": {
+      "confirmLeave": "游戏进行中。仍要离开?",
+      "awayReturn": "{seconds}秒暂离后返回"
+    },
+    "fairness": {
+      "currentSeedHash": "当前手牌服务器种子哈希 (公开)",
+      "previousReveal": "上一手公开种子 (可哈希验证)",
+      "explanation": "💡 SHA-256(serverSeed) === 之前的哈希 证明服务器预先固定种子 (无法事后篡改)"
+    },
+    "defaults": {
+      "roomName": "德州扑克房间"
+    },
+    "invite": {
+      "messageHeader": "🃏 德州扑克好友邀请!",
+      "roomNameLabel": "房间名",
+      "roomCodeLabel": "房间代码",
+      "messageHint": "👇 点击下面链接立即入场!",
+      "shareTitle": "🃏 德州扑克房间邀请",
+      "shareTapLink": "点击链接立即入场!"
+    },
+    "replay": {
+      "prev": "◀ 上一步",
+      "next": "下一步 ▶",
+      "auto": "自动",
+      "winner": "🏆 WINNER"
+    },
+    "rabbit": {
+      "view": "查看"
+    },
+    "drama": {
+      "badBeat": "😱 BAD BEAT!",
+      "cooler": "🧊 COOLER!"
+    }
   }
 }

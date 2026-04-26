@@ -7,7 +7,7 @@
     "loading": "กำลังโหลด...",
     "error": "ข้อผิดพลาด",
     "success": "สำเร็จ",
-    "back": "กลับ",
+    "back": "ย้อนกลับ",
     "next": "ถัดไป",
     "yes": "ใช่",
     "no": "ไม่",
@@ -18,129 +18,220 @@
     "none": "ไม่มี"
   },
   "action": {
-    "fold": "พับ",
+    "fold": "ฟอลด์",
     "check": "เช็ค",
-    "call": "คอล",
-    "raise": "เรส",
+    "call": "คอลล์",
+    "raise": "เรซ",
     "allIn": "ออลอิน",
-    "bet": "เดิมพัน",
-    "sitOut": "ลุกจากที่นั่ง",
-    "sitIn": "กลับมานั่ง",
+    "bet": "เบ็ต",
+    "sitOut": "พักโต๊ะ",
+    "sitIn": "กลับเข้าโต๊ะ",
     "standUp": "ออกจากโต๊ะ",
     "topUp": "เติมชิป",
-    "buyIn": "ซื้อเข้า"
+    "buyIn": "บายอิน"
   },
   "game": {
-    "waiting": "รอ...",
+    "waiting": "กำลังรอ...",
     "playing": "กำลังเล่น",
-    "dealing": "กำลังแจก...",
+    "dealing": "กำลังแจกไพ่...",
     "showdown": "โชว์ดาวน์",
     "result": "ผลลัพธ์",
-    "nextHand": "มือถัดไปกำลังจะเริ่ม...",
-    "yourTurn": "ตาคุณ",
+    "nextHand": "เกมถัดไปกำลังเริ่ม...",
+    "yourTurn": "ตาคุณแล้ว",
     "spectating": "กำลังดู · คลิกที่นั่งว่างเพื่อนั่ง",
-    "quickSit": "นั่งเร็ว",
-    "waitingForPlayers": "รอผู้เล่น...",
-    "waitingForAction": "รอการกระทำ...",
-    "handNumber": "มือ",
-    "pot": "พ็อต",
-    "mainPot": "พ็อตหลัก",
-    "sidePot": "พ็อตข้าง",
+    "quickSit": "นั่งทันที",
+    "waitingForPlayers": "กำลังรอผู้เล่น...",
+    "waitingForAction": "กำลังรอการเดิมพัน...",
+    "handNumber": "เกมที่",
+    "pot": "พอต",
+    "mainPot": "พอตหลัก",
+    "sidePot": "ไซด์พอต",
     "winner": "ผู้ชนะ",
     "rake": "เรค",
     "preflop": "พรีฟล็อป",
     "flop": "ฟล็อป",
     "turn": "เทิร์น",
     "river": "ริเวอร์",
-    "dealer": "ดีลเลอร์",
+    "dealer": "เจ้ามือ",
     "smallBlind": "SB",
     "bigBlind": "BB",
-    "ante": "แอนที"
+    "ante": "แอนตี้"
   },
   "lobby": {
     "title": "โต๊ะโฮลเด็ม",
     "tablesAvailable": "{count} โต๊ะ",
-    "create": "สร้างห้อง",
+    "create": "สร้าง",
     "join": "เข้าร่วม",
     "full": "เต็ม",
     "online": "ออนไลน์",
     "tables": "โต๊ะ",
-    "active": "ใช้งาน",
-    "quickPlay": "เล่นเร็ว",
+    "active": "แอคทีฟ",
+    "quickPlay": "เล่นด่วน",
     "tournament": "ทัวร์นาเมนต์",
     "gameManual": "คู่มือเกม",
     "tournamentManual": "คู่มือทัวร์นาเมนต์",
-    "comingSoon": "เร็วๆ นี้",
+    "comingSoon": "เร็ว ๆ นี้",
     "spectateEnter": "ดู",
     "roomCreated": "สร้างห้องสำเร็จ",
-    "tableIsFull": "โต๊ะเต็ม",
+    "tableIsFull": "โต๊ะเต็มแล้ว",
     "noRoomsAvailable": "ไม่มีห้องว่าง",
     "listView": "มุมมองรายการ",
     "gridView": "มุมมองการ์ด",
     "beginner": "มือใหม่",
     "standard": "มาตรฐาน",
-    "highRoller": "ไฮโรลเลอร์",
+    "highRoller": "High Roller",
     "headsUp": "เฮดส์อัพ",
-    "vip": "VIP"
+    "vip": "VIP",
+    "labels": {
+      "roomCode": "🔑 รหัสห้อง",
+      "country": "🌍 ประเทศ",
+      "tableFelt": "🎨 สีโต๊ะ",
+      "telegramNotifications": "📱 การแจ้งเตือน Telegram"
+    },
+    "placeholder": {
+      "roomCode": "รหัสเชิญ 8 ตัวอักษร"
+    },
+    "helper": {
+      "countryHint": "(แสดงเป็นธงข้างอวาตาร์)"
+    },
+    "table": {
+      "header": {
+        "table": "โต๊ะ",
+        "blinds": "บลายด์",
+        "buyIn": "บายอิน",
+        "players": "ผู้เล่น",
+        "action": "การเดิมพัน"
+      }
+    },
+    "status": {
+      "live": "● LIVE"
+    },
+    "titles": {
+      "bgmOff": "ปิด BGM",
+      "bgmOn": "เปิด BGM",
+      "selectMusic": "เลือกเพลง",
+      "listView": "มุมมองรายการ",
+      "gridView": "มุมมองการ์ด",
+      "editNickname": "แก้ไขชื่อเล่น"
+    },
+    "telegram": {
+      "channelTitle": "สมัครช่อง Telegram · แจ้งเตือนห้องใหม่ทันที",
+      "channelDesc": "โต๊ะ VIP · ประกาศกิจกรรมก่อนใคร",
+      "linkedWith": "● เชื่อมต่อแล้ว {username}",
+      "desc": "รับการแจ้งเตือนตา/ชนะ/เชิญทาง Telegram แม้ปิดแอป",
+      "linkButton": "📲 เชื่อมต่อแอป Telegram",
+      "linkHint": "แตะปุ่ม → Telegram เปิดแล้วแตะ [Start]\nเสร็จแล้วเปิดโปรไฟล์อีกครั้งเพื่อยืนยัน",
+      "generatingLink": "🔄 กำลังสร้างลิงก์...",
+      "unlinkConfirm": "ยกเลิกการเชื่อมต่อ Telegram?",
+      "unlinkButton": "ยกเลิกเชื่อมต่อ",
+      "notif": {
+        "turn": "⏰ ตาของฉัน (AFK 15 วินาที+)",
+        "win": "🏆 ชนะ / ได้พอตใหญ่",
+        "allIn": "🔥 สถานการณ์ออลอิน",
+        "invite": "🎯 คำขอเข้าห้อง (โฮสต์)"
+      }
+    },
+    "toast": {
+      "telegramChannelPrompt": "📢 เข้าร่วมช่อง Telegram!",
+      "telegramChannelDesc": "รับการแจ้งเตือนห้องใหม่และกิจกรรม VIP เป็นกลุ่มแรก",
+      "privateRoomOnly": "🔒 ห้องส่วนตัว — เข้าได้เฉพาะรหัสห้องเท่านั้น",
+      "spectateEnter": "👁 กำลังดู {name}",
+      "roomCreatingInvite": "\"{name}\" · กำลังเตรียมเชิญเพื่อน...",
+      "invalidRoomCode": "รหัสห้องต้องเป็น 8 ตัวอักษรเลขหลัก (0-9, a-f)",
+      "serverConnecting": "กำลังรอเชื่อมต่อเซิร์ฟเวอร์...",
+      "searchingRoom": "กำลังค้นหาห้อง...",
+      "invalidCode": "❌ {message}",
+      "invalidCodeFallback": "รหัสห้องไม่ถูกต้อง — โปรดตรวจสอบและลองใหม่",
+      "countrySet": "🌍 ประเทศ → {code}",
+      "countryUnset": "🌍 ไม่ได้เลือกประเทศ",
+      "feltChanged": "สีโต๊ะ: {name}"
+    },
+    "buttons": {
+      "join": "เข้าร่วม",
+      "fullProfile": "โปรไฟล์เต็ม",
+      "handHistory": "ประวัติเกม",
+      "changeAvatar": "เปลี่ยนอวาตาร์"
+    }
   },
   "createRoom": {
     "title": "สร้างห้อง",
     "roomName": "ชื่อห้อง",
-    "namePlaceholder": "เช่น VIP เลาจน์",
-    "blinds": "ไบลนด์",
-    "buyIn": "ซื้อเข้า",
+    "namePlaceholder": "เช่น: VIP Lounge",
+    "blinds": "บลายด์",
+    "buyIn": "บายอิน",
     "maxPlayers": "ผู้เล่นสูงสุด",
     "private": "ส่วนตัว",
     "password": "รหัสผ่าน",
-    "passwordPlaceholder": "ใส่รหัสผ่าน",
-    "straddle": "สแตรดเดิล",
+    "passwordPlaceholder": "กรอกรหัสผ่าน",
+    "straddle": "Straddle",
     "create": "สร้างโต๊ะ",
-    "subtitle": "สร้างโต๊ะโฮลเด็มของคุณเอง",
-    "enterName": "กรุณาใส่ชื่อโต๊ะ",
+    "subtitle": "สร้างโต๊ะโฮลเด็มของคุณ",
+    "enterName": "กรุณากรอกชื่อโต๊ะ",
     "inviteAdded": "เชิญแล้ว",
     "maxInvites": "สูงสุด {max} คน",
-    "telegramInvite": "เชิญผ่าน Telegram (ไม่บังคับ, สูงสุด 8 คน)",
+    "telegramInvite": "เชิญผ่าน Telegram (เลือก · สูงสุด 8 คน)",
     "telegramNotify": "ส่งการแจ้งเตือน Telegram",
     "add": "เพิ่ม",
-    "telegramBotNotice": "บอท Telegram จะส่งลิงก์ห้องผ่าน DM ไปยัง @username",
-    "inviteOnlyOnCreate": "สามารถเชิญได้เฉพาะตอนสร้างห้องเท่านั้น",
+    "telegramBotNotice": "บอท Telegram จะส่งลิงก์ห้องไปยัง @username",
+    "inviteOnlyOnCreate": "เชิญได้เฉพาะตอนสร้างห้อง",
     "buyInAuto": "อัตโนมัติ: 20BB ~ 100BB",
-    "telegramIdFormat": "รูปแบบ Telegram ID: @username (5-32 ตัวอักษร, ตัวอักษร/ตัวเลข/_)"
+    "telegramIdFormat": "รูปแบบ Telegram ID: @username (5~32 ตัวอักษร เลขหลัก/_)",
+    "privateLabel": "ห้องส่วนตัว (เข้าได้เฉพาะรหัสห้อง)",
+    "privateHelper": "⚙️ ซ่อนจากรายการล็อบบี้ เข้าได้เฉพาะผู้ที่ได้รับ<b>รหัสห้อง</b>จากโมดัลเชิญเพื่อน",
+    "inviteFriendsLabel": "เชิญเพื่อน",
+    "inviteFriendsHelper": "หลังสร้างห้อง โมดัล<b>「เชิญเพื่อน」</b>จะเปิดอัตโนมัติ คัดลอกรหัสห้อง + ส่งทาง Telegram อัตโนมัติได้"
   },
   "buyInModal": {
-    "title": "ซื้อเข้า",
+    "title": "บายอิน",
     "min": "ต่ำสุด",
     "max": "สูงสุด",
     "balance": "ยอดเงิน",
-    "insufficientBalance": "ยอดเงินไม่เพียงพอ",
-    "confirm": "ยืนยันซื้อเข้า"
+    "insufficientBalance": "ยอดเงินไม่พอ",
+    "confirm": "ยืนยันบายอิน"
   },
   "profile": {
     "title": "โปรไฟล์ของฉัน",
     "nickname": "ชื่อเล่น",
-    "nicknameRule": "2-16 ตัวอักษร",
+    "nicknameRule": "2~16 ตัวอักษร (ตัวอักษร/เลข)",
     "avatar": "อวาตาร์",
     "changeAvatar": "เปลี่ยนอวาตาร์",
     "stats": "สถิติ",
-    "hands": "มือ",
+    "hands": "เกม",
     "won": "ชนะ",
-    "winRate": "อัตราชนะ",
-    "net": "กำไรสุทธิ",
-    "handHistory": "ประวัติมือ",
-    "fullProfile": "โปรไฟล์ทั้งหมด",
+    "winRate": "% ชนะ",
+    "net": "สุทธิ",
+    "handHistory": "ประวัติเกม",
+    "fullProfile": "โปรไฟล์เต็ม",
     "nicknameSaved": "บันทึกชื่อเล่นแล้ว",
     "avatarSaved": "บันทึกอวาตาร์แล้ว",
-    "pendingChanges": "มีการเปลี่ยนแปลงที่ยังไม่บันทึก"
+    "pendingChanges": "มีการเปลี่ยนแปลงที่ยังไม่ได้บันทึก"
   },
   "settings": {
     "sound": "เสียง",
-    "soundOn": "เปิด",
-    "soundOff": "ปิด",
-    "bgm": "เพลงพื้นหลัง",
+    "soundOn": "ON",
+    "soundOff": "OFF",
+    "bgm": "BGM",
     "lobbyMusic": "เพลงล็อบบี้",
     "volume": "ระดับเสียง",
     "language": "ภาษา",
-    "theme": "ธีม"
+    "theme": "ธีม",
+    "nicknamePlaceholder": "2~16 ตัวอักษร (ไทย/อังกฤษ/เลข)",
+    "nicknameHelper": "ใช้ภาษาไทย, อังกฤษ, เลข, ช่องว่าง, จุด/ขีดล่าง/ขีดกลาง · 2~16 ตัวอักษร · บันทึกทันที",
+    "ownerRakeback": {
+      "title": "Rakeback ของเจ้าของห้อง",
+      "autoEarn": "({percent}% สะสมอัตโนมัติ)",
+      "pending": "ยังไม่เคลม",
+      "claimed": "เคลมแล้ว",
+      "total": "สะสมทั้งหมด",
+      "claim": "💰 เคลมเข้ากระเป๋าเงิน",
+      "claimMin": "(ขั้นต่ำ ₩1,000)",
+      "helper": "{percent}% ของเรคที่เกิดในห้องที่คุณสร้างจะถูกสะสมอัตโนมัติ"
+    },
+    "country": "ประเทศ",
+    "countrySub": "(เลือก, ธงข้างอวาตาร์)",
+    "tableFelt": "สีโต๊ะ",
+    "tableFeltSub": "(สีของโต๊ะ)",
+    "runItOnAllIn": "จำนวนบอร์ดเมื่อออลอิน"
   },
   "chat": {
     "title": "แชท",
@@ -148,42 +239,549 @@
     "send": "ส่ง"
   },
   "alert": {
-    "insufficientBalance": "ยอดเงินไม่เพียงพอ",
+    "insufficientBalance": "ยอดเงินไม่พอ",
     "connectionLost": "การเชื่อมต่อขาด",
     "reconnecting": "กำลังเชื่อมต่อใหม่...",
-    "reconnected": "เชื่อมต่อใหม่แล้ว",
+    "reconnected": "เชื่อมต่อใหม่สำเร็จ",
     "kicked": "คุณถูกนำออกจากโต๊ะ",
-    "backgroundDetected": "ตรวจพบพื้นหลัง — ลุกอัตโนมัติ",
-    "leaveConfirm": "เกมกำลังดำเนินอยู่ ออกไหม?",
-    "afterHandLeave": "จะออกหลังจบมือนี้",
-    "tryAfterHand": "กรุณาลองหลังจบมือนี้",
-    "passwordRequired": "กรุณาใส่รหัสผ่านห้อง",
+    "backgroundDetected": "ตรวจพบพื้นหลัง — Sit Out อัตโนมัติ",
+    "leaveConfirm": "เกมกำลังดำเนินอยู่ ออก?",
+    "afterHandLeave": "จะออกหลังจากเกมปัจจุบัน",
+    "tryAfterHand": "โปรดลองหลังเกมปัจจุบันจบ",
+    "passwordRequired": "กรอกรหัสห้อง",
     "passwordCancelled": "ยกเลิกรหัสผ่าน",
-    "topUpAfterHand": "เติมชิปได้หลังจบมือนี้"
+    "topUpAfterHand": "เติมชิปได้หลังเกมปัจจุบันจบ"
   },
   "timer": {
-    "timeBank": "ไทม์แบงค์กำลังใช้งาน",
+    "timeBank": "TIME BANK เปิด",
     "seconds": "วินาที"
   },
   "error": {
     "crashTitle": "เกิดข้อผิดพลาด",
-    "crashMessage": "เกมเกิดข้อผิดพลาด",
+    "crashMessage": "เกิดข้อผิดพลาดในเกม",
     "retry": "ลองอีกครั้ง",
-    "goToLobby": "กลับล็อบบี้",
+    "goToLobby": "กลับไปล็อบบี้",
     "networkError": "ข้อผิดพลาดเครือข่าย"
   },
   "tournament": {
     "title": "ทัวร์นาเมนต์",
-    "comingSoon": "ทัวร์นาเมนต์กำลังมา",
-    "comingSoonDesc": "MTT, Sit & Go, PKO และอื่นๆ\nรูปแบบทัวร์นาเมนต์หลากหลายเปิดเร็วๆ นี้!",
-    "weekendChampionship": "วีกเอนด์แชมเปี้ยนชิพ",
+    "comingSoon": "ทัวร์นาเมนต์เร็ว ๆ นี้",
+    "comingSoonDesc": "MTT, Sit & Go, PKO และอื่น ๆ\nรูปแบบทัวร์นาเมนต์ต่าง ๆ จะเปิดเร็ว ๆ นี้!",
+    "weekendChampionship": "Weekend Championship",
     "prizePool": "เงินรางวัลรับประกัน",
     "registered": "ลงทะเบียนแล้ว",
-    "buyIn": "ซื้อเข้า"
+    "buyIn": "บายอิน",
+    "headerBadge": "ทัวร์นาเมนต์",
+    "headerTitle": "ทัวร์นาเมนต์โป๊กเกอร์",
+    "headerSubtitle": "ทัวร์นาเมนต์พรีเมียมพร้อมเงินรางวัลรับประกัน",
+    "heroDescription": "ทัวร์นาเมนต์ใหญ่ที่สุดของสัปดาห์",
+    "filterAll": "ทั้งหมด",
+    "filterRegular": "ทั่วไป",
+    "filterTurbo": "Turbo",
+    "filterHyper": "Hyper",
+    "filterPKO": "Knockout",
+    "statusRegistering": "กำลังลงทะเบียน",
+    "statusLive": "● Live",
+    "guaranteed": "รับประกัน",
+    "players": "ผู้เล่น",
+    "start": "เริ่ม",
+    "starts": "เริ่ม",
+    "register": "ลงทะเบียน",
+    "lateRegInfo": "ข้อมูล Late Reg",
+    "lateReg": "Late Reg",
+    "watchLive": "ดูสด",
+    "rebuy": "Rebuy",
+    "viewDetails": "รายละเอียด & ลงทะเบียน",
+    "noMatch": "ไม่พบทัวร์นาเมนต์ที่ตรงกัน",
+    "registeringToast": "กำลังลงทะเบียน {name}…",
+    "registeredToast": "ลงทะเบียนสำเร็จ!",
+    "startTime": "เวลาเริ่ม",
+    "startingStack": "ชิปเริ่มต้น",
+    "left": "เหลือ",
+    "filled": "% เต็ม"
   },
   "currency": {
     "krw": "₩",
     "usd": "$",
     "usdt": "USDT"
+  },
+  "manual": {
+    "game": {
+      "header": {
+        "title": "คู่มือ Texas Hold'em",
+        "subtitle": "คู่มือโป๊กเกอร์พรีเมียม",
+        "tournamentLink": "คู่มือทัวร์นาเมนต์",
+        "toc": "สารบัญ"
+      },
+      "labels": {
+        "advantage": "ความได้เปรียบ",
+        "odds": "อัตรา"
+      },
+      "sections": {
+        "basics": "พื้นฐาน",
+        "positions": "ตำแหน่ง",
+        "rounds": "รอบเดิมพัน",
+        "actions": "การเดิมพัน",
+        "hands": "อันดับไพ่",
+        "strategies": "กลยุทธ์",
+        "features": "ฟีเจอร์",
+        "etiquette": "มารยาท"
+      },
+      "basics": {
+        "title": "Texas Hold'em คืออะไร?",
+        "intro": "เกมโป๊กเกอร์ที่ได้รับความนิยมที่สุดในโลก ผู้เล่นแต่ละคนได้รับ<strong>ไพ่ในมือ 2 ใบ</strong> และ<strong>ไพ่ชุมชน 5 ใบ</strong>จะถูกเปิดกลางโต๊ะ ผู้เล่นที่ทำคอมโบ 5 ใบที่แข็งแกร่งที่สุดจาก 7 ใบจะเป็นผู้ชนะ",
+        "stats": {
+          "playersLabel": "จำนวนผู้เล่น",
+          "playersValue": "2~9 คน",
+          "typeLabel": "ประเภทเกม",
+          "typeValue": "Cash Game",
+          "handLabel": "ต่อเกม",
+          "handValue": "ประมาณ 1~3 นาที"
+        },
+        "suits": "ดอกของไพ่",
+        "suitsNote": "* ใน Texas Hold'em ดอกของไพ่ทั้งหมดมีค่าเท่ากัน",
+        "goalTitle": "🎯 เป้าหมายของเกม",
+        "goalText": "ไม่ใช่แค่ได้ไพ่ดี แต่ต้อง<strong>บังคับให้คู่ต่อสู้ฟอลด์</strong> หรือ<strong>ชนะในโชว์ดาวน์ด้วยไพ่ที่แข็งแกร่งที่สุด</strong>เพื่อเอาพอตไป"
+      },
+      "positions": {
+        "title": "คู่มือตำแหน่ง",
+        "intro": "ตำแหน่งคือแนวคิดที่สำคัญที่สุดใน Texas Hold'em ยิ่งเดิมพันทีหลังยิ่งมีข้อมูลมาก ได้เปรียบมาก",
+        "items": {
+          "btn": { "short": "ดีลเลอร์", "desc": "ตำแหน่งที่ดีที่สุด เดิมพันท้ายสุด ตัดสินใจด้วยข้อมูลครบถ้วน" },
+          "co": { "short": "Cutoff", "desc": "ก่อน BTN ตำแหน่งดีรองจาก BTN เปิดได้กว้าง" },
+          "hj": { "short": "Hijack", "desc": "ก่อน CO ตำแหน่งกลาง เล่นเฉพาะไพ่ดี" },
+          "mp": { "short": "กลาง", "desc": "ตำแหน่งกลาง ระยะมาตรฐาน" },
+          "utg": { "short": "Under The Gun", "desc": "ตำแหน่งเดิมพันแย่ที่สุด เล่นแน่นมาก" },
+          "sb": { "short": "Small Blind", "desc": "ข้าง BTN เดิมพันบังคับ ½ โพสต์ฟล็อปเป็น first-to-act เสมอ" },
+          "bb": { "short": "Big Blind", "desc": "เดิมพันบังคับ 1× ดูฟล็อปฟรีได้ ดิเฟนด์ wide" }
+        }
+      },
+      "rounds": {
+        "title": "รอบเดิมพัน",
+        "intro": "หนึ่งเกมแบ่งเป็น 5 ขั้น",
+        "items": {
+          "preflop": { "desc": "แจกไพ่ 2 ใบ เริ่มเดิมพันจาก UTG", "cards": "2 ใบ (ในมือ)" },
+          "flop": { "desc": "เปิดไพ่ชุมชน 3 ใบ เริ่มเดิมพันจาก SB", "cards": "เปิด 3 ใบ" },
+          "turn": { "desc": "เปิดไพ่ใบที่ 4 เริ่มเดิมพันจาก SB", "cards": "ใบที่ 4" },
+          "river": { "desc": "เปิดไพ่ใบที่ 5 รอบเดิมพันสุดท้าย", "cards": "ใบที่ 5" },
+          "showdown": { "desc": "ผู้เล่นที่เหลือเปิดไพ่ ไพ่แข็งที่สุดชนะ", "cards": "เปิดไพ่" }
+        }
+      },
+      "actions": {
+        "title": "การเดิมพัน",
+        "intro": "5 การเดิมพันที่เลือกได้ในตาของคุณ",
+        "items": {
+          "fold": { "short": "ฟอลด์", "desc": "ทิ้งไพ่ ไม่เสียชิป ออกจากเกมนี้" },
+          "check": { "short": "เช็ค", "desc": "ไม่เดิมพัน ผ่านไปคนต่อไป (เฉพาะเมื่อไม่มีเดิมพันให้คอลล์)" },
+          "call": { "short": "คอลล์", "desc": "เดิมพันจำนวนเท่ากับเดิมพันก่อนหน้า" },
+          "raise": { "short": "เรซ", "desc": "เดิมพันมากกว่าเดิมพันก่อนหน้า ขั้นต่ำ 2 เท่า" },
+          "allIn": { "short": "ออลอิน", "desc": "เดิมพันชิปทั้งหมดที่เหลือ ไม่มีการเดิมพันอีก" }
+        }
+      },
+      "hands": {
+        "title": "อันดับไพ่ (จากแข็งที่สุด)",
+        "intro": "10 คอมโบไพ่ จากบนลงล่างแข็งลดลง",
+        "items": {
+          "royalFlush": "10-J-Q-K-A ดอกเดียวกัน",
+          "straightFlush": "5 ใบเรียงต่อกัน ดอกเดียวกัน",
+          "fourOfAKindName": "Four of a Kind (โฟร์การ์ด)",
+          "fourOfAKind": "ตัวเลขเดียวกัน 4 ใบ",
+          "fullHouse": "ทริปเปิ้ล + คู่",
+          "flush": "ดอกเดียวกัน 5 ใบ",
+          "straight": "5 ใบเรียงต่อกัน (ไม่จำกัดดอก)",
+          "threeOfAKindName": "Three of a Kind (ทริปเปิ้ล)",
+          "threeOfAKind": "ตัวเลขเดียวกัน 3 ใบ",
+          "twoPair": "2 คู่",
+          "onePair": "ตัวเลขเดียวกัน 2 ใบ",
+          "highCard": "ไม่มีคอมโบ"
+        }
+      },
+      "strategies": {
+        "title": "กลยุทธ์มือใหม่",
+        "items": {
+          "tight": { "title": "เริ่มแบบแน่น", "desc": "เล่นเฉพาะไพ่ดี เน้นคู่, AK, AQ, AJ" },
+          "position": { "title": "ใช้ตำแหน่ง", "desc": "เล่นไพ่มากขึ้นในตำแหน่งหลัง (BTN, CO)" },
+          "potOdds": { "title": "Pot Odds", "desc": "จำนวนต้องคอลล์ / (พอต + คอลล์) = อัตราชนะที่ต้องการ" },
+          "noBluff": { "title": "ระวังการบลัฟ", "desc": "มือใหม่เน้นบาลู บลัฟหลังเข้าใจสถานการณ์" },
+          "bankroll": { "title": "จัดการแบงค์โรล", "desc": "เดิมพันแค่ 5% ของกองทีละครั้ง อย่าเสี่ยงเกินไป" },
+          "observe": { "title": "สังเกต", "desc": "จับรูปแบบคู่ต่อสู้ ใครแน่น ใครหลวม?" },
+          "emotion": { "title": "ควบคุมอารมณ์", "desc": "Tilt (อารมณ์ฉุน) เป็นศัตรูที่แย่ที่สุด พักเมื่อแพ้หนัก" }
+        }
+      },
+      "features": {
+        "title": "ฟีเจอร์พิเศษ",
+        "items": {
+          "cardSqueeze": { "title": "Card Squeeze", "desc": "ลากไพ่เพื่อค่อย ๆ เปิดดู ความรู้สึกคาสิโนจริง" },
+          "timeBank": { "title": "Time Bank", "desc": "ใช้เวลาเพิ่มในการตัดสินใจสำคัญ 30 วินาที + โบนัส" },
+          "rabbitHunt": { "title": "Rabbit Hunt", "desc": "ดูไพ่ที่ยังไม่เปิดหลังจบเกม" },
+          "runItTwice": { "title": "Run It Twice", "desc": "เปิดบอร์ด 2 ครั้งหลังออลอิน ลดความผันผวน" },
+          "insurance": { "title": "Insurance", "desc": "ซื้อประกันเมื่อออลอิน รับประกันกำไรปลอดภัย" },
+          "bombPot": { "title": "Bomb Pot", "desc": "บางเกมบังคับคอลล์ทั้งหมด → พอตใหญ่" },
+          "provablyFair": { "title": "Provably Fair", "desc": "การสับไพ่ที่ตรวจสอบได้ด้วย SHA256 โกงไม่ได้" },
+          "spectate": { "title": "โหมดดู", "desc": "ดูเกมโดยไม่ต้องนั่ง" }
+        }
+      },
+      "etiquette": {
+        "title": "มารยาทเกม",
+        "do": {
+          "fastAction": "เดิมพันรวดเร็วในตาของคุณ",
+          "showCards": "เปิดไพ่ทันทีในโชว์ดาวน์",
+          "greet": "ทักทายผู้ชนะด้วย \"GG\", \"NH\"",
+          "watchChat": "หลีกเลี่ยงแชทในโหมดดู"
+        },
+        "dont": {
+          "slowRoll": "Slow-rolling (ตั้งใจเปิดไพ่ชนะช้า ๆ)",
+          "abuse": "แชทด่าทอ/ดูถูก",
+          "discuss": "พูดคุยไพ่คนอื่นระหว่างเกม",
+          "collusion": "การสมคบ (ร่วมมือกับผู้เล่นอื่น)",
+          "tank": "ถ่วงเวลา (Tank) นอกจากการตัดสินใจสำคัญ"
+        }
+      }
+    },
+    "tournament": {
+      "header": {
+        "title": "คู่มือทัวร์นาเมนต์",
+        "subtitle": "คู่มือทัวร์นาเมนต์ TETHER.BET HOLDEM ครบเครื่อง",
+        "gameLink": "คู่มือเกม →"
+      },
+      "labels": {
+        "duration": "ระยะเวลา",
+        "interval": "ช่วงเลเวล",
+        "levels": "เลเวลรวม",
+        "multiplier": "อัตราเพิ่ม",
+        "strategy": "กลยุทธ์",
+        "play": "✓ การเล่น",
+        "avoid": "✗ หลีกเลี่ยง"
+      },
+      "sections": {
+        "types": "ประเภท",
+        "structure": "โครงสร้างบลายด์",
+        "stages": "ขั้นตอน",
+        "icm": "ทฤษฎี ICM",
+        "prize": "การแบ่งเงินรางวัล",
+        "rules": "กฎพิเศษ",
+        "stack": "การจัดการกอง",
+        "strategy": "กลยุทธ์ตามขั้น"
+      },
+      "types": {
+        "title": "ประเภททัวร์นาเมนต์",
+        "intro": "ฝึกฝน 6 รูปแบบทัวร์นาเมนต์หลัก",
+        "items": {
+          "mtt": {
+            "desc": "ทัวร์นาเมนต์ขนาดใหญ่ที่มีผู้เล่นหลายสิบถึงหลายพันคน",
+            "duration": "4~12 ชั่วโมง",
+            "f1": "ค่าเข้า + ค่าธรรมเนียม", "f2": "บลายด์ขึ้นช้า", "f3": "ไปถึงไฟนัลเทเบิล", "f4": "เงินรางวัลใหญ่"
+          },
+          "sng": {
+            "desc": "ทัวร์นาเมนต์โต๊ะเดียว/ขนาดเล็กเริ่มเมื่อเต็ม",
+            "duration": "30 นาที~2 ชม",
+            "f1": "โต๊ะเดียว 6~9 คน", "f2": "บลายด์เร็ว", "f3": "30% บนเข้าเงิน", "f4": "เวลาเล่นสั้น"
+          },
+          "pko": {
+            "desc": "ทัวร์นาเมนต์ที่บาวน์ตี้สะสมทุกครั้งที่กำจัด",
+            "duration": "3~8 ชั่วโมง",
+            "f1": "ค่าเข้า 50% เป็นบาวน์ตี้", "f2": "จ่ายครึ่งทันทีเมื่อ KO", "f3": "อีกครึ่งเพิ่มที่หัวตัวเอง", "f4": "ส่งเสริมการเล่นรุก"
+          },
+          "bountyHunter": {
+            "desc": "จ่ายบาวน์ตี้เมื่อล้มผู้เล่นเฉพาะ",
+            "duration": "3~6 ชั่วโมง",
+            "f1": "บาวน์ตี้คงที่", "f2": "ระบบเป้าหมาย", "f3": "โอกาสเงินรางวัลเพิ่ม", "f4": "พูลหลัก + บาวน์ตี้"
+          },
+          "spinAndGo": {
+            "desc": "SNG 3 คนพร้อมตัวคูณเงินรางวัลสุ่ม",
+            "duration": "5~15 นาที",
+            "f1": "Hyper Turbo 3 คน", "f2": "เงินรางวัลสูงสุด 1000 เท่า", "f3": "เริ่มทันที", "f4": "ทัวร์นาเมนต์แบบลอตเตอรี่"
+          },
+          "freezeout": {
+            "desc": "ทัวร์นาเมนต์ครั้งเดียว — ไม่มี rebuy หรือ addon",
+            "duration": "2~6 ชั่วโมง",
+            "f1": "เข้าได้ครั้งเดียว", "f2": "ออกที่ชิป 0", "f3": "ความเสี่ยงน้อย", "f4": "เหมาะกับมือใหม่"
+          }
+        }
+      },
+      "structure": {
+        "title": "โครงสร้างบลายด์",
+        "intro": "เรียนรู้ 4 ความเร็วบลายด์มาตรฐาน",
+        "items": {
+          "standard": { "name": "Standard (มาตรฐาน)", "interval": "20~30 นาที", "multiplier": "1.3~1.5x", "desc": "มาตรฐานทัวร์นาเมนต์มืออาชีพ ใช้ทักษะได้เต็มที่" },
+          "turbo": { "name": "Turbo", "interval": "8~10 นาที", "multiplier": "1.5x", "desc": "ดำเนินเร็ว ปัจจัยโชคเพิ่ม" },
+          "hyperTurbo": { "name": "Hyper Turbo", "interval": "3~5 นาที", "multiplier": "1.5~2x", "desc": "ดำเนินเร็วสุด เน้น push/fold" },
+          "deepStack": { "name": "Deep Stack", "interval": "30~60 นาที", "multiplier": "1.25x", "desc": "กองเริ่ม 200BB+ โพสต์ฟล็อปสำคัญ" }
+        },
+        "exampleTitle": "ตัวอย่างการดำเนินบลายด์มาตรฐาน"
+      },
+      "stages": {
+        "title": "ขั้นตอนทัวร์นาเมนต์",
+        "intro": "การไหลใน 6 ขั้นตอนตั้งแต่เริ่มจนชนะ",
+        "items": {
+          "early": { "name": "ต้น (Early Stage)", "desc": "เล่นแบบ Deep Stack สะสมชิปช้า ๆ", "strategy": "Tight Aggressive" },
+          "middle": { "name": "กลาง (Middle Stage)", "desc": "แอนตี้เริ่ม เริ่ม steal", "strategy": "ใช้ตำแหน่ง" },
+          "bubble": { "name": "Bubble", "desc": "ก่อนเข้าเงิน แรงดัน ICM สูงสุด", "strategy": "กดดันกองสั้น" },
+          "itm": { "name": "เข้าเงิน (ITM)", "desc": "เข้าเงินรางวัล เลื่อนขั้น", "strategy": "Aggressive แบบเลือก" },
+          "ft": { "name": "ไฟนัลเทเบิล", "desc": "9 คนสุดท้าย ช่องว่างเงินรางวัลใหญ่", "strategy": "ตัดสินใจตาม ICM" },
+          "hu": { "name": "เฮดส์อัพ", "desc": "1v1 รอบสุดท้าย ตัดสินผู้ชนะ", "strategy": "Aggressive" }
+        }
+      },
+      "icm": {
+        "title": "ICM (Independent Chip Model)",
+        "intro": "แนวคิดทางคณิตศาสตร์ที่สำคัญที่สุดในทัวร์นาเมนต์",
+        "definitionTitle": "ICM คืออะไร?",
+        "definition": "ICM คือโมเดลคณิตศาสตร์ที่แปลงกองชิปทัวร์นาเมนต์เป็นค่าเงินสดจริง ต่างจากเกมเงินสด ค่าชิปไม่เท่ากัน ชิปกองสั้นมีค่ามากกว่าชิปกองใหญ่",
+        "formula": "$EV = Σ (P[ถึงอันดับที่ i] × รางวัล[i])",
+        "formulaNote": "// ความน่าจะเป็นถึงแต่ละอันดับ × รางวัลรวม",
+        "examplesTitle": "สถานการณ์ที่ใช้ ICM",
+        "examples": {
+          "bubble": { "stack": "Bubble", "desc": "แรงดัน ICM สูงสุด ค่าชิป ≠ ค่ารางวัล", "action": "เล่นแน่น หลีกเลี่ยงกองใหญ่" },
+          "ft": { "stack": "ไฟนัลเทเบิล", "desc": "ช่องว่างเงินรางวัลใหญ่ในแต่ละขั้น", "action": "คำนวณ ICM ก่อนคอลล์/พุช" },
+          "hu": { "stack": "เฮดส์อัพ", "desc": "ผลกระทบ ICM น้อยที่สุด ชิป EV = เงินสด EV", "action": "เล่นรุกได้" },
+          "shortStack": { "stack": "กองสั้น", "desc": "ใช้ตาราง push/fold", "action": "ตาม Nash Equilibrium" }
+        },
+        "principlesTitle": "หลักการสำคัญ",
+        "principles": {
+          "p1": "ค่า BB สุดท้าย > ค่า BB แรก (ออก = จบเกม)",
+          "p2": "EV เสียเมื่อ KO มากกว่าชิป EV เสมอ",
+          "p3": "ด้วย ICM คอลล์ +cEV อาจกลายเป็น -$EV",
+          "p4": "กองกลางเล่นแน่นที่สุด, กองใหญ่/สั้นเล่นรุก"
+        }
+      },
+      "prize": {
+        "title": "โครงสร้างการแบ่งเงินรางวัล",
+        "intro": "การแบ่งเงินรางวัลมาตรฐาน MTT 100 คน",
+        "tableTitle": "ตารางการแบ่งเงินรางวัลมาตรฐาน",
+        "ranks": {
+          "r1": "อันดับ 1", "r2": "อันดับ 2", "r3": "อันดับ 3", "r4": "อันดับ 4", "r5": "อันดับ 5",
+          "r6to9": "อันดับ 6~9", "r10to18": "อันดับ 10~18", "r19plus": "ต่ำกว่า 19%",
+          "p1": "25~30%", "p2": "15~18%", "p3": "10~13%", "p4": "8~10%", "p5": "6~8%",
+          "p6to9": "แต่ละ 3~5%", "p10to18": "แต่ละ 1.5~2%", "p19plus": "แต่ละ 1%"
+        },
+        "topHeavy": { "title": "โครงสร้าง Top-Heavy", "desc": "เงินรางวัลรวมที่ผู้เข้าอันดับสูง WSOP, EPT ฯลฯ ทัวร์นาเมนต์ใหญ่" },
+        "flat": { "title": "โครงสร้าง Flat", "desc": "เงินรางวัลแบ่งค่อนข้างเท่ากัน คนเข้าเงินมากกว่า ใช้ใน satellite บ่อย" },
+        "formula": "เงินรางวัลรวม = ค่าเข้า × จำนวนคน - ค่าธรรมเนียม (ปกติ 8~12%)",
+        "noteTopPercent": "ปกติ 10~15% บนเข้าเงิน",
+        "noteFt": "9 คนไฟนัลเทเบิลได้ 70~80% ของเงินรางวัลรวม",
+        "noteWinner": "ผู้ชนะคนเดียวได้ประมาณ 25~30%"
+      },
+      "rules": {
+        "title": "กฎพิเศษ",
+        "intro": "6 กฎพิเศษเฉพาะทัวร์นาเมนต์",
+        "items": {
+          "lateReg": { "name": "Late Registration (ลงทะเบียนช้า)", "desc": "ลงทะเบียนได้แม้ทัวร์นาเมนต์เริ่มแล้วในเวลาจำกัด", "detail": "ปกติถึงเลเวล 5~8 ลงทะเบียนช้าจำนวน BB กองเริ่มน้อยลง" },
+          "reentry": { "name": "Re-entry (เข้าใหม่)", "desc": "หลัง KO จ่ายค่าเข้าใหม่เพื่อเข้าอีก", "detail": "ปกติจำกัด 1~3 ครั้ง เฉพาะในช่วง Late Reg" },
+          "rebuy": { "name": "Re-buy (ซื้อใหม่)", "desc": "ซื้อชิปเพิ่มเมื่อกองต่ำกว่าเกณฑ์", "detail": "เฉพาะช่วง rebuy เมื่อชิปต่ำกว่ากองเริ่ม" },
+          "addon": { "name": "Add-on (เพิ่ม)", "desc": "ซื้อเพิ่มครั้งเดียวเมื่อ rebuy หมด", "detail": "ใช้ได้ทุกคนไม่ว่าชิปเท่าไร 1.5~2 เท่าของกองเริ่ม" },
+          "handForHand": { "name": "Hand-for-Hand", "desc": "ก่อน Bubble ทุกโต๊ะเล่นพร้อมกันทีละมือ", "detail": "เมื่อ KO พร้อมกันคนชิปมากกว่าได้อันดับสูงกว่า รับประกันความยุติธรรม" },
+          "syncBreak": { "name": "Synchronized Break (พักพร้อมกัน)", "desc": "ทั้งทัวร์นาเมนต์พักพร้อมกัน", "detail": "ปกติ 5~10 นาทีต่อชั่วโมง ห้องน้ำ อาหาร เวลาจัดกลยุทธ์" }
+        }
+      },
+      "stack": {
+        "title": "คู่มือเล่นตามกอง",
+        "intro": "6 กลยุทธ์ตามขนาดกอง",
+        "items": {
+          "deep": { "play": "เน้นโพสต์ฟล็อป ใช้ implied odds เซ็ตไมน์ได้", "avoid": "หลีกเลี่ยงออลอิน ระวังคู่กลาง" },
+          "standard": { "play": "เล่น GTO มาตรฐาน ทุกแนวทางเล่นได้", "avoid": "ดิเฟนด์ 3-bet ไร้แผน" },
+          "medium": { "play": "เน้นตำแหน่ง ลด 3-bet จัดการ SPR", "avoid": "ไพ่กองลึก (คู่เล็ก, suited connector คอลล์)" },
+          "short": { "play": "เปิดพุชได้ ใช้ตาราง re-shove", "avoid": "limp, mini raise, การเล่นคอลล์อย่างเดียว" },
+          "pushFold": { "play": "ใช้ตาราง Nash push/fold เท่านั้น ไม่คอลล์", "avoid": "เข้าโพสต์ฟล็อป" },
+          "desperation": { "play": "ไพ่สองใบไหนก็พิจารณาพุช ออลอินที่ตัวแรกที่ว่าง", "avoid": "รอจนถึง BB สุดท้าย" }
+        },
+        "mRatioTitle": "สูตร M-Ratio",
+        "mRatioFormula": "M = กองของฉัน / (SB + BB + แอนตี้รวม)"
+      },
+      "strategy": {
+        "title": "คู่มือกลยุทธ์ตามขั้น",
+        "intro": "กลยุทธ์หลักตามขั้นตั้งแต่ต้นถึงเฮดส์อัพ",
+        "items": {
+          "early": {
+            "stage": "ต้น (Early)", "bb": "100~200BB",
+            "tip1": "เล่นเฉพาะไพ่พรีเมียม (10% บน)",
+            "tip2": "ทัวร์นาเมนต์ rebuy หลวมขึ้น",
+            "tip3": "สังเกต: จับประเภทคู่ต่อสู้ (fish/reg)",
+            "tip4": "เซ็ตไมน์ผ่าน implied odds ได้"
+          },
+          "middle": {
+            "stage": "กลาง (Middle)", "bb": "30~80BB",
+            "tip1": "แอนตี้เริ่ม → เล่นไพ่มากขึ้น",
+            "tip2": "ใช้ steal และ re-steal อย่างกระตือรือร้น",
+            "tip3": "กดดันกองสั้น หลีกเลี่ยงกองใหญ่",
+            "tip4": "ใช้ตำแหน่งเป็นอันดับแรก"
+          },
+          "bubble": {
+            "stage": "Bubble", "bb": "15~30BB",
+            "tip1": "แรงดัน ICM สูงสุด - ระยะคอลล์แคบ",
+            "tip2": "พุชบ่อยเมื่อกองสั้น",
+            "tip3": "กดดันทุกคนเมื่อกองใหญ่",
+            "tip4": "หลีกเลี่ยง KO อย่างเด็ดขาดเมื่อกองกลาง"
+          },
+          "itm": {
+            "stage": "ITM", "bb": "10~25BB",
+            "tip1": "เลื่อนขั้น - 1 ขั้น = เงินก้อนใหญ่",
+            "tip2": "รอกองสั้น KO",
+            "tip3": "Aggressive แบบเลือก (เลือกเฉพาะ)",
+            "tip4": "หมุน ICM calc ในหัว"
+          },
+          "ft": {
+            "stage": "ไฟนัลเทเบิล", "bb": "ผันผวน",
+            "tip1": "รับรู้ช่องว่างเงินรางวัลแต่ละขั้น",
+            "tip2": "ทำ deal ได้ (ICM/Chip-chop)",
+            "tip3": "ก่อนเฮดส์อัพคือแรงดัน ICM สูงสุด",
+            "tip4": "ชนะ = เกียรติยศ + เงินรางวัลใหญ่"
+          },
+          "hu": {
+            "stage": "เฮดส์อัพ (HU)", "bb": "ผันผวน",
+            "tip1": "ผลกระทบ ICM หาย - เล่นรุก",
+            "tip2": "Button (SB) aggression = 80%+",
+            "tip3": "ไพ่สองใบไหนก็มีค่า",
+            "tip4": "จับจุดอ่อนคู่ต่อสู้รวดเร็ว"
+          }
+        },
+        "victoryTitle": "7 หลักการชนะ",
+        "victory": {
+          "p1": "เอาตัวรอดอันดับแรก - ชิปไร้ความหมายไม่มีค่า",
+          "p2": "ตำแหน่งคือทอง - รับรู้ตำแหน่งตลอด",
+          "p3": "ใช้แรงดัน ICM - กดดันคู่ต่อสู้",
+          "p4": "การโจมตีคือการป้องกันที่ดีที่สุด - passive = ตาย",
+          "p5": "รับรู้กองตลอด - คิดเป็นหน่วย BB",
+          "p6": "หลีกเลี่ยง tilt - 1 มือทำลายทัวร์นาเมนต์ได้",
+          "p7": "สมดุลระหว่างความอดทนและการตัดสินใจ - รอแล้วระเบิด"
+        }
+      }
+    }
+  },
+  "gameTable": {
+    "header": {
+      "watchingMode": "กำลังดู",
+      "inviteFriends": "เชิญเพื่อน",
+      "invite": "เชิญ",
+      "enterFullscreen": "เต็มจอ",
+      "exitFullscreen": "ออกเต็มจอ",
+      "moreMenu": "อื่น ๆ"
+    },
+    "menu": {
+      "recentHandsCount": "10 เกมล่าสุด",
+      "history": "ประวัติเกม",
+      "topUp": "เติมชิป",
+      "changeSeat": "เปลี่ยนที่นั่ง",
+      "preAction": "Pre-Action",
+      "waitBb": "รอ BB",
+      "rit": "Run It Twice",
+      "emoji": "อิโมจิ",
+      "sitOut": "พักโต๊ะ"
+    },
+    "sound": {
+      "title": "เสียง",
+      "gameSfx": "เสียงเอฟเฟกต์เกม",
+      "muteOn": "🔊 ON",
+      "muteOff": "🔇 OFF",
+      "popupTitle": "🎵 เสียง",
+      "gameLabel": "🎮 Game",
+      "bgmLabel": "🎵 BGM"
+    },
+    "modal": {
+      "inviteTitle": "เชิญเพื่อน",
+      "inviteDescription": "เชิญเข้าโต๊ะเดียวกัน (รวมดูสูงสุด 8 คน)",
+      "joinFirst": "กรุณาเข้าห้องก่อน",
+      "roomCode": "รหัสห้อง (ถาวร)",
+      "copy": "คัดลอก",
+      "telegramShare": "แชร์ Telegram",
+      "officialChannel": "สมัครช่องอย่างเป็นทางการ",
+      "officialChannelDesc": "การแจ้งเตือนห้องใหม่ · กิจกรรม VIP อัตโนมัติ",
+      "deepLinkTitle": "ลิงก์เชิญแตะครั้งเดียว (ไม่ต้อง /start)",
+      "deepLinkHint": "เพื่อนแตะลิงก์ → กด Start ครั้งเดียวจะเข้าอัตโนมัติ",
+      "deepLinkNote": "(ไม่ต้องเชื่อมบัญชีแยก·ไม่ต้องพิมพ์ /start เอง)",
+      "roomLifeNote": "ใช้ได้ขณะห้องยังอยู่ · ห้องส่วนตัวไม่แสดงในรายการล็อบบี้",
+      "inviteCopied": "คัดลอกข้อความเชิญแล้ว",
+      "deepLinkCopied": "คัดลอก deep link แล้ว — ส่งให้เพื่อน",
+      "copyFailed": "คัดลอกล้มเหลว",
+      "telegramShareTitle": "🃏 เชิญห้องโฮลเด็ม",
+      "inGame": "เกมกำลังดำเนินอยู่!",
+      "leaveTable": "ออกจากโต๊ะ?",
+      "leaveSeatedDesc": "ออกขณะนั่งจะคืนชิปอัตโนมัติ\nระหว่างเกมจะถูกฟอลด์อัตโนมัติ",
+      "leaveSpectatingDesc": "หยุดดูและกลับล็อบบี้",
+      "leaveAfterHand": "ออกอัตโนมัติหลังเกมนี้จบ",
+      "leaveCancel": "ยกเลิกการออกแล้ว",
+      "keepPlaying": "เล่นต่อ",
+      "leaveNow": "ออกทันที",
+      "reserveLeave": "ออกหลังเกม",
+      "handHistoryTitle": "ประวัติเกม",
+      "handHistoryCount": "บันทึก {count} เกมล่าสุด",
+      "noHandHistory": "ยังไม่ได้เล่นเกมใด",
+      "noHandHistoryHelper": "เกมที่เล่นจะแสดงที่นี่",
+      "replay": "เล่นซ้ำ",
+      "playersCount": "ผู้เล่น ({count} คน)",
+      "rabbitHunt": "ถ้าเล่นต่อจนจบ",
+      "topUpTitle": "เติมชิป",
+      "topUpDescription": "เพิ่มชิปในกอง ทำได้เฉพาะระหว่างเกม",
+      "changeSeatTitle": "เปลี่ยนที่นั่ง",
+      "changeSeatDescription": "เลือกที่นั่งว่าง ต้องรอเกมปัจจุบันจบ",
+      "seatLabel": "ที่นั่ง {n}",
+      "seatYou": "(คุณ)",
+      "seatStatusCurrent": "ปัจจุบัน",
+      "seatStatusEmpty": "ว่าง",
+      "seatStatusTaken": "นั่งอยู่",
+      "refreshSeats": "รีเฟรชที่นั่งว่าง"
+    },
+    "preAction": {
+      "title": "Pre-Action",
+      "description": "ดำเนินอัตโนมัติเมื่อถึงตาคุณ"
+    },
+    "emoji": {
+      "reactions": "ปฏิกิริยา",
+      "actions": "การเดิมพัน",
+      "taunts": "ยั่วยุ"
+    },
+    "showMuck": {
+      "prompt": "เปิดไพ่ของคุณ?",
+      "show": "เปิด",
+      "muck": "Muck"
+    },
+    "cashOut": {
+      "title": "Cash Out ได้",
+      "description": "ข้ามโชว์ดาวน์ รับ equity ทันที",
+      "yourEquity": "Equity ของคุณ",
+      "amount": "จำนวน",
+      "fee": "ค่าธรรมเนียม",
+      "confirm": "Cash Out",
+      "decline": "เล่นต่อ"
+    },
+    "topUp": {
+      "minAmount": "กรอกขั้นต่ำ ₩50,000",
+      "requested": "คำขอเติมชิป: ₩{amount}"
+    },
+    "betting": {
+      "waitBbDesc": "เข้าอัตโนมัติเมื่อ BB ถึงที่นั่งคุณ จ่าย dead BB เพื่อเข้าทันที"
+    },
+    "alerts": {
+      "confirmLeave": "เกมกำลังดำเนินอยู่ ออกอยู่ดี?",
+      "awayReturn": "กลับหลังพัก {seconds} วินาที"
+    },
+    "fairness": {
+      "currentSeedHash": "Hash ของ server seed ปัจจุบัน (เปิดเผย)",
+      "previousReveal": "Seed เปิดเผยของเกมก่อน (ตรวจ hash ได้)",
+      "explanation": "💡 SHA-256(serverSeed) === hash ก่อนหน้า พิสูจน์ว่าเซิร์ฟเวอร์ตั้งค่า seed ล่วงหน้า (ไม่สามารถดัดแปลงภายหลัง)"
+    },
+    "defaults": {
+      "roomName": "ห้องโฮลเด็ม"
+    },
+    "invite": {
+      "messageHeader": "🃏 เชิญเพื่อนเล่นโฮลเด็ม!",
+      "roomNameLabel": "ชื่อห้อง",
+      "roomCodeLabel": "รหัสห้อง",
+      "messageHint": "👇 แตะลิงก์ด้านล่างเข้าได้เลย!",
+      "shareTitle": "🃏 เชิญห้องโฮลเด็ม",
+      "shareTapLink": "แตะลิงก์เข้าได้ทันที!"
+    },
+    "replay": {
+      "prev": "◀ ก่อนหน้า",
+      "next": "ถัดไป ▶",
+      "auto": "อัตโนมัติ",
+      "winner": "🏆 WINNER"
+    },
+    "rabbit": {
+      "view": "ดู"
+    },
+    "drama": {
+      "badBeat": "😱 BAD BEAT!",
+      "cooler": "🧊 COOLER!"
+    }
   }
 }

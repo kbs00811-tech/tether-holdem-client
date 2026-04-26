@@ -18,17 +18,17 @@
     "none": "Ninguno"
   },
   "action": {
-    "fold": "Retirarse",
-    "check": "Pasar",
-    "call": "Igualar",
-    "raise": "Subir",
+    "fold": "Fold",
+    "check": "Check",
+    "call": "Call",
+    "raise": "Raise",
     "allIn": "All In",
     "bet": "Apostar",
     "sitOut": "Ausentarse",
     "sitIn": "Volver",
     "standUp": "Levantarse",
     "topUp": "Recargar",
-    "buyIn": "Comprar fichas"
+    "buyIn": "Buy-in"
   },
   "game": {
     "waiting": "Esperando...",
@@ -36,16 +36,16 @@
     "dealing": "Repartiendo...",
     "showdown": "Showdown",
     "result": "Resultado",
-    "nextHand": "Siguiente mano...",
+    "nextHand": "Próxima mano comenzando...",
     "yourTurn": "Tu turno",
-    "spectating": "Observando · Haz clic en un asiento vacío",
-    "quickSit": "Sentarse",
+    "spectating": "Observando · Haz clic en un asiento vacío para sentarte",
+    "quickSit": "Sentarse rápido",
     "waitingForPlayers": "Esperando jugadores...",
     "waitingForAction": "Esperando acción...",
     "handNumber": "Mano",
     "pot": "Bote",
     "mainPot": "Bote principal",
-    "sidePot": "Bote lateral",
+    "sidePot": "Side pot",
     "winner": "Ganador",
     "rake": "Rake",
     "preflop": "Preflop",
@@ -58,75 +58,149 @@
     "ante": "Ante"
   },
   "lobby": {
-    "title": "Mesas de Hold'em",
+    "title": "Mesas Hold'em",
     "tablesAvailable": "{count} mesas disponibles",
     "create": "Crear",
     "join": "Unirse",
     "full": "Llena",
     "online": "en línea",
     "tables": "Mesas",
-    "active": "Activas",
+    "active": "Activa",
     "quickPlay": "Juego rápido",
     "tournament": "Torneo",
-    "gameManual": "Manual de juego",
-    "tournamentManual": "Manual de torneo",
+    "gameManual": "Manual del juego",
+    "tournamentManual": "Manual de torneos",
     "comingSoon": "Próximamente",
     "spectateEnter": "Observar",
-    "roomCreated": "Sala creada exitosamente",
+    "roomCreated": "Sala creada con éxito",
     "tableIsFull": "La mesa está llena",
     "noRoomsAvailable": "No hay salas disponibles",
     "listView": "Vista de lista",
-    "gridView": "Vista de tarjetas",
+    "gridView": "Vista de cuadrícula",
     "beginner": "Principiante",
     "standard": "Estándar",
     "highRoller": "High Roller",
     "headsUp": "Heads-Up",
-    "vip": "VIP"
+    "vip": "VIP",
+    "labels": {
+      "roomCode": "🔑 Código de sala",
+      "country": "🌍 País",
+      "tableFelt": "🎨 Tapete",
+      "telegramNotifications": "📱 Alertas de Telegram"
+    },
+    "placeholder": {
+      "roomCode": "Código de invitación de 8 caracteres"
+    },
+    "helper": {
+      "countryHint": "(mostrado como bandera junto al avatar)"
+    },
+    "table": {
+      "header": {
+        "table": "Mesa",
+        "blinds": "Ciegas",
+        "buyIn": "Buy-in",
+        "players": "Jugadores",
+        "action": "Acción"
+      }
+    },
+    "status": {
+      "live": "● LIVE"
+    },
+    "titles": {
+      "bgmOff": "BGM Off",
+      "bgmOn": "BGM On",
+      "selectMusic": "Seleccionar música",
+      "listView": "Vista de lista",
+      "gridView": "Vista de cuadrícula",
+      "editNickname": "Editar apodo"
+    },
+    "telegram": {
+      "channelTitle": "Suscríbete al canal Telegram · alertas instantáneas de nuevas mesas",
+      "channelDesc": "Mesas VIP · anuncios de eventos primero",
+      "linkedWith": "● Vinculado {username}",
+      "desc": "Recibe alertas de turno / victoria / invitación en Telegram incluso con la app cerrada",
+      "linkButton": "📲 Vincular app de Telegram",
+      "linkHint": "Toca → se abre Telegram → toca [Iniciar]\nReabre el perfil para confirmar la vinculación",
+      "generatingLink": "🔄 Generando enlace...",
+      "unlinkConfirm": "¿Desvincular cuenta de Telegram?",
+      "unlinkButton": "Desvincular",
+      "notif": {
+        "turn": "⏰ Mi turno (AFK 15s+)",
+        "win": "🏆 Victoria / Bote grande",
+        "allIn": "🔥 Situación all-in",
+        "invite": "🎯 Solicitud de unirse a sala (host)"
+      }
+    },
+    "toast": {
+      "telegramChannelPrompt": "📢 ¡Únete al canal de Telegram!",
+      "telegramChannelDesc": "Sé el primero en recibir alertas de nuevas salas y eventos VIP",
+      "privateRoomOnly": "🔒 Sala privada — se requiere código para entrar",
+      "spectateEnter": "👁 Observando {name}",
+      "roomCreatingInvite": "\"{name}\" · preparando invitación...",
+      "invalidRoomCode": "El código de sala debe ser 8 alfanuméricos (0-9, a-f)",
+      "serverConnecting": "Esperando conexión al servidor...",
+      "searchingRoom": "Buscando sala...",
+      "invalidCode": "❌ {message}",
+      "invalidCodeFallback": "Código de sala inválido — verifica e intenta de nuevo",
+      "countrySet": "🌍 País → {code}",
+      "countryUnset": "🌍 País eliminado",
+      "feltChanged": "Tapete: {name}"
+    },
+    "buttons": {
+      "join": "Unirse",
+      "fullProfile": "Perfil completo",
+      "handHistory": "Historial de manos",
+      "changeAvatar": "Cambiar avatar"
+    }
   },
   "createRoom": {
     "title": "Crear sala",
-    "roomName": "Nombre de sala",
+    "roomName": "Nombre de la sala",
     "namePlaceholder": "Ej: Salón VIP",
     "blinds": "Ciegas",
-    "buyIn": "Compra",
-    "maxPlayers": "Máx. jugadores",
+    "buyIn": "Buy-in",
+    "maxPlayers": "Jugadores máx.",
     "private": "Privada",
     "password": "Contraseña",
-    "passwordPlaceholder": "Ingrese contraseña",
+    "passwordPlaceholder": "Ingresa contraseña",
     "straddle": "Straddle",
     "create": "Crear mesa",
-    "subtitle": "Crea tu propia mesa de holdem",
-    "enterName": "Ingrese un nombre de mesa",
-    "inviteAdded": "Ya está invitado",
+    "subtitle": "Crea tu propia mesa de Hold'em",
+    "enterName": "Ingresa un nombre de mesa",
+    "inviteAdded": "Ya invitado",
     "maxInvites": "Máx. {max} jugadores",
-    "telegramInvite": "Invitar por Telegram (opcional, máx. 8)",
-    "telegramNotify": "Enviar notificación por Telegram",
-    "add": "Agregar",
-    "telegramBotNotice": "El bot de Telegram enviará el enlace de la sala por DM a @username",
-    "inviteOnlyOnCreate": "Las invitaciones solo están disponibles al crear la sala",
+    "telegramInvite": "Invitación de Telegram (opcional, máx. 8)",
+    "telegramNotify": "Enviar notificación de Telegram",
+    "add": "Añadir",
+    "telegramBotNotice": "El bot de Telegram enviará el enlace de la sala a @username por DM",
+    "inviteOnlyOnCreate": "Las invitaciones solo están disponibles al crear una sala",
     "buyInAuto": "Auto: 20BB ~ 100BB",
-    "telegramIdFormat": "Formato Telegram ID: @username (5-32 caracteres, alfanuméricos/_)"
+    "telegramIdFormat": "Formato Telegram ID: @username (5-32 caracteres, alfanumérico/_)",
+    "privateLabel": "Sala privada (entrada solo por código)",
+    "privateHelper": "⚙️ Oculta de la lista del lobby. Solo personas con el <b>código de sala</b> del modal de invitación pueden entrar.",
+    "inviteFriendsLabel": "Invitar amigos",
+    "inviteFriendsHelper": "Después de crear, el modal <b>«Invitar amigos»</b> se abre automáticamente — copia el código y comparte por Telegram."
   },
   "buyInModal": {
-    "title": "Comprar fichas",
+    "title": "Buy In",
     "min": "Mín",
     "max": "Máx",
     "balance": "Saldo",
     "insufficientBalance": "Saldo insuficiente",
-    "confirm": "Confirmar compra"
+    "confirm": "Confirmar Buy In"
   },
   "profile": {
     "title": "Mi perfil",
     "nickname": "Apodo",
-    "nicknameRule": "2-16 caracteres",
+    "nicknameRule": "2-16 caracteres (letras/números)",
     "avatar": "Avatar",
     "changeAvatar": "Cambiar avatar",
     "stats": "Estadísticas",
     "hands": "Manos",
     "won": "Ganadas",
-    "winRate": "% Victorias",
+    "winRate": "% Victoria",
     "net": "Neto",
-    "handHistory": "Historial",
+    "handHistory": "Historial de manos",
     "fullProfile": "Perfil completo",
     "nicknameSaved": "Apodo guardado",
     "avatarSaved": "Avatar guardado",
@@ -136,11 +210,28 @@
     "sound": "Sonido",
     "soundOn": "ON",
     "soundOff": "OFF",
-    "bgm": "Música",
+    "bgm": "BGM",
     "lobbyMusic": "Música del lobby",
     "volume": "Volumen",
     "language": "Idioma",
-    "theme": "Tema"
+    "theme": "Tema",
+    "nicknamePlaceholder": "2-16 caracteres (español/inglés/dígitos)",
+    "nicknameHelper": "Permite letras, dígitos, espacio, punto/guión bajo/guión · 2-16 caracteres · guardado instantáneo",
+    "ownerRakeback": {
+      "title": "Rakeback del dueño",
+      "autoEarn": "({percent}% acreditado automáticamente)",
+      "pending": "Pendiente",
+      "claimed": "Reclamado",
+      "total": "Total ganado",
+      "claim": "💰 Reclamar a la billetera",
+      "claimMin": "(mín. ₩1,000 requerido)",
+      "helper": "{percent}% del rake de tus salas se acredita automáticamente"
+    },
+    "country": "País",
+    "countrySub": "(opcional, bandera junto a tu avatar)",
+    "tableFelt": "Tapete",
+    "tableFeltSub": "(color de la mesa)",
+    "runItOnAllIn": "Boards en All-in"
   },
   "chat": {
     "title": "Chat",
@@ -152,17 +243,17 @@
     "connectionLost": "Conexión perdida",
     "reconnecting": "Reconectando...",
     "reconnected": "Reconectado",
-    "kicked": "Has sido retirado de la mesa",
-    "backgroundDetected": "Segundo plano — Auto Sit Out",
-    "leaveConfirm": "Juego en curso. ¿Salir?",
-    "afterHandLeave": "Saldrás al terminar la mano",
-    "tryAfterHand": "Intenta después de esta mano",
-    "passwordRequired": "Ingrese la contraseña",
+    "kicked": "Has sido removido de la mesa",
+    "backgroundDetected": "Fondo detectado — Sit Out automático",
+    "leaveConfirm": "Juego en progreso. ¿Salir?",
+    "afterHandLeave": "Saldrá después de la mano actual",
+    "tryAfterHand": "Por favor intenta después de esta mano",
+    "passwordRequired": "Ingresa la contraseña de la sala",
     "passwordCancelled": "Contraseña cancelada",
-    "topUpAfterHand": "Recarga disponible al terminar la mano"
+    "topUpAfterHand": "Recarga disponible después de la mano actual"
   },
   "timer": {
-    "timeBank": "TIME BANK activo",
+    "timeBank": "TIME BANK Activo",
     "seconds": "s"
   },
   "error": {
@@ -174,16 +265,523 @@
   },
   "tournament": {
     "title": "Torneos",
-    "comingSoon": "Torneos próximamente",
-    "comingSoonDesc": "MTT, Sit & Go, PKO y más\n¡formatos de torneo abrirán pronto!",
-    "weekendChampionship": "Campeonato de fin de semana",
-    "prizePool": "Pozo garantizado",
+    "comingSoon": "Torneos Próximamente",
+    "comingSoonDesc": "MTT, Sit & Go, PKO y más\n¡formatos de torneos abriendo pronto!",
+    "weekendChampionship": "Campeonato de Fin de Semana",
+    "prizePool": "Bote garantizado",
     "registered": "registrados",
-    "buyIn": "Compra"
+    "buyIn": "Buy-in",
+    "headerBadge": "Torneos",
+    "headerTitle": "Torneos de póker",
+    "headerSubtitle": "Torneos premium con botes garantizados",
+    "heroDescription": "El torneo más grande de la semana",
+    "filterAll": "Todos",
+    "filterRegular": "Regular",
+    "filterTurbo": "Turbo",
+    "filterHyper": "Hyper",
+    "filterPKO": "Knockout",
+    "statusRegistering": "Registrándose",
+    "statusLive": "● En vivo",
+    "guaranteed": "Garantizado",
+    "players": "Jugadores",
+    "start": "Inicio",
+    "starts": "Inicia",
+    "register": "Registrar",
+    "lateRegInfo": "Info Late Reg",
+    "lateReg": "Late Reg",
+    "watchLive": "Ver en vivo",
+    "rebuy": "Rebuy",
+    "viewDetails": "Detalles & Registrar",
+    "noMatch": "No hay torneos que coincidan con este filtro",
+    "registeringToast": "Registrándose en {name}…",
+    "registeredToast": "¡Registrado!",
+    "startTime": "Hora de inicio",
+    "startingStack": "Stack inicial",
+    "left": "restante",
+    "filled": "% lleno"
   },
   "currency": {
     "krw": "₩",
     "usd": "$",
     "usdt": "USDT"
+  },
+  "manual": {
+    "game": {
+      "header": {
+        "title": "Manual de Texas Hold'em",
+        "subtitle": "Guía premium de póker",
+        "tournamentLink": "Guía de torneos",
+        "toc": "Contenido"
+      },
+      "labels": {
+        "advantage": "Ventaja",
+        "odds": "Probabilidades"
+      },
+      "sections": {
+        "basics": "Básicos",
+        "positions": "Posiciones",
+        "rounds": "Rondas de apuestas",
+        "actions": "Acciones",
+        "hands": "Ranking de manos",
+        "strategies": "Estrategia",
+        "features": "Funciones",
+        "etiquette": "Etiqueta"
+      },
+      "basics": {
+        "title": "¿Qué es Texas Hold'em?",
+        "intro": "El juego de póker más popular del mundo. Cada jugador recibe <strong>2 cartas privadas</strong>, y se reparten <strong>5 cartas comunitarias</strong> boca arriba en el centro. Forma la mejor mano de 5 cartas con esas 7 para ganar.",
+        "stats": {
+          "playersLabel": "Jugadores",
+          "playersValue": "2-9",
+          "typeLabel": "Tipo de juego",
+          "typeValue": "Cash Game",
+          "handLabel": "Por mano",
+          "handValue": "~1-3 min"
+        },
+        "suits": "Palos de cartas",
+        "suitsNote": "* Todos los palos son iguales en Texas Hold'em (mismo valor)",
+        "goalTitle": "🎯 Objetivo",
+        "goalText": "No solo conseguir buenas cartas — <strong>forzar a los oponentes a foldear</strong> o <strong>ganar en el showdown con la mano más fuerte</strong> para llevarte el bote."
+      },
+      "positions": {
+        "title": "Guía de posiciones",
+        "intro": "La posición es el concepto más importante en Texas Hold'em. Actuar más tarde significa más información, una gran ventaja.",
+        "items": {
+          "btn": { "short": "Dealer", "desc": "Mejor posición. Actúa último. Decide con información completa." },
+          "co": { "short": "Cutoff", "desc": "Justo antes del BTN. Segunda mejor posición. Open wide OK." },
+          "hj": { "short": "Hijack", "desc": "Antes del CO. Posición media. Solo manos buenas." },
+          "mp": { "short": "Media", "desc": "Posición media. Rango estándar." },
+          "utg": { "short": "Under The Gun", "desc": "Peor posición de acción. Juega muy tight." },
+          "sb": { "short": "Small Blind", "desc": "Junto al BTN. Apuesta forzada de ½. Siempre first-to-act post-flop." },
+          "bb": { "short": "Big Blind", "desc": "Apuesta forzada de 1×. Opción de flop gratis. Defiende wide." }
+        }
+      },
+      "rounds": {
+        "title": "Rondas de apuestas",
+        "intro": "Cada mano tiene 5 etapas.",
+        "items": {
+          "preflop": { "desc": "Recibe 2 cartas. UTG inicia la acción.", "cards": "2 (privadas)" },
+          "flop": { "desc": "Se revelan 3 cartas comunitarias. SB actúa primero.", "cards": "3 cartas" },
+          "turn": { "desc": "Se revela la 4ª carta. SB actúa primero.", "cards": "4ª carta" },
+          "river": { "desc": "Se revela la 5ª carta. Última ronda de apuestas.", "cards": "5ª carta" },
+          "showdown": { "desc": "Los jugadores restantes muestran cartas. Gana la mano más fuerte.", "cards": "Revelar" }
+        }
+      },
+      "actions": {
+        "title": "Acciones",
+        "intro": "Cinco acciones que puedes elegir en tu turno.",
+        "items": {
+          "fold": { "short": "Fold", "desc": "Abandonar la mano. Sin perder fichas. Fuera de esta mano." },
+          "check": { "short": "Check", "desc": "No apostar. Pasar al siguiente jugador. (solo si no hay apuesta para igualar)" },
+          "call": { "short": "Call", "desc": "Igualar la apuesta anterior." },
+          "raise": { "short": "Raise", "desc": "Apostar más que la anterior. Mínimo 2x." },
+          "allIn": { "short": "All-in", "desc": "Apostar todas las fichas restantes. Sin más acción." }
+        }
+      },
+      "hands": {
+        "title": "Ranking de manos (más fuerte primero)",
+        "intro": "10 combinaciones de manos, de arriba abajo más fuertes.",
+        "items": {
+          "royalFlush": "10-J-Q-K-A del mismo palo",
+          "straightFlush": "5 cartas consecutivas, mismo palo",
+          "fourOfAKindName": "Four of a Kind (Póker)",
+          "fourOfAKind": "Cuatro cartas del mismo rango",
+          "fullHouse": "Trío + par",
+          "flush": "5 cartas del mismo palo",
+          "straight": "5 cartas consecutivas (cualquier palo)",
+          "threeOfAKindName": "Three of a Kind (Trío)",
+          "threeOfAKind": "Tres cartas del mismo rango",
+          "twoPair": "Dos pares",
+          "onePair": "Dos cartas del mismo rango",
+          "highCard": "Sin combinación"
+        }
+      },
+      "strategies": {
+        "title": "Estrategia para principiantes",
+        "items": {
+          "tight": { "title": "Empieza tight", "desc": "Solo manos buenas. Enfócate en pares, AK, AQ, AJ." },
+          "position": { "title": "Usa la posición", "desc": "Juega más manos desde posición tardía (BTN, CO)." },
+          "potOdds": { "title": "Pot Odds", "desc": "Necesario para igualar / (Bote + call) = equity requerida." },
+          "noBluff": { "title": "Limita el bluff", "desc": "Los principiantes apuestan por valor. Bluff después de ganar feel." },
+          "bankroll": { "title": "Gestión de bankroll", "desc": "Apuesta solo 5% del stack a la vez. Nunca te excedas." },
+          "observe": { "title": "Observa", "desc": "Lee a los oponentes. ¿Quién es tight, quién es loose?" },
+          "emotion": { "title": "Control emocional", "desc": "El tilt es el peor enemigo. Toma un descanso después de grandes pérdidas." }
+        }
+      },
+      "features": {
+        "title": "Funciones",
+        "items": {
+          "cardSqueeze": { "title": "Card Squeeze", "desc": "Arrastra tus cartas para revelar lentamente — auténtica sensación de casino." },
+          "timeBank": { "title": "Time Bank", "desc": "Usa tiempo extra en decisiones grandes. 30s + bonus." },
+          "rabbitHunt": { "title": "Rabbit Hunt", "desc": "Ver cartas no reveladas después del final de la mano." },
+          "runItTwice": { "title": "Run It Twice", "desc": "Ejecuta el board dos veces en all-ins. Reduce varianza." },
+          "insurance": { "title": "Insurance", "desc": "Compra seguro en all-in. Asegura ganancia." },
+          "bombPot": { "title": "Bomb Pot", "desc": "Force-call en ciertas manos → bote grande." },
+          "provablyFair": { "title": "Provably Fair", "desc": "Mezcla verificable con SHA256. Sin manipulación." },
+          "spectate": { "title": "Modo observador", "desc": "Mira partidas sin sentarte." }
+        }
+      },
+      "etiquette": {
+        "title": "Etiqueta",
+        "do": {
+          "fastAction": "Actúa rápido en tu turno",
+          "showCards": "Revela cartas pronto en showdown",
+          "greet": "Saluda al ganador con \"GG\", \"NH\"",
+          "watchChat": "Evita chat en modo observador"
+        },
+        "dont": {
+          "slowRoll": "Slow-rolling (revelar mano ganadora lentamente a propósito)",
+          "abuse": "Chat abusivo / insultante",
+          "discuss": "Discutir cartas de otros jugadores durante la mano",
+          "collusion": "Colusión (coludirse con otro jugador)",
+          "tank": "Tankear tiempo en decisiones pequeñas"
+        }
+      }
+    },
+    "tournament": {
+      "header": {
+        "title": "Manual de torneos",
+        "subtitle": "Guía completa de torneos TETHER.BET HOLDEM",
+        "gameLink": "Manual del juego →"
+      },
+      "labels": {
+        "duration": "Duración",
+        "interval": "Intervalo de nivel",
+        "levels": "Niveles totales",
+        "multiplier": "Tasa de aumento",
+        "strategy": "Estrategia",
+        "play": "✓ Estilo de juego",
+        "avoid": "✗ Evitar"
+      },
+      "sections": {
+        "types": "Tipos",
+        "structure": "Estructura de ciegas",
+        "stages": "Etapas",
+        "icm": "Teoría ICM",
+        "prize": "Premio",
+        "rules": "Reglas especiales",
+        "stack": "Gestión de stack",
+        "strategy": "Estrategia por etapa"
+      },
+      "types": {
+        "title": "Tipos de torneo",
+        "intro": "Domina los 6 formatos principales de torneos.",
+        "items": {
+          "mtt": {
+            "desc": "Torneo a gran escala con decenas a miles de jugadores",
+            "duration": "4-12 horas",
+            "f1": "Buy-in + tarifa", "f2": "Aumento lento de ciegas", "f3": "Progresión a mesa final", "f4": "Bote grande"
+          },
+          "sng": {
+            "desc": "Torneo single-/small-table que inicia cuando se llena",
+            "duration": "30 min-2 hr",
+            "f1": "Mesa única 6-9 jugadores", "f2": "Ciegas rápidas", "f3": "Top 30% en el dinero", "f4": "Tiempo de juego corto"
+          },
+          "pko": {
+            "desc": "Torneo donde la bounty se acumula con cada eliminación",
+            "duration": "3-8 horas",
+            "f1": "50% del buy-in es bounty", "f2": "La mitad pagada al instante en KO", "f3": "La mitad añadida a tu cabeza", "f4": "Fomenta agresión"
+          },
+          "bountyHunter": {
+            "desc": "Bounty pagada por eliminar jugadores específicos",
+            "duration": "3-6 horas",
+            "f1": "Bounty fija", "f2": "Sistema de objetivos", "f3": "Oportunidades de premio extra", "f4": "Bote principal + bounties"
+          },
+          "spinAndGo": {
+            "desc": "SNG de 3 jugadores con multiplicador de premio aleatorio",
+            "duration": "5-15 min",
+            "f1": "Hyper turbo 3 jugadores", "f2": "Hasta 1000x premio", "f3": "Inicio instantáneo", "f4": "Torneo estilo lotería"
+          },
+          "freezeout": {
+            "desc": "Torneo de un solo intento — sin rebuy ni addon",
+            "duration": "2-6 horas",
+            "f1": "Una sola entrada", "f2": "Out al llegar a cero", "f3": "Menos riesgo", "f4": "Apto para principiantes"
+          }
+        }
+      },
+      "structure": {
+        "title": "Estructura de ciegas",
+        "intro": "Aprende las 4 velocidades estándar de ciegas.",
+        "items": {
+          "standard": { "name": "Standard (Estándar)", "interval": "20-30 min", "multiplier": "1.3-1.5x", "desc": "Estándar de torneo profesional. La habilidad importa más." },
+          "turbo": { "name": "Turbo", "interval": "8-10 min", "multiplier": "1.5x", "desc": "Ritmo rápido, más varianza." },
+          "hyperTurbo": { "name": "Hyper Turbo", "interval": "3-5 min", "multiplier": "1.5-2x", "desc": "Ultrarrápido. Enfoque push/fold." },
+          "deepStack": { "name": "Deep Stack", "interval": "30-60 min", "multiplier": "1.25x", "desc": "Stack inicial 200BB+. Postflop importa." }
+        },
+        "exampleTitle": "Ejemplo de progresión estándar de ciegas"
+      },
+      "stages": {
+        "title": "Etapas del torneo",
+        "intro": "Flujo de 6 etapas desde el inicio hasta la victoria.",
+        "items": {
+          "early": { "name": "Etapa temprana (Early)", "desc": "Juego deep stack, acumula fichas lentamente", "strategy": "Tight Aggressive" },
+          "middle": { "name": "Etapa media (Middle)", "desc": "Comienzan los antes, empieza a robar", "strategy": "Usa posición" },
+          "bubble": { "name": "Burbuja (Bubble)", "desc": "Pre-ITM, máxima presión ICM", "strategy": "Presiona stacks cortos" },
+          "itm": { "name": "En el dinero (ITM)", "desc": "Comienzan los premios, sube la escalera", "strategy": "Agresión selectiva" },
+          "ft": { "name": "Mesa final", "desc": "Últimos 9, grandes saltos de premio", "strategy": "Decisiones basadas en ICM" },
+          "hu": { "name": "Heads-Up", "desc": "Final 1v1, decide al ganador", "strategy": "Agresivo" }
+        }
+      },
+      "icm": {
+        "title": "ICM (Independent Chip Model)",
+        "intro": "El concepto matemático más importante en torneos.",
+        "definitionTitle": "¿Qué es ICM?",
+        "definition": "ICM convierte tu stack de fichas en torneo en equity de efectivo real. A diferencia de los cash games, los valores de fichas NO son 1:1 — las fichas de stack corto valen más que las de stack grande.",
+        "formula": "$EV = Σ (P[finalizar i] × Premio[i])",
+        "formulaNote": "// Probabilidad de cada rango × premio",
+        "examplesTitle": "Donde aplica ICM",
+        "examples": {
+          "bubble": { "stack": "Bubble", "desc": "Máxima presión ICM. Valor de fichas ≠ valor de premio.", "action": "Juego tight, evita stacks grandes" },
+          "ft": { "stack": "Mesa final", "desc": "Grandes brechas de premio por escalón", "action": "Calcula ICM antes de call/push" },
+          "hu": { "stack": "Heads-Up", "desc": "Mín ICM. Chip EV = $ EV", "action": "Agresivo OK" },
+          "shortStack": { "stack": "Stack corto", "desc": "Usa charts push/fold", "action": "Basado en Nash Equilibrium" }
+        },
+        "principlesTitle": "Principios fundamentales",
+        "principles": {
+          "p1": "Última BB > primera BB (out = fin del juego)",
+          "p2": "EV perdido en KO siempre > chip EV",
+          "p3": "Calls +cEV pueden ser -$EV bajo ICM",
+          "p4": "Stacks medios juegan más tight, big/short juegan agresivos"
+        }
+      },
+      "prize": {
+        "title": "Distribución de premios",
+        "intro": "Estructura estándar para MTT de 100 jugadores.",
+        "tableTitle": "Tabla estándar de premios",
+        "ranks": {
+          "r1": "1°", "r2": "2°", "r3": "3°", "r4": "4°", "r5": "5°",
+          "r6to9": "6-9°", "r10to18": "10-18°", "r19plus": "Bajo 19%",
+          "p1": "25-30%", "p2": "15-18%", "p3": "10-13%", "p4": "8-10%", "p5": "6-8%",
+          "p6to9": "3-5% c/u", "p10to18": "1.5-2% c/u", "p19plus": "1% c/u"
+        },
+        "topHeavy": { "title": "Top-Heavy", "desc": "Premios concentrados arriba. Usado en WSOP, EPT, etc." },
+        "flat": { "title": "Flat", "desc": "Distribuido más uniformemente. Más finalistas ITM. A menudo usado en satellites." },
+        "formula": "Bote = Buy-in × Jugadores - Tarifa (típicamente 8-12%)",
+        "noteTopPercent": "Típicamente el top 10-15% está en el dinero",
+        "noteFt": "Los 9 finales toman 70-80% del bote total",
+        "noteWinner": "El ganador toma ~25-30% solo"
+      },
+      "rules": {
+        "title": "Reglas especiales",
+        "intro": "6 reglas especiales únicas de los torneos.",
+        "items": {
+          "lateReg": { "name": "Late Registration (registro tardío)", "desc": "Regístrate después del inicio, dentro de una ventana limitada", "detail": "Usualmente hasta nivel 5-8. Entrada más tardía significa menor BB inicial." },
+          "reentry": { "name": "Re-entry (re-entrada)", "desc": "Paga buy-in de nuevo para re-entrar después de KO", "detail": "Típicamente máx 1-3. Solo durante ventana de late reg." },
+          "rebuy": { "name": "Re-buy (recompra)", "desc": "Compra más fichas cuando estés bajo el umbral", "detail": "Solo en período rebuy. Stack debe estar bajo el inicial." },
+          "addon": { "name": "Add-on (complemento)", "desc": "Compra única al final del período de rebuy", "detail": "Disponible para todos sin importar stack. Usualmente 1.5-2x stack inicial." },
+          "handForHand": { "name": "Hand-for-Hand", "desc": "Todas las mesas juegan una mano simultáneamente cerca de bubble", "detail": "En KO simultáneo, el stack mayor gana mejor rango. Asegura justicia." },
+          "syncBreak": { "name": "Synchronized Break (descanso sincronizado)", "desc": "Todo el torneo descansa juntos", "detail": "Usualmente 5-10 min/hora. Baño, comida y tiempo de estrategia." }
+        }
+      },
+      "stack": {
+        "title": "Guía de juego por stack",
+        "intro": "6 estrategias por tamaño de stack.",
+        "items": {
+          "deep": { "play": "Enfoque postflop. Usa implied odds. Set-mining OK.", "avoid": "Evitar all-in, cuidado con pares medios" },
+          "standard": { "play": "GTO estándar. Todas las líneas de juego disponibles.", "avoid": "Defensa imprudente de 3-bet" },
+          "medium": { "play": "Basado en posición, menos 3-bets, gestiona SPR.", "avoid": "Manos de deep-stack (pares pequeños, conectores suited como call)" },
+          "short": { "play": "Open-shove OK. Usa charts re-shove.", "avoid": "Limp, min-raise, juego solo de call" },
+          "pushFold": { "play": "Solo charts Nash push/fold. Sin call.", "avoid": "Ir a postflop" },
+          "desperation": { "play": "Cualquier dos cartas push. Shove en la primera apertura.", "avoid": "Esperar hasta la última BB" }
+        },
+        "mRatioTitle": "Fórmula M-Ratio",
+        "mRatioFormula": "M = Stack / (SB + BB + suma de antes)"
+      },
+      "strategy": {
+        "title": "Guía de estrategia por etapa",
+        "intro": "Estrategia central desde la etapa temprana hasta heads-up.",
+        "items": {
+          "early": {
+            "stage": "Temprana (Early)", "bb": "100-200BB",
+            "tip1": "Solo manos premium (top 10%)",
+            "tip2": "Más loose en torneos rebuy",
+            "tip3": "Observa: perfila oponentes (fish/reg)",
+            "tip4": "Set-mining via implied odds OK"
+          },
+          "middle": {
+            "stage": "Media (Middle)", "bb": "30-80BB",
+            "tip1": "Antes añadidos → juega más manos",
+            "tip2": "Roba y re-roba agresivamente",
+            "tip3": "Presiona shorts, evita stacks grandes",
+            "tip4": "Posición es la prioridad principal"
+          },
+          "bubble": {
+            "stage": "Burbuja (Bubble)", "bb": "15-30BB",
+            "tip1": "Máxima presión ICM — rango de call estrecho",
+            "tip2": "Push frecuentemente como stack corto",
+            "tip3": "Presiona a todos como stack grande",
+            "tip4": "Evita KO a toda costa como stack medio"
+          },
+          "itm": {
+            "stage": "ITM", "bb": "10-25BB",
+            "tip1": "Sube la escalera — cada paso = dinero real",
+            "tip2": "Espera KOs de stacks cortos",
+            "tip3": "Agresión selectiva (manos curadas)",
+            "tip4": "Calcula ICM mentalmente"
+          },
+          "ft": {
+            "stage": "Mesa final", "bb": "varía",
+            "tip1": "Ten en cuenta los saltos de pago",
+            "tip2": "Deal-making OK (ICM/Chip-chop)",
+            "tip3": "Pre-HU es máxima presión ICM",
+            "tip4": "Ganar = honor + premio mayor"
+          },
+          "hu": {
+            "stage": "Heads-Up (HU)", "bb": "varía",
+            "tip1": "ICM se va — sé agresivo",
+            "tip2": "Agresión Button (SB) = 80%+",
+            "tip3": "Cualquier dos cartas tienen valor",
+            "tip4": "Lee la debilidad del oponente rápido"
+          }
+        },
+        "victoryTitle": "7 principios de la victoria",
+        "victory": {
+          "p1": "Supervivencia primero — fichas sin sentido no importan",
+          "p2": "La posición es oro — siempre conoce la tuya",
+          "p3": "Usa presión ICM — presiona oponentes",
+          "p4": "La ofensiva es la mejor defensa — pasivo = muerte",
+          "p5": "Siempre conoce tu stack — piensa en BBs",
+          "p6": "Evita tilt — una mano puede arruinar un torneo",
+          "p7": "Equilibra paciencia y decisión — espera y explota"
+        }
+      }
+    }
+  },
+  "gameTable": {
+    "header": {
+      "watchingMode": "Observando",
+      "inviteFriends": "Invitar amigos",
+      "invite": "Invitar",
+      "enterFullscreen": "Pantalla completa",
+      "exitFullscreen": "Salir de pantalla completa",
+      "moreMenu": "Más"
+    },
+    "menu": {
+      "recentHandsCount": "Últimas 10 manos",
+      "history": "Historial de manos",
+      "topUp": "Recargar",
+      "changeSeat": "Cambiar asiento",
+      "preAction": "Pre-Acción",
+      "waitBb": "Esperar BB",
+      "rit": "Run It Twice",
+      "emoji": "Emoji",
+      "sitOut": "Ausentarse"
+    },
+    "sound": {
+      "title": "Sonido",
+      "gameSfx": "Efectos de juego",
+      "muteOn": "🔊 ON",
+      "muteOff": "🔇 OFF",
+      "popupTitle": "🎵 Sonido",
+      "gameLabel": "🎮 Game",
+      "bgmLabel": "🎵 BGM"
+    },
+    "modal": {
+      "inviteTitle": "Invitar amigos",
+      "inviteDescription": "Invitar a la misma mesa (hasta 8 incl. observadores)",
+      "joinFirst": "Por favor únete a la sala primero",
+      "roomCode": "Código de sala (permanente)",
+      "copy": "Copiar",
+      "telegramShare": "Compartir en Telegram",
+      "officialChannel": "Suscribir canal oficial",
+      "officialChannelDesc": "Alertas auto: nuevas mesas · eventos VIP",
+      "deepLinkTitle": "Enlace de invitación de un toque (sin /start)",
+      "deepLinkHint": "El amigo toca el enlace → presiona Iniciar una vez → entra automáticamente.",
+      "deepLinkNote": "(sin enlace de cuenta separada · sin /start manual)",
+      "roomLifeNote": "Válido mientras la sala esté viva · Salas privadas ocultas del lobby",
+      "inviteCopied": "Texto de invitación copiado",
+      "deepLinkCopied": "Deep link copiado — comparte con amigos",
+      "copyFailed": "Copia fallida",
+      "telegramShareTitle": "🃏 Invitación de sala Hold'em",
+      "inGame": "¡Juego en progreso!",
+      "leaveTable": "¿Salir de la mesa?",
+      "leaveSeatedDesc": "Salir mientras estás sentado liquidará tus fichas automáticamente.\nSi estás en mitad de una mano, harás fold.",
+      "leaveSpectatingDesc": "Termina la observación y regresa al lobby.",
+      "leaveAfterHand": "Saldrás después de esta mano",
+      "leaveCancel": "Reserva de salida cancelada",
+      "keepPlaying": "Seguir jugando",
+      "leaveNow": "Salir ahora",
+      "reserveLeave": "Salir tras la mano",
+      "handHistoryTitle": "Historial de manos",
+      "handHistoryCount": "Últimas {count} manos",
+      "noHandHistory": "Aún no has jugado manos",
+      "noHandHistoryHelper": "Tus manos aparecerán aquí mientras juegas",
+      "replay": "Repetir",
+      "playersCount": "Jugadores ({count})",
+      "rabbitHunt": "Si hubiera continuado",
+      "topUpTitle": "Recargar",
+      "topUpDescription": "Añade más fichas a tu stack. Solo disponible entre manos.",
+      "changeSeatTitle": "Cambiar asiento",
+      "changeSeatDescription": "Selecciona un asiento vacío. Debes esperar hasta que termine la mano.",
+      "seatLabel": "Asiento {n}",
+      "seatYou": "(Tú)",
+      "seatStatusCurrent": "Actual",
+      "seatStatusEmpty": "Vacío",
+      "seatStatusTaken": "Ocupado",
+      "refreshSeats": "Refrescar asientos disponibles"
+    },
+    "preAction": {
+      "title": "Pre-Acción",
+      "description": "Se ejecuta automáticamente cuando es tu turno"
+    },
+    "emoji": {
+      "reactions": "Reacciones",
+      "actions": "Acciones",
+      "taunts": "Provocaciones"
+    },
+    "showMuck": {
+      "prompt": "¿Mostrar tus cartas?",
+      "show": "Mostrar",
+      "muck": "Muck"
+    },
+    "cashOut": {
+      "title": "Cash Out disponible",
+      "description": "Salta el showdown, toma tu equity ahora",
+      "yourEquity": "Tu equity",
+      "amount": "Cantidad",
+      "fee": "Tarifa",
+      "confirm": "Cash Out",
+      "decline": "Continuar"
+    },
+    "topUp": {
+      "minAmount": "Mínimo ₩50,000 requerido",
+      "requested": "Recarga solicitada: ₩{amount}"
+    },
+    "betting": {
+      "waitBbDesc": "Auto-unirse cuando la próxima BB llegue a tu asiento. Paga una BB muerta para unirte de inmediato."
+    },
+    "alerts": {
+      "confirmLeave": "Juego en progreso. ¿Salir de todas formas?",
+      "awayReturn": "Regresaste tras {seconds}s ausente"
+    },
+    "fairness": {
+      "currentSeedHash": "Hash de seed del servidor de la mano actual (público)",
+      "previousReveal": "Seed revelado de la mano anterior (verificable por hash)",
+      "explanation": "💡 SHA-256(serverSeed) === hash anterior prueba que el servidor pre-comprometió el seed (sin manipulación posterior)."
+    },
+    "defaults": {
+      "roomName": "Sala Hold'em"
+    },
+    "invite": {
+      "messageHeader": "🃏 ¡Invitación de amigo Hold'em!",
+      "roomNameLabel": "Sala",
+      "roomCodeLabel": "Código",
+      "messageHint": "👇 ¡Toca el enlace abajo para entrar!",
+      "shareTitle": "🃏 Invitación de sala Hold'em",
+      "shareTapLink": "¡Toca el enlace para entrar al instante!"
+    },
+    "replay": {
+      "prev": "◀ Anterior",
+      "next": "Siguiente ▶",
+      "auto": "Auto",
+      "winner": "🏆 WINNER"
+    },
+    "rabbit": {
+      "view": "Ver"
+    },
+    "drama": {
+      "badBeat": "😱 BAD BEAT!",
+      "cooler": "🧊 COOLER!"
+    }
   }
 }
