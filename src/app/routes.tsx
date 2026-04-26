@@ -15,6 +15,8 @@ import TournamentManual from "./pages/TournamentManual";
 import Leaderboard from "./pages/Leaderboard";
 import Missions from "./pages/Missions";
 import HandHistory from "./pages/HandHistory";
+import Terms from "./pages/Terms";
+import Privacy from "./pages/Privacy";
 
 export const router = createBrowserRouter([
   {
@@ -40,6 +42,8 @@ export const router = createBrowserRouter([
       { path: "signup", Component: SignupB2B },
       { path: "game-manual", Component: GameManual },
       { path: "tournament-manual", Component: TournamentManual },
+      { path: "terms", Component: Terms },
+      { path: "privacy", Component: Privacy },
     ],
   },
 ]);
