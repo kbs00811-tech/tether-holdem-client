@@ -416,6 +416,214 @@
           "tank": "Time-tanking on small decisions"
         }
       }
+    },
+    "tournament": {
+      "header": {
+        "title": "Tournament Manual",
+        "subtitle": "TETHER.BET HOLDEM Complete Tournament Guide",
+        "gameLink": "Game Manual →"
+      },
+      "labels": {
+        "duration": "Duration",
+        "interval": "Level Interval",
+        "levels": "Total Levels",
+        "multiplier": "Increase Rate",
+        "strategy": "Strategy",
+        "play": "✓ Play Style",
+        "avoid": "✗ Avoid"
+      },
+      "sections": {
+        "types": "Types",
+        "structure": "Blind Structure",
+        "stages": "Stages",
+        "icm": "ICM Theory",
+        "prize": "Prize Pool",
+        "rules": "Special Rules",
+        "stack": "Stack Management",
+        "strategy": "Stage Strategy"
+      },
+      "types": {
+        "title": "Tournament Types",
+        "intro": "Master the 6 main tournament formats.",
+        "items": {
+          "mtt": {
+            "desc": "Large-scale tournament with tens to thousands of players",
+            "duration": "4-12 hours",
+            "f1": "Buy-in + fee", "f2": "Slow blind increase", "f3": "Final-table progression", "f4": "Big prize pool"
+          },
+          "sng": {
+            "desc": "Single-/small-table tournament that starts when full",
+            "duration": "30 min-2 hr",
+            "f1": "6-9 player single table", "f2": "Fast blinds", "f3": "Top 30% in the money", "f4": "Short play time"
+          },
+          "pko": {
+            "desc": "Tournament where bounty stacks every elimination",
+            "duration": "3-8 hours",
+            "f1": "50% of buy-in is bounty", "f2": "Half paid instantly on KO", "f3": "Half added to your head", "f4": "Encourages aggression"
+          },
+          "bountyHunter": {
+            "desc": "Bounty paid for knocking out specific players",
+            "duration": "3-6 hours",
+            "f1": "Fixed bounty", "f2": "Target system", "f3": "Extra prize chances", "f4": "Main pool + bounties"
+          },
+          "spinAndGo": {
+            "desc": "3-player SNG with random prize multiplier",
+            "duration": "5-15 min",
+            "f1": "3-player hyper turbo", "f2": "Up to 1000x prize", "f3": "Instant start", "f4": "Lottery-style tournament"
+          },
+          "freezeout": {
+            "desc": "One-shot tournament — no rebuy or addon",
+            "duration": "2-6 hours",
+            "f1": "Single entry only", "f2": "Out at zero chips", "f3": "Less risk", "f4": "Beginner-friendly"
+          }
+        }
+      },
+      "structure": {
+        "title": "Blind Structure",
+        "intro": "Learn the 4 standard blind speeds.",
+        "items": {
+          "standard": { "name": "Standard", "interval": "20-30 min", "multiplier": "1.3-1.5x", "desc": "Pro tournament standard. Skill matters most." },
+          "turbo": { "name": "Turbo", "interval": "8-10 min", "multiplier": "1.5x", "desc": "Fast pace, more variance." },
+          "hyperTurbo": { "name": "Hyper Turbo", "interval": "3-5 min", "multiplier": "1.5-2x", "desc": "Ultra-fast. Push/fold focus." },
+          "deepStack": { "name": "Deep Stack", "interval": "30-60 min", "multiplier": "1.25x", "desc": "200BB+ start stack. Postflop matters." }
+        },
+        "exampleTitle": "Standard Blind Progression Example"
+      },
+      "stages": {
+        "title": "Tournament Stages",
+        "intro": "6-stage flow from start to victory.",
+        "items": {
+          "early": { "name": "Early Stage", "desc": "Deep stack play, slowly accumulate chips", "strategy": "Tight Aggressive" },
+          "middle": { "name": "Middle Stage", "desc": "Antes start, begin stealing", "strategy": "Use Position" },
+          "bubble": { "name": "Bubble", "desc": "Pre-ITM, max ICM pressure", "strategy": "Pressure Short Stacks" },
+          "itm": { "name": "In The Money (ITM)", "desc": "Prizes start, ladder up", "strategy": "Selective Aggression" },
+          "ft": { "name": "Final Table", "desc": "Last 9, large prize jumps", "strategy": "ICM-based decisions" },
+          "hu": { "name": "Heads-Up", "desc": "1v1 final, decide the winner", "strategy": "Aggressive" }
+        }
+      },
+      "icm": {
+        "title": "ICM (Independent Chip Model)",
+        "intro": "The most important math concept in tournaments.",
+        "definitionTitle": "What is ICM?",
+        "definition": "ICM converts your tournament chip stack into actual cash equity. Unlike cash games, chip values are NOT 1:1 — short stack chips are worth more than big stack chips.",
+        "formula": "$EV = Σ (P[finish i] × Prize[i])",
+        "formulaNote": "// Probability of finishing each rank × prize",
+        "examplesTitle": "Where ICM Applies",
+        "examples": {
+          "bubble": { "stack": "Bubble", "desc": "Max ICM pressure. Chip value ≠ prize value.", "action": "Tight play, avoid big stacks" },
+          "ft": { "stack": "Final Table", "desc": "Large prize gaps per ladder", "action": "Calc ICM before call/push" },
+          "hu": { "stack": "Heads-Up", "desc": "Min ICM. Chip EV = $ EV", "action": "Aggressive play OK" },
+          "shortStack": { "stack": "Short Stack", "desc": "Use push/fold charts", "action": "Nash Equilibrium based" }
+        },
+        "principlesTitle": "Core Principles",
+        "principles": {
+          "p1": "Last BB > first BB (out = game over)",
+          "p2": "EV lost on KO is always > chip EV",
+          "p3": "+cEV calls can be -$EV under ICM",
+          "p4": "Middle stacks play tightest, big/short play aggressive"
+        }
+      },
+      "prize": {
+        "title": "Prize Distribution",
+        "intro": "Standard prize structure for 100-player MTT.",
+        "tableTitle": "Standard Prize Table",
+        "ranks": {
+          "r1": "1st", "r2": "2nd", "r3": "3rd", "r4": "4th", "r5": "5th",
+          "r6to9": "6-9th", "r10to18": "10-18th", "r19plus": "Below 19%",
+          "p1": "25-30%", "p2": "15-18%", "p3": "10-13%", "p4": "8-10%", "p5": "6-8%",
+          "p6to9": "3-5% each", "p10to18": "1.5-2% each", "p19plus": "1% each"
+        },
+        "topHeavy": { "title": "Top-Heavy", "desc": "Prizes concentrated at the top. Used in WSOP, EPT, etc." },
+        "flat": { "title": "Flat", "desc": "More evenly distributed. More ITM finishers. Often used in satellites." },
+        "formula": "Prize Pool = Buy-in × Players - Fee (typically 8-12%)",
+        "noteTopPercent": "Typically the top 10-15% are in the money",
+        "noteFt": "The final 9 take 70-80% of the total pool",
+        "noteWinner": "Winner takes ~25-30% alone"
+      },
+      "rules": {
+        "title": "Special Rules",
+        "intro": "6 special rules unique to tournaments.",
+        "items": {
+          "lateReg": { "name": "Late Registration", "desc": "Register after the start, within a limited window", "detail": "Usually up to level 5-8. Later entry means smaller starting BB." },
+          "reentry": { "name": "Re-entry", "desc": "Pay buy-in again to re-enter after KO", "detail": "Typically 1-3 max. Only during late reg window." },
+          "rebuy": { "name": "Re-buy", "desc": "Buy more chips when below threshold", "detail": "Rebuy period only. Stack must be below starting size." },
+          "addon": { "name": "Add-on", "desc": "One-time purchase at end of rebuy period", "detail": "Available to all regardless of stack. Usually 1.5-2x starting stack." },
+          "handForHand": { "name": "Hand-for-Hand", "desc": "All tables play one hand simultaneously near bubble", "detail": "On simultaneous KO, the larger stack wins better rank. Ensures fairness." },
+          "syncBreak": { "name": "Synchronized Break", "desc": "Whole tournament breaks together", "detail": "Usually 5-10 min/hour. Bathroom, meal, and strategy time." }
+        }
+      },
+      "stack": {
+        "title": "Stack Play Guide",
+        "intro": "6 strategies by stack size.",
+        "items": {
+          "deep": { "play": "Postflop focus. Use implied odds. Set-mining OK.", "avoid": "Avoid all-in, mind middle pairs" },
+          "standard": { "play": "Standard GTO. All play lines available.", "avoid": "Reckless 3-bet defense" },
+          "medium": { "play": "Position-based, fewer 3-bets, manage SPR.", "avoid": "Deep-stack hands (small pairs, suited connectors as call)" },
+          "short": { "play": "Open-shove OK. Use re-shove charts.", "avoid": "Limp, min-raise, calling-only play" },
+          "pushFold": { "play": "Nash push/fold charts only. No calling.", "avoid": "Going to postflop" },
+          "desperation": { "play": "Any two cards push. Shove on first opening.", "avoid": "Waiting until last BB" }
+        },
+        "mRatioTitle": "M-Ratio Formula",
+        "mRatioFormula": "M = Stack / (SB + BB + sum of antes)"
+      },
+      "strategy": {
+        "title": "Stage-by-Stage Strategy Guide",
+        "intro": "Core strategy from early stage to heads-up.",
+        "items": {
+          "early": {
+            "stage": "Early", "bb": "100-200BB",
+            "tip1": "Premium hands only (top 10%)",
+            "tip2": "Looser in rebuy tournaments",
+            "tip3": "Observe: profile opponents (fish/reg)",
+            "tip4": "Set-mining via implied odds OK"
+          },
+          "middle": {
+            "stage": "Middle", "bb": "30-80BB",
+            "tip1": "Antes added → play more hands",
+            "tip2": "Steal and re-steal aggressively",
+            "tip3": "Pressure shorts, avoid big stacks",
+            "tip4": "Position is the top priority"
+          },
+          "bubble": {
+            "stage": "Bubble", "bb": "15-30BB",
+            "tip1": "Max ICM pressure — narrow calling range",
+            "tip2": "Push frequently as a short stack",
+            "tip3": "Pressure everyone as a big stack",
+            "tip4": "Avoid KO at all costs as middle stack"
+          },
+          "itm": {
+            "stage": "ITM", "bb": "10-25BB",
+            "tip1": "Ladder — every step = real money",
+            "tip2": "Wait out short stack KOs",
+            "tip3": "Selective aggression (curated hands)",
+            "tip4": "Run ICM math in your head"
+          },
+          "ft": {
+            "stage": "Final Table", "bb": "varies",
+            "tip1": "Be aware of payout jumps",
+            "tip2": "Deal-making OK (ICM/Chip-chop)",
+            "tip3": "Pre-HU is max ICM pressure",
+            "tip4": "Win = honor + biggest prize"
+          },
+          "hu": {
+            "stage": "Heads-Up (HU)", "bb": "varies",
+            "tip1": "ICM gone — be aggressive",
+            "tip2": "Button (SB) aggression = 80%+",
+            "tip3": "Any two cards have value",
+            "tip4": "Quickly read opponent's weakness"
+          }
+        },
+        "victoryTitle": "7 Principles of Winning",
+        "victory": {
+          "p1": "Survival first — meaningless chips don't matter",
+          "p2": "Position is gold — always know yours",
+          "p3": "Use ICM pressure — pressure opponents",
+          "p4": "Offense is the best defense — passive = death",
+          "p5": "Always know your stack — think in BBs",
+          "p6": "Avoid tilt — one hand can ruin a tournament",
+          "p7": "Balance patience and decisiveness — wait then explode"
+        }
+      }
     }
   },
   "gameTable": {
