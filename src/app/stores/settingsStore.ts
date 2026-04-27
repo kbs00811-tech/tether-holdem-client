@@ -15,6 +15,8 @@ interface SettingsState {
   soundEnabled: boolean;
   musicEnabled: boolean;
   cardAnimations: boolean;
+  // 🎯 P1-1 (2026-04-28): 모바일 햅틱 피드백 (빅윈/배드빗 시 진동)
+  hapticEnabled: boolean;
   // V3 P2B2: Run It Twice/Thrice 선호 설정
   runItMode: 'off' | 'twice' | 'thrice';
   // V3 P2C1: 커스텀 닉네임 (한글/영어 2~16자) — 빈 문자열이면 서버 기본값 사용
@@ -29,6 +31,7 @@ interface SettingsState {
   setSoundEnabled: (v: boolean) => void;
   setMusicEnabled: (v: boolean) => void;
   setCardAnimations: (v: boolean) => void;
+  setHapticEnabled: (v: boolean) => void;
   setRunItMode: (m: 'off' | 'twice' | 'thrice') => void;
   setNickname: (n: string) => void;
   setCountryCode: (code: string | null) => void;
@@ -48,6 +51,7 @@ function saveSettings(state: Partial<SettingsState>) {
     localStorage.setItem('holdem-settings', JSON.stringify({
       avatar: state.avatar, cardSkin: state.cardSkin, tableFelt: state.tableFelt,
       soundEnabled: state.soundEnabled, musicEnabled: state.musicEnabled, cardAnimations: state.cardAnimations,
+      hapticEnabled: state.hapticEnabled,
       runItMode: state.runItMode,
       nickname: state.nickname,
       countryCode: state.countryCode,
@@ -99,6 +103,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   soundEnabled: saved.soundEnabled ?? true,
   musicEnabled: saved.musicEnabled ?? true,
   cardAnimations: saved.cardAnimations ?? true,
+  hapticEnabled: (saved as any).hapticEnabled ?? true,
   runItMode: (saved as any).runItMode ?? 'off',
   nickname: (saved as any).nickname ?? '',
   countryCode: (saved as any).countryCode ?? null,
@@ -116,6 +121,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   setSoundEnabled: (v) => set(s => { const n = { ...s, soundEnabled: v }; saveSettings(n); return n; }),
   setMusicEnabled: (v) => set(s => { const n = { ...s, musicEnabled: v }; saveSettings(n); return n; }),
   setCardAnimations: (v) => set(s => { const n = { ...s, cardAnimations: v }; saveSettings(n); return n; }),
+  setHapticEnabled: (v) => set(s => { const n = { ...s, hapticEnabled: v }; saveSettings(n); return n; }),
   setRunItMode: (m) => set(s => {
     const n = { ...s, runItMode: m };
     saveSettings(n);

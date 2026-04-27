@@ -14,6 +14,8 @@ import { useStatsStore } from './statsStore';
 import {
   speakNewHand, speakFlop, speakTurn, speakRiver, speakAllIn, speakWinner,
 } from '../hooks/useDealerVoice';
+// 🎯 P1-1 (2026-04-28): 햅틱 피드백
+import { haptic } from '../hooks/useHaptic';
 
 // 내 playerId — gameStore.myPlayerId 직접 사용 (DEAL_CARDS에서 set됨)
 // (이전: handCards로 추적했으나 서버 sanitize 후 작동 안 함)
@@ -442,6 +444,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             },
           });
           speakAllIn(actingPlayer.nickname);
+          haptic('allin');
           setTimeout(() => {
             set(s => {
               if (s.allInBanner?.ts === Date.now() - 2000) return {};
@@ -482,6 +485,12 @@ export const useGameStore = create<GameStore>((set, get) => ({
           const w = msg.winners[0] as any;
           speakWinner(w.nickname || 'Winner', w.handResult?.description);
         }
+        // 🎯 P1-1 (2026-04-28): 햅틱 — 내 승리 시 진동
+        try {
+          const myId = get().myPlayerId;
+          const myWin = myId && (msg.winners || []).find((w: any) => w.playerId === myId);
+          if (myWin) haptic('win');
+        } catch {}
         // V21.6: 결과 1.5초 표시 → 카드 수거 → 다음 핸드 준비
         setTimeout(() => {
           set({ showResult: false, shownCards: {}, shownBestFive: {}, rabbitCards: [], winners: null, myCards: [] });
@@ -811,6 +820,8 @@ export const useGameStore = create<GameStore>((set, get) => ({
       case 'COOLER': {
         const m = msg as any;
         const isBadBeat = msg.type === 'BAD_BEAT';
+        // 🎯 P1-1 (2026-04-28): 배드빗 위로 햅틱
+        if (isBadBeat) haptic('badbeat');
         set({
           dramaticMoment: {
             type: isBadBeat ? 'bad_beat' : 'cooler',
