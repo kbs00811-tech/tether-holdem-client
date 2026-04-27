@@ -2286,28 +2286,44 @@ export default function GameTable() {
               style={{ top: isDesktop ? "22%" : "24%" }}>
               <div className="flex items-center justify-center" style={{ gap: isLargeDesktop ? 10 : isDesktop ? 6 : 3 }}>
                 <AnimatePresence>
-                  {communityCards.map((card, i) => (
-                    <motion.div key={`comm-${card.suit}-${card.rank}-${i}`}
-                      initial={{ rotateY: 180, opacity: 0, scale: 0.3, y: -30 }}
-                      animate={{ rotateY: 0, opacity: 1, scale: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.15, y: 30, rotate: -10, transition: { duration: 0.35 } }}
-                      transition={{
-                        delay: i < 3 ? i * 0.25 : 0,
-                        duration: 0.6,
-                        type: "spring",
-                        stiffness: 140,
-                        damping: 16,
-                      }}
-                      className="shrink-0"
-                      style={{ perspective: 800, transformStyle: 'preserve-3d' }}>
-                      <div className="relative">
-                        <PokerCard suit={card.suit} rank={card.rank} size={isLargeDesktop ? "xl" : isDesktop ? "lg" : "sm"} />
-                        {/* 카드 그림자 */}
-                        <div className="absolute -bottom-1 left-1 right-1 h-2 rounded-full"
-                          style={{ background: "rgba(0,0,0,0.35)", filter: "blur(4px)" }} />
-                      </div>
-                    </motion.div>
-                  ))}
+                  {/* 🎯 P0-1 (2026-04-28): 쇼다운/결과 phase 에서 winner 의 best 5 카드 highlight + 나머지 dim */}
+                  {(() => {
+                    const isShowdown = phase === 'SHOWDOWN' || phase === 'RESULT';
+                    const winnerBestFive: string[] = (isShowdown && winners?.[0] as any)?.handResult?.cards
+                      ? ((winners![0] as any).handResult.cards as any[]).map((c: any) => `${c.rank}${c.suit}`)
+                      : [];
+                    const hasBestFive = winnerBestFive.length > 0;
+                    return communityCards.map((card, i) => {
+                      const cardId = `${card.rank}${card.suit}`;
+                      const isInBestFive = hasBestFive && winnerBestFive.includes(cardId);
+                      const dimmed = isShowdown && hasBestFive && !isInBestFive;
+                      const highlight = isShowdown && isInBestFive;
+                      return (
+                        <motion.div key={`comm-${card.suit}-${card.rank}-${i}`}
+                          initial={{ rotateY: 180, opacity: 0, scale: 0.3, y: -30 }}
+                          animate={{ rotateY: 0, opacity: 1, scale: 1, y: 0 }}
+                          exit={{ opacity: 0, scale: 0.15, y: 30, rotate: -10, transition: { duration: 0.35 } }}
+                          transition={{
+                            delay: i < 3 ? i * 0.25 : 0,
+                            duration: 0.6,
+                            type: "spring",
+                            stiffness: 140,
+                            damping: 16,
+                          }}
+                          className="shrink-0"
+                          style={{ perspective: 800, transformStyle: 'preserve-3d' }}>
+                          <div className="relative">
+                            <PokerCard suit={card.suit} rank={card.rank}
+                              size={isLargeDesktop ? "xl" : isDesktop ? "lg" : "sm"}
+                              dimmed={dimmed} highlight={highlight} />
+                            {/* 카드 그림자 */}
+                            <div className="absolute -bottom-1 left-1 right-1 h-2 rounded-full"
+                              style={{ background: "rgba(0,0,0,0.35)", filter: "blur(4px)" }} />
+                          </div>
+                        </motion.div>
+                      );
+                    });
+                  })()}
                 </AnimatePresence>
                 {/* Empty card slots — Rabbit Hunt 카드가 있으면 그 위치에 표시 */}
                 {Array.from({ length: Math.max(0, 5 - communityCards.length) }).map((_, i) => {

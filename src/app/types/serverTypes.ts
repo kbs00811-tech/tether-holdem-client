@@ -292,7 +292,11 @@ export type ServerMessage =
   | { type: 'PLAYER_SIT_OUT'; playerId: string; seat: number }
   | { type: 'PLAYER_SIT_IN'; playerId: string; seat: number }
   | { type: 'SHOW_MUCK_PROMPT'; timeoutMs: number }         // 승자에게 Show/Muck 선택
-  | { type: 'CARDS_SHOWN'; playerId: string; cards: Card[] } // 카드 공개됨
+  | { type: 'CARDS_SHOWN'; playerId: string; cards: Card[];
+      seat?: number; handDescription?: string;
+      // 🎯 P0-1 (2026-04-28): best 5 — 클라이언트 highlight 용
+      handResult?: { rank: number; cards: Card[]; description: string };
+    } // 카드 공개됨
   | { type: 'RABBIT_HUNT_RESULT'; cards: Card[] }            // Rabbit Hunt 결과
   | { type: 'STRADDLE_POSTED'; playerId: string; amount: number }
   | { type: 'BOMB_POT_ANNOUNCED'; multiplier: number }

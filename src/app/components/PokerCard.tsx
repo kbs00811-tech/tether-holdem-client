@@ -10,6 +10,8 @@ interface PokerCardProps {
   faceDown?: boolean;
   size?: "xs" | "sm" | "md" | "lg" | "xl";
   highlight?: boolean;
+  /** 🎯 P0-1 (2026-04-28): 쇼다운 best 5 미사용 카드 시각 dim (30% opacity) */
+  dimmed?: boolean;
   className?: string;
 }
 
@@ -37,7 +39,7 @@ const sizeMap = {
   xl: { w: 112, h: 157, rank: 28, suitS: 20, center: 50, r: 9, p: 8, stroke: 1.2, shadow: 20 },
 };
 
-export function PokerCard({ suit, rank, faceDown = false, size = "md", highlight = false, className }: PokerCardProps) {
+export function PokerCard({ suit, rank, faceDown = false, size = "md", highlight = false, dimmed = false, className }: PokerCardProps) {
   const s = sizeMap[size];
   const cardSkin = useSettingsStore(st => st.cardSkin);
   const skin = CARD_SKINS[cardSkin as keyof typeof CARD_SKINS] ?? CARD_SKINS[1];
@@ -147,11 +149,15 @@ export function PokerCard({ suit, rank, faceDown = false, size = "md", highlight
         width: s.w, height: s.h, borderRadius: s.r,
         position: "relative", overflow: "hidden",
         background: "#FFFFFF",
+        // 🎯 P0-1: dimmed (best 5 미사용) → opacity 30% + grayscale; transition 부드럽게
+        opacity: dimmed ? 0.3 : 1,
+        filter: dimmed ? 'grayscale(0.6)' : 'none',
+        transition: 'opacity 400ms ease, filter 400ms ease, box-shadow 200ms ease, border 200ms ease',
         boxShadow: highlight
-          ? `0 0 20px rgba(255,170,80,0.15), 0 ${s.shadow}px ${s.shadow * 2}px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,1)`
+          ? `0 0 20px rgba(255,215,0,0.55), 0 ${s.shadow}px ${s.shadow * 2}px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,1)`
           : `0 ${s.shadow * 0.5}px ${s.shadow}px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.9)`,
         border: highlight
-          ? `${s.stroke}px solid rgba(255,170,80,0.4)`
+          ? `${Math.max(s.stroke, 1.5)}px solid rgba(255,215,0,0.85)`
           : `${s.stroke}px solid rgba(0,0,0,0.06)`,
         display: "flex", flexDirection: "column",
         justifyContent: "space-between", padding: s.p,

@@ -76,6 +76,8 @@ interface GameStore {
   chatMessages: { playerId: string; nickname: string; message: string; time: number }[];
   tournaments: any[];
   shownCards: Record<string, any[]>;      // playerId → cards (쇼다운 공개)
+  // 🎯 P0-1 (2026-04-28): playerId → best5 카드 식별자 set ("Ah", "Ks" 등)
+  shownBestFive: Record<string, string[]>;
   rabbitCards: any[];                      // Rabbit Hunt 결과
   handHistoryRecords: any[];               // Hand History 뷰어
   showMuckPrompt: boolean;                 // 승리 후 Show/Muck 선택
@@ -144,6 +146,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   chatMessages: [],
   tournaments: [],
   shownCards: {},
+  shownBestFive: {},
   rabbitCards: [],
   handHistoryRecords: [],
   showMuckPrompt: false,
@@ -167,7 +170,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     winners: null, showResult: false, equities: null,
     lastActions: {}, allInBanner: null, dramaticMoment: null,
     emptySeats: [], runItBoards: null,
-    shownCards: {}, rabbitCards: [],
+    shownCards: {}, shownBestFive: {}, rabbitCards: [],
     showMuckPrompt: false, runItTwiceRequest: false,
     insuranceOffer: null, cashOutOffer: null,
     isSittingOut: false,
@@ -205,7 +208,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
           winners: null, showResult: false, equities: null,
           lastActions: {}, allInBanner: null, dramaticMoment: null,
           emptySeats: [], runItBoards: null,
-          shownCards: {}, rabbitCards: [],
+          shownCards: {}, shownBestFive: {}, rabbitCards: [],
           showMuckPrompt: false, runItTwiceRequest: false,
           insuranceOffer: null, cashOutOffer: null,
           isSittingOut: false,
@@ -233,7 +236,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
           equities: null,
           winners: null,
           showResult: false,
-          shownCards: {},
+          shownCards: {}, shownBestFive: {},
         };
         const cur = get().dealingInfo;
         const phaseStr = String(st?.phase || '').toUpperCase();
@@ -281,7 +284,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
             handNumber: m.handNumber || 0,
           },
           // ★ 핵심 수정: 새 핸드에선 이전 핸드 카드 노출 일체 제거
-          shownCards: {},
+          shownCards: {}, shownBestFive: {},
           winners: null,
           showResult: false,
           equities: null,
@@ -481,7 +484,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         }
         // V21.6: 결과 1.5초 표시 → 카드 수거 → 다음 핸드 준비
         setTimeout(() => {
-          set({ showResult: false, shownCards: {}, rabbitCards: [], winners: null, myCards: [] });
+          set({ showResult: false, shownCards: {}, shownBestFive: {}, rabbitCards: [], winners: null, myCards: [] });
         }, 1500);
 
         // 내 통계 기록 (statsStore) + 카드 클리어
@@ -829,8 +832,16 @@ export const useGameStore = create<GameStore>((set, get) => ({
         // 쇼다운: 상대 카드 공개
         // V3 P2D-FIX: 쇼다운 사운드는 첫 번째 리빌에만 1회 재생 (여러 명 시 중복 방지)
         const hadShown = Object.keys(get().shownCards).length > 0;
+        const m: any = msg;
+        // 🎯 P0-1 (2026-04-28): best 5 카드 식별자 추출 (rank+suit 식별자)
+        const bestFiveIds: string[] = m.handResult?.cards
+          ? m.handResult.cards.map((c: any) => `${c.rank}${c.suit}`)
+          : [];
         set(s => ({
-          shownCards: { ...s.shownCards, [(msg as any).playerId]: (msg as any).cards },
+          shownCards: { ...s.shownCards, [m.playerId]: m.cards },
+          shownBestFive: bestFiveIds.length > 0
+            ? { ...s.shownBestFive, [m.playerId]: bestFiveIds }
+            : s.shownBestFive,
         }));
         if (!hadShown) playSound('showdown');
         break;
