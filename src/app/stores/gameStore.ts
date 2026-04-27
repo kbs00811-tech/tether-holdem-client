@@ -491,6 +491,23 @@ export const useGameStore = create<GameStore>((set, get) => ({
           const myWin = myId && (msg.winners || []).find((w: any) => w.playerId === myId);
           if (myWin) haptic('win');
         } catch {}
+        // 🎯 P1-2 (2026-04-28): 빅윈 fanfare — 승자 handResult.rank 기준 핸드별 사운드
+        //   HandRank: 0=HighCard, 1=Pair, 2=TwoPair, 3=Trips, 4=Straight, 5=Flush,
+        //             6=FullHouse, 7=Quads, 8=StraightFlush, 9=RoyalFlush
+        //   매핑: 4 → straight, 5 → flush, 6 → fullHouse, 7+ → royalFlush
+        try {
+          const w0 = (msg.winners || [])[0] as any;
+          const rank = w0?.handResult?.rank;
+          if (typeof rank === 'number' && rank >= 4) {
+            const fanfareSound: 'straight' | 'flush' | 'fullHouse' | 'royalFlush' =
+              rank >= 7 ? 'royalFlush' :
+              rank === 6 ? 'fullHouse' :
+              rank === 5 ? 'flush' :
+              'straight';
+            // win.mp3 다음에 (overlay) — 작은 지연으로 자연스럽게 layered
+            setTimeout(() => playSound(fanfareSound), 250);
+          }
+        } catch {}
         // V21.6: 결과 1.5초 표시 → 카드 수거 → 다음 핸드 준비
         setTimeout(() => {
           set({ showResult: false, shownCards: {}, shownBestFive: {}, rabbitCards: [], winners: null, myCards: [] });
