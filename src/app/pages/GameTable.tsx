@@ -18,7 +18,7 @@ import { useWakeLock } from "../hooks/useWakeLock";
 import { playSound, setMuted as setSoundMuted, isMuted as isSoundMuted, startBGM, stopBGM, setBGMVolume, BGM_TRACKS, setBGMTrack, getBGMTrackId, setBGMMuted, isBGMMuted, setSFXVolume, getSFXVolume, setBGMVolumeLevel, getBGMVolumeLevel } from "../hooks/useSound";
 import { useSettingsStore, TABLE_FELTS } from "../stores/settingsStore";
 import { useEmbedMode } from "../hooks/useEmbedMode";
-import { formatMoney, getSymbol } from "../utils/currency";
+import { formatMoney, getSymbol, getCurrency, toKrwMajor, fromKrwMajor } from "../utils/currency";
 import { useT } from "../../i18n";
 import { evaluateHeroHand } from "../utils/handEvaluator";
 
@@ -3121,18 +3121,40 @@ export default function GameTable() {
 
               {/* ===== GGPoker-style Raise Amount + Slider ===== */}
               <div className="flex items-center gap-2 mb-2">
-                {/* 금액 직접 입력 */}
+                {/* 금액 직접 입력 — Beta-G++ 2026-04-27: 사용자 표시 통화로 입출력 통일
+                    (CRITICAL FIX: 이전엔 KRW major 만 처리 → USDT 보던 사용자가 의도와 다른 금액 베팅) */}
                 <div className="shrink-0 px-2 py-1.5 rounded-lg min-w-[90px] text-center"
                   style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}>
-                  <input type="number" value={Math.round(raiseAmount / 100)}
-                    onChange={e => {
-                      const v = Math.max(minRaise, Math.min(maxRaise, Number(e.target.value) * 100));
-                      setRaiseAmount(v);
-                    }}
-                    className="w-full bg-transparent text-center text-sm font-mono font-black text-white outline-none
-                      [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                    style={{ caretColor: "#26A17B" }}
-                  />
+                  {(() => {
+                    // raiseAmount (KRW-cents) → KRW major → user currency
+                    const krwMajor = raiseAmount / 100;
+                    const cur = getCurrency();
+                    const displayValue = (() => {
+                      if (cur === 'KRW' || cur === 'JPY' || cur === 'VND') {
+                        return Math.round(fromKrwMajor(krwMajor, cur));
+                      }
+                      // USDT/USD/EUR 류는 소수점 2자리
+                      const v = fromKrwMajor(krwMajor, cur);
+                      return v >= 100 ? Math.round(v) : Number(v.toFixed(2));
+                    })();
+                    const step = (cur === 'KRW' || cur === 'JPY' || cur === 'VND') ? 1 : 0.01;
+                    return (
+                      <input type="number" step={step} value={displayValue}
+                        onChange={e => {
+                          // 사용자 입력 (현재 통화) → KRW major → cents 환산 후 클램프
+                          const userInput = Number(e.target.value);
+                          if (!Number.isFinite(userInput)) return;
+                          const krwMaj = toKrwMajor(userInput, cur);
+                          const cents = Math.round(krwMaj * 100);
+                          const v = Math.max(minRaise, Math.min(maxRaise, cents));
+                          setRaiseAmount(v);
+                        }}
+                        className="w-full bg-transparent text-center text-sm font-mono font-black text-white outline-none
+                          [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                        style={{ caretColor: "#26A17B" }}
+                      />
+                    );
+                  })()}
                   <div className="text-[8px] text-[#4A5A70] mt-0.5">{getSymbol()} amount</div>
                 </div>
                 {/* 슬라이더 */}

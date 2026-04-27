@@ -39,6 +39,11 @@ export function getCurrency(): string {
   try { return useRateStore.getState().displayCurrency; } catch { return 'KRW'; }
 }
 
+/** KRW major 단위 → 현재 활성 통화 단위로 변환 (numeric, no symbol) */
+export function fromKrwMajor(krwMajor: number, target?: string): number {
+  return convertFromKrwMajor(krwMajor, target ?? getCurrency());
+}
+
 /** KRW major 단위 → 현재 활성 통화 단위로 변환 */
 function convertFromKrwMajor(krwMajor: number, target: string): number {
   if (target === 'KRW') return krwMajor;
@@ -53,6 +58,30 @@ function convertFromKrwMajor(krwMajor: number, target: string): number {
     case 'EUR': return usdt * (rates.usdtEur || 0.92);
     case 'JPY': return usdt * (rates.usdtJpy || 156);
     default: return krwMajor;
+  }
+}
+
+/**
+ * 역변환: 현재 활성 통화 단위 → KRW major
+ * 베팅 입력 박스 등에서 사용자가 입력한 값을 서버 단위(KRW-cents)로 환산하기 위해.
+ *
+ * 예: 사용자가 USDT 모드에서 "5" 입력 (₮5 의도)
+ *   → toKrwMajor(5, 'USDT') = 5 × 1400 = 7000 (₩7,000)
+ *   → ×100 cents = 700,000 (서버 단위)
+ */
+export function toKrwMajor(value: number, source?: string): number {
+  const cur = source ?? getCurrency();
+  if (cur === 'KRW') return value;
+  let rates;
+  try { rates = useRateStore.getState().effectiveRates(); }
+  catch { return value; }
+  const usdtKrw = rates.usdtKrw || 1400;
+  switch (cur) {
+    case 'USDT': return value * usdtKrw;
+    case 'USD': return (value / (rates.usdtUsd || 1)) * usdtKrw;
+    case 'EUR': return (value / (rates.usdtEur || 0.92)) * usdtKrw;
+    case 'JPY': return (value / (rates.usdtJpy || 156)) * usdtKrw;
+    default: return value;
   }
 }
 
