@@ -2705,20 +2705,55 @@ export default function GameTable() {
                         className="text-3xl mb-2"
                       >🏆</motion.div>
 
-                      <div className="text-[#FFD700] text-lg font-black mb-1"
-                        style={{ textShadow: "0 0 10px rgba(255,215,0,0.3)" }}>
-                        {winners[0].nickname}
-                      </div>
-
-                      <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ delay: 0.2, type: "spring", stiffness: 300 }}
-                        className="font-mono text-2xl font-black text-[#34D399] mb-1"
-                        style={{ textShadow: "0 0 12px rgba(52,211,153,0.3)" }}
-                      >
-                        +{getSymbol()}{(winners[0].amount / 100).toLocaleString()}
-                      </motion.div>
+                      {/* 🎯 Chop UI (2026-04-28): main pot winners 가 2명 이상이면 chop 표시 */}
+                      {(() => {
+                        const mainWinners = (winners as any[]).filter(w => w.potType === 'main' || w.potType === undefined);
+                        const isChop = mainWinners.length >= 2;
+                        if (isChop) {
+                          return (
+                            <>
+                              <div className="text-[#A78BFA] text-[10px] font-black uppercase tracking-widest mb-1.5">
+                                ⚖️ CHOP / SPLIT POT
+                              </div>
+                              <div className="flex flex-col gap-1 items-center mb-2">
+                                {mainWinners.slice(0, 3).map((w, idx) => (
+                                  <div key={`chop-${w.playerId}-${idx}`}
+                                    className="flex items-center gap-2 text-[#FFD700] text-base font-black"
+                                    style={{ textShadow: "0 0 10px rgba(255,215,0,0.3)" }}>
+                                    <span>{w.nickname}</span>
+                                    <span className="font-mono text-sm text-[#34D399]">
+                                      +{formatMoney(w.amount / 100)}
+                                    </span>
+                                  </div>
+                                ))}
+                                {mainWinners.length > 3 && (
+                                  <div className="text-[10px] text-[#8899AB]">
+                                    + {mainWinners.length - 3} more
+                                  </div>
+                                )}
+                              </div>
+                            </>
+                          );
+                        }
+                        // 일반 단일 winner
+                        return (
+                          <>
+                            <div className="text-[#FFD700] text-lg font-black mb-1"
+                              style={{ textShadow: "0 0 10px rgba(255,215,0,0.3)" }}>
+                              {winners[0].nickname}
+                            </div>
+                            <motion.div
+                              initial={{ scale: 0 }}
+                              animate={{ scale: 1 }}
+                              transition={{ delay: 0.2, type: "spring", stiffness: 300 }}
+                              className="font-mono text-2xl font-black text-[#34D399] mb-1"
+                              style={{ textShadow: "0 0 12px rgba(52,211,153,0.3)" }}
+                            >
+                              +{formatMoney(winners[0].amount / 100)}
+                            </motion.div>
+                          </>
+                        );
+                      })()}
 
                       {winners[0].handResult?.description && (
                         <motion.div

@@ -198,11 +198,19 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, turnDeadline
               })()),
             }}>
             {/* V3 P2C + V22 Phase 2+ V2.7: 쇼다운 시 shownCards face-up (NLHE 2장 / PLO 4장 자동 분기) */}
+            {/* 🎯 Muck Fade (2026-04-28): 패자 카드는 winner overlay 종료 시 부드럽게 페이드 아웃 (exit) */}
             {shownCards && shownCards.length >= 2 ? (
               <motion.div
                 key={`shown-${player.name}`}
                 initial={{ opacity: 0, rotateY: 180, scale: 0.8 }}
                 animate={{ opacity: 1, rotateY: 0, scale: 1 }}
+                exit={{
+                  opacity: 0,
+                  scale: isWinner ? 1.05 : 0.85,
+                  y: isWinner ? -8 : 16,
+                  rotate: isWinner ? 0 : -8,
+                  transition: { duration: 0.6, ease: [0.4, 0, 0.2, 1] },
+                }}
                 transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                 className="flex"
                 style={{
@@ -210,7 +218,10 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, turnDeadline
                   // V19: 승자 카드 금테 glow
                   ...(isWinner ? {
                     filter: 'drop-shadow(0 0 8px rgba(255,215,0,0.6)) drop-shadow(0 0 16px rgba(255,215,0,0.3))',
-                  } : {}),
+                  } : {
+                    // muck 카드는 약간 desaturate (실제로 진 사람 카드 = 눈에 덜 띔)
+                    filter: 'saturate(0.85) brightness(0.92)',
+                  }),
                 }}
               >
                 {shownCards.length === 2 ? (
