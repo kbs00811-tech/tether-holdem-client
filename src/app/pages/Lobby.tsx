@@ -285,7 +285,8 @@ export default function Lobby() {
         currentPlayers: r.playerCount,
         maxPlayers: r.maxPlayers,
         minBuyIn: r.minBuyIn / 100,
-        maxBuyIn: (r.minBuyIn * 2) / 100,
+        maxBuyIn: r.maxBuyIn / 100, // 🚨 fix(2026-04-27): 이전 (minBuyIn*2)/100 → 실제 maxBuyIn 의 50% 만 노출 / 슬라이더·BB count 오류
+
         status: r.phase === "WAITING" ? "waiting" as const : "playing" as const,
         variant: "NL",
       }))

@@ -12,9 +12,8 @@ import PricingPage from "./pages/PricingPage";
 import SignupB2B from "./pages/SignupB2B";
 import GameManual from "./pages/GameManual";
 import TournamentManual from "./pages/TournamentManual";
-import Leaderboard from "./pages/Leaderboard";
-import Missions from "./pages/Missions";
-import HandHistory from "./pages/HandHistory";
+// 🚨 fix(2026-04-27): Leaderboard/Missions/HandHistory 페이지 파일이 이 태그(backup-pre-i18n-20260426)
+// 에 존재하지 않음 — i18n WIP 커밋에서 추가됐다가 롤백되며 import 만 잔존. 빌드 차단으로 제거.
 
 export const router = createBrowserRouter([
   {
@@ -31,9 +30,6 @@ export const router = createBrowserRouter([
       { path: "tournament/:tournamentId", Component: TournamentTable },
       { path: "profile", Component: Profile },
       { path: "cashier", Component: Cashier },
-      { path: "leaderboard", Component: Leaderboard },
-      { path: "missions", Component: Missions },
-      { path: "hand-history", Component: HandHistory },
       { path: "assets", Component: AssetShowcase },
       { path: "admin", Component: AdminDashboard },
       { path: "pricing", Component: PricingPage },
