@@ -2731,6 +2731,40 @@ export default function GameTable() {
                           {winners[0].handResult.description}
                         </motion.div>
                       )}
+
+                      {/* 🎯 P0-2 (2026-04-28): 사이드 팟 winners — main 아래 보라색 카드 */}
+                      {(() => {
+                        const sideWinners = winners.filter((w: any) => w.potType === 'side');
+                        if (sideWinners.length === 0) return null;
+                        return (
+                          <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.5 }}
+                            className="mt-3 flex flex-col gap-1.5 items-center"
+                          >
+                            <div className="text-[10px] uppercase tracking-wider font-bold text-[#A78BFA]">
+                              Side Pot Winners
+                            </div>
+                            {sideWinners.map((w: any, idx: number) => (
+                              <div key={`side-${w.playerId}-${idx}`}
+                                className="px-3 py-1.5 rounded-lg flex items-center gap-2 text-xs"
+                                style={{
+                                  background: "rgba(167,139,250,0.08)",
+                                  border: "1px solid rgba(167,139,250,0.25)",
+                                }}>
+                                <span className="text-[9px] uppercase font-bold text-[#A78BFA] opacity-70">
+                                  {sideWinners.length > 1 ? `Side ${(w.potIndex ?? idx + 1)}` : 'Side'}
+                                </span>
+                                <span className="text-white font-bold">{w.nickname}</span>
+                                <span className="font-mono font-black text-[#34D399]">
+                                  +{formatMoney(w.amount / 100)}
+                                </span>
+                              </div>
+                            ))}
+                          </motion.div>
+                        );
+                      })()}
                     </div>
                   </motion.div>
                 </motion.div>

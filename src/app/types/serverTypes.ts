@@ -349,6 +349,8 @@ export interface WinnerInfo {
   amount: number;
   handResult: HandResult;
   potType: 'main' | 'side';
+  // 🎯 P0-2 (2026-04-28): 여러 사이드팟 구분용 (0=main, 1+=side1, side2 ...)
+  potIndex?: number;
 }
 
 export interface TournamentInfo {
