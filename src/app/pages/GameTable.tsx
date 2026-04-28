@@ -39,7 +39,7 @@ export default function GameTable() {
     gameState, myCards, isMyTurn, turnInfo, winners, showResult,
     currentRoomId, serverSeedHash, equities, connected, lastFairReveal,
     shownCards, rabbitCards, handHistoryRecords,
-    showMuckPrompt, insuranceOffer, cashOutOffer, isSittingOut, isDealing,
+    showMuckPrompt, insuranceOffer, cashOutOffer, bustedInfo, isSittingOut, isDealing,
   } = useGameStore();
   const emptySeats = useGameStore(s => s.emptySeats);
   const runItBoards = useGameStore(s => s.runItBoards);
@@ -4287,6 +4287,79 @@ export default function GameTable() {
 
       {/* 🎯 Show/Muck Prompt (2026-04-28): GG포커 표준 — ACTION PANEL 안에 통합됨 (위 isMyTurn 분기) */}
       {/* 별도 floating modal 제거 — 베팅 액션 영역에 fold/check/call/raise 자리에 Show/Muck 표시 */}
+
+      {/* ===== 🎯 BUSTED Modal (2026-04-28) — 잔고 0 시 Top-Up 권유 ===== */}
+      <AnimatePresence>
+        {bustedInfo && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[80] flex items-center justify-center bg-black/70 backdrop-blur-sm p-4">
+            <motion.div initial={{ scale: 0.9, y: 20 }} animate={{ scale: 1, y: 0 }} exit={{ scale: 0.9, y: 20 }}
+              className="rounded-2xl p-6 w-full max-w-[360px]"
+              style={{
+                background: "linear-gradient(180deg, #1A1F2E, #0F1420)",
+                border: "1.5px solid rgba(255,107,53,0.35)",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.7), 0 0 40px rgba(255,107,53,0.15)",
+              }}>
+              {/* Header */}
+              <div className="text-center mb-4">
+                <motion.div
+                  animate={{ rotate: [0, -5, 5, -3, 0], scale: [1, 1.05, 1] }}
+                  transition={{ duration: 0.8, delay: 0.2 }}
+                  className="text-5xl mb-2">💸</motion.div>
+                <div className="text-[15px] font-black text-white mb-1">칩이 모두 떨어졌습니다</div>
+                <div className="text-[11px] text-[#8899AB] leading-relaxed">
+                  계속 플레이하려면 충전하세요.<br />
+                  좌석은 그대로 유지됩니다.
+                </div>
+              </div>
+              {/* Buy-in 정보 */}
+              <div className="rounded-xl p-3 mb-4 flex items-center justify-between"
+                style={{ background: "rgba(255,107,53,0.06)", border: "1px solid rgba(255,107,53,0.15)" }}>
+                <div className="text-[10px] text-[#8899AB] uppercase tracking-wider">Buy-in 범위</div>
+                <div className="text-[11px] font-mono font-bold text-[#FF6B35]">
+                  {formatMoney(bustedInfo.minBuyIn / 100)} ~ {formatMoney(bustedInfo.maxBuyIn / 100)}
+                </div>
+              </div>
+              {/* Actions */}
+              <div className="flex gap-2">
+                <motion.button whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    useGameStore.setState({ bustedInfo: null });
+                    setShowBuyInModal(true); // 즉시 BuyInModal 오픈
+                    playSound('click');
+                  }}
+                  className="flex-1 py-3 rounded-xl text-[13px] font-black uppercase tracking-wider"
+                  style={{
+                    background: "linear-gradient(180deg, #FF6B35, #E85D2C)",
+                    color: "#FFFFFF",
+                    boxShadow: "0 4px 14px rgba(255,107,53,0.35)",
+                  }}>
+                  💰 Top Up
+                </motion.button>
+                <motion.button whileTap={{ scale: 0.95 }}
+                  onClick={() => {
+                    useGameStore.setState({ bustedInfo: null });
+                    send({ type: 'STAND_UP' } as any);
+                    playSound('click');
+                    // 좌석 떠남 — 로비로
+                    setTimeout(() => navigate('/lobby'), 500);
+                  }}
+                  className="flex-1 py-3 rounded-xl text-[13px] font-bold uppercase tracking-wider text-[#8899AB]"
+                  style={{
+                    background: "rgba(255,255,255,0.04)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                  }}>
+                  Leave
+                </motion.button>
+              </div>
+              {/* 책임 도박 안내 (컴플라이언스 권고) */}
+              <div className="text-center mt-3 text-[9px] text-[#4A5A70] leading-relaxed">
+                책임 있는 게임을 위해 무리하지 마세요.
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* ===== Cash Out Offer (GGPoker-style) ===== */}
       <AnimatePresence>

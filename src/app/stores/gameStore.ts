@@ -80,6 +80,8 @@ interface GameStore {
   shownCards: Record<string, any[]>;      // playerId → cards (쇼다운 공개)
   // 🎯 P0-1 (2026-04-28): playerId → best5 카드 식별자 set ("Ah", "Ks" 등)
   shownBestFive: Record<string, string[]>;
+  // 🎯 (2026-04-28) BUSTED — 인간 사용자 stack=0 시 서버가 발화 (좌석 유지 + Top-Up 권유)
+  bustedInfo: { seat: number; minBuyIn: number; maxBuyIn: number; ts: number } | null;
   rabbitCards: any[];                      // Rabbit Hunt 결과
   handHistoryRecords: any[];               // Hand History 뷰어
   showMuckPrompt: boolean;                 // 승리 후 Show/Muck 선택
@@ -149,6 +151,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
   tournaments: [],
   shownCards: {},
   shownBestFive: {},
+  bustedInfo: null,
   rabbitCards: [],
   handHistoryRecords: [],
   showMuckPrompt: false,
@@ -172,7 +175,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
     winners: null, showResult: false, equities: null,
     lastActions: {}, allInBanner: null, dramaticMoment: null,
     emptySeats: [], runItBoards: null,
-    shownCards: {}, shownBestFive: {}, rabbitCards: [],
+    shownCards: {}, shownBestFive: {}, bustedInfo: null, rabbitCards: [],
     showMuckPrompt: false, runItTwiceRequest: false,
     insuranceOffer: null, cashOutOffer: null,
     isSittingOut: false,
@@ -856,6 +859,22 @@ export const useGameStore = create<GameStore>((set, get) => ({
       case 'TOURNAMENT_LIST':
         set({ tournaments: msg.tournaments });
         break;
+      case 'BUSTED' as any: {
+        // 🎯 (2026-04-28) 인간 사용자 stack=0 — Top-Up 모달 표시 (자동 sit-out)
+        const m = msg as any;
+        const myId = get().myPlayerId;
+        if (m.playerId !== myId) break; // 본인 한정
+        set({
+          bustedInfo: {
+            seat: m.seat,
+            minBuyIn: m.minBuyIn,
+            maxBuyIn: m.maxBuyIn,
+            ts: Date.now(),
+          },
+        });
+        playSound('click');
+        break;
+      }
       case 'CARDS_SHOWN': {
         // 쇼다운: 상대 카드 공개
         // V3 P2D-FIX: 쇼다운 사운드는 첫 번째 리빌에만 1회 재생 (여러 명 시 중복 방지)
