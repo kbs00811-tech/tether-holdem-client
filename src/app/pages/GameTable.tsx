@@ -4108,92 +4108,87 @@ export default function GameTable() {
         )}
       </AnimatePresence>
 
-      {/* ===== Emoji Picker — GGPoker+ 스타일 ===== */}
+      {/* ===== Emoji Picker — GG포커 표준 (2026-04-28 디자인 개편) =====
+           - 큰 이모지 (4xl) + drop-shadow 입체감
+           - 카테고리별 컬러 라벨 + hover 시 글로우
+           - 16개로 정제 (덜 자주 쓰는 것 제거) */}
       <AnimatePresence>
-        {showEmoji && (
-          <motion.div initial={{ opacity: 0, y: 30, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 30, scale: 0.9 }}
-            className="fixed bottom-28 left-1/2 -translate-x-1/2 z-50 px-5 py-4 rounded-2xl"
-            style={{ background: "rgba(15,20,28,0.97)", border: "1px solid rgba(255,255,255,0.08)", backdropFilter: "blur(16px)", boxShadow: "0 10px 40px rgba(0,0,0,0.6)" }}>
-            {/* 카테고리 */}
-            <div className="text-[9px] text-[#4A5A70] uppercase tracking-wider mb-2 font-semibold">Reactions</div>
-            <div className="grid grid-cols-6 gap-2 mb-3">
-              {[
-                { emoji: '😂', label: 'LOL' },
-                { emoji: '😡', label: 'Angry' },
-                { emoji: '😢', label: 'Sad' },
-                { emoji: '🤩', label: 'Wow' },
-                { emoji: '😎', label: 'Cool' },
-                { emoji: '🤔', label: 'Think' },
-              ].map(e => (
-                <motion.button key={e.emoji}
-                  whileHover={{ scale: 1.3 }} whileTap={{ scale: 0.8 }}
-                  onClick={() => {
-                    send({ type: 'CHAT', message: e.emoji });
-                    setFloatingEmoji({ emoji: e.emoji, seat: heroSeat, key: Date.now() });
-                    setTimeout(() => setFloatingEmoji(null), 2500);
-                    setShowEmoji(false);
-                    playSound('click');
-                  }}
-                  className="flex flex-col items-center gap-0.5 p-2 rounded-xl transition-colors hover:bg-white/[0.05]">
-                  <span className="text-3xl">{e.emoji}</span>
-                  <span className="text-[8px] text-[#4A5A70]">{e.label}</span>
-                </motion.button>
-              ))}
-            </div>
-            <div className="text-[9px] text-[#4A5A70] uppercase tracking-wider mb-2 font-semibold">Actions</div>
-            <div className="grid grid-cols-6 gap-2 mb-3">
-              {[
-                { emoji: '👍', label: 'GG' },
-                { emoji: '👏', label: 'Nice' },
-                { emoji: '🔥', label: 'Hot' },
-                { emoji: '💪', label: 'Strong' },
-                { emoji: '💀', label: 'Dead' },
-                { emoji: '🎉', label: 'Party' },
-              ].map(e => (
-                <motion.button key={e.emoji}
-                  whileHover={{ scale: 1.3 }} whileTap={{ scale: 0.8 }}
-                  onClick={() => {
-                    send({ type: 'CHAT', message: e.emoji });
-                    setFloatingEmoji({ emoji: e.emoji, seat: heroSeat, key: Date.now() });
-                    setTimeout(() => setFloatingEmoji(null), 2500);
-                    setShowEmoji(false);
-                    playSound('click');
-                  }}
-                  className="flex flex-col items-center gap-0.5 p-2 rounded-xl transition-colors hover:bg-white/[0.05]">
-                  <span className="text-3xl">{e.emoji}</span>
-                  <span className="text-[8px] text-[#4A5A70]">{e.label}</span>
-                </motion.button>
-              ))}
-            </div>
-            <div className="text-[9px] text-[#4A5A70] uppercase tracking-wider mb-2 font-semibold">Taunt</div>
-            <div className="grid grid-cols-6 gap-2">
-              {[
-                { emoji: '🃏', label: 'Bluff' },
-                { emoji: '💰', label: 'Money' },
-                { emoji: '🏆', label: 'Win' },
-                { emoji: '😈', label: 'Devil' },
-                { emoji: '🐟', label: 'Fish' },
-                { emoji: '🦈', label: 'Shark' },
-              ].map(e => (
-                <motion.button key={e.emoji}
-                  whileHover={{ scale: 1.3 }} whileTap={{ scale: 0.8 }}
-                  onClick={() => {
-                    send({ type: 'CHAT', message: e.emoji });
-                    setFloatingEmoji({ emoji: e.emoji, seat: heroSeat, key: Date.now() });
-                    setTimeout(() => setFloatingEmoji(null), 2500);
-                    setShowEmoji(false);
-                    playSound('click');
-                  }}
-                  className="flex flex-col items-center gap-0.5 p-2 rounded-xl transition-colors hover:bg-white/[0.05]">
-                  <span className="text-3xl">{e.emoji}</span>
-                  <span className="text-[8px] text-[#4A5A70]">{e.label}</span>
-                </motion.button>
-              ))}
-            </div>
-            <button onClick={() => setShowEmoji(false)}
-              className="w-full mt-3 py-2 rounded-lg text-[10px] text-[#4A5A70] bg-white/[0.03]">Close</button>
-          </motion.div>
-        )}
+        {showEmoji && (() => {
+          const sendEmoji = (emoji: string) => {
+            send({ type: 'CHAT', message: emoji });
+            setFloatingEmoji({ emoji, seat: heroSeat, key: Date.now() });
+            setTimeout(() => setFloatingEmoji(null), 2500);
+            setShowEmoji(false);
+            playSound('click');
+          };
+          const EmojiBtn = ({ emoji, label, color }: { emoji: string; label: string; color: string }) => (
+            <motion.button key={emoji}
+              whileHover={{ scale: 1.18, y: -3 }} whileTap={{ scale: 0.85 }}
+              onClick={() => sendEmoji(emoji)}
+              className="flex flex-col items-center gap-1 p-2.5 rounded-2xl transition-all relative group"
+              style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
+              <span className="text-[36px] leading-none"
+                style={{ filter: "drop-shadow(0 4px 8px rgba(0,0,0,0.4)) drop-shadow(0 0 6px rgba(255,255,255,0.05))" }}>
+                {emoji}
+              </span>
+              <span className="text-[9px] font-bold uppercase tracking-wider" style={{ color }}>{label}</span>
+              <div className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                style={{ background: `radial-gradient(circle at center, ${color}25, transparent 70%)` }} />
+            </motion.button>
+          );
+          return (
+            <motion.div initial={{ opacity: 0, y: 30, scale: 0.9 }} animate={{ opacity: 1, y: 0, scale: 1 }} exit={{ opacity: 0, y: 30, scale: 0.9 }}
+              className="fixed bottom-28 left-1/2 -translate-x-1/2 z-50 px-5 py-4 rounded-3xl w-[340px] sm:w-[400px]"
+              style={{
+                background: "linear-gradient(180deg, rgba(20,26,38,0.98), rgba(12,16,24,0.98))",
+                border: "1px solid rgba(255,255,255,0.08)",
+                backdropFilter: "blur(20px)",
+                boxShadow: "0 12px 50px rgba(0,0,0,0.7), inset 0 1px 0 rgba(255,255,255,0.05)",
+              }}>
+              {/* Reactions (감정) — 호박색 톤 */}
+              <div className="flex items-center gap-2 mb-2">
+                <div className="text-[10px] font-black uppercase tracking-widest text-[#FBBF24]">😀 Reactions</div>
+                <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, rgba(251,191,36,0.3), transparent)" }} />
+              </div>
+              <div className="grid grid-cols-5 gap-2 mb-4">
+                <EmojiBtn emoji="😂" label="LOL" color="#FBBF24" />
+                <EmojiBtn emoji="😭" label="Cry" color="#FBBF24" />
+                <EmojiBtn emoji="😡" label="Angry" color="#FBBF24" />
+                <EmojiBtn emoji="🤯" label="Mind" color="#FBBF24" />
+                <EmojiBtn emoji="😎" label="Cool" color="#FBBF24" />
+              </div>
+              {/* Actions (액션) — 청록 톤 */}
+              <div className="flex items-center gap-2 mb-2">
+                <div className="text-[10px] font-black uppercase tracking-widest text-[#34D399]">💪 Actions</div>
+                <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, rgba(52,211,153,0.3), transparent)" }} />
+              </div>
+              <div className="grid grid-cols-5 gap-2 mb-4">
+                <EmojiBtn emoji="👍" label="GG" color="#34D399" />
+                <EmojiBtn emoji="👏" label="Clap" color="#34D399" />
+                <EmojiBtn emoji="🔥" label="Fire" color="#34D399" />
+                <EmojiBtn emoji="💪" label="Pwr" color="#34D399" />
+                <EmojiBtn emoji="❤️" label="Heart" color="#34D399" />
+              </div>
+              {/* Taunt (도발) — 보라 톤 */}
+              <div className="flex items-center gap-2 mb-2">
+                <div className="text-[10px] font-black uppercase tracking-widest text-[#A78BFA]">🎭 Taunt</div>
+                <div className="flex-1 h-px" style={{ background: "linear-gradient(90deg, rgba(167,139,250,0.3), transparent)" }} />
+              </div>
+              <div className="grid grid-cols-5 gap-2 mb-3">
+                <EmojiBtn emoji="🃏" label="Bluff" color="#A78BFA" />
+                <EmojiBtn emoji="💰" label="Money" color="#A78BFA" />
+                <EmojiBtn emoji="🐟" label="Fish" color="#A78BFA" />
+                <EmojiBtn emoji="🦈" label="Shark" color="#A78BFA" />
+                <EmojiBtn emoji="🏆" label="Win" color="#A78BFA" />
+              </div>
+              <button onClick={() => setShowEmoji(false)}
+                className="w-full py-2 rounded-xl text-[11px] font-bold text-[#6B7A90] hover:text-white transition-colors"
+                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)" }}>
+                Close
+              </button>
+            </motion.div>
+          );
+        })()}
       </AnimatePresence>
 
       {/* ===== Floating Emoji Animation — 플레이어 위에 큰 이모티콘 팝업 ===== */}
