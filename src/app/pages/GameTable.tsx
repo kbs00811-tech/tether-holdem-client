@@ -4228,32 +4228,57 @@ export default function GameTable() {
 
       {/* ===== Floating Emoji Animation — 플레이어 위에 큰 이모티콘 팝업 ===== */}
       <AnimatePresence>
-        {/* 🎯 (2026-04-28) 좌석별 다중 floating — 본인 + 타인 동시 표시 */}
+        {/* 🎯 GG포커 표준 (2026-04-28 v2): 아바타 우상단 말풍선 형태 */}
         {floatingEmojis.map(f => {
           const pos = seatPositionsData[f.seat];
           if (!pos) return null;
           const [xPct, yPct] = pos;
+          // 좌측 좌석(x<50)이면 우측에 말풍선, 우측 좌석이면 좌측에 — 카드 안 가리도록
+          const isLeftSide = xPct < 50;
           return (
             <motion.div
               key={f.id}
               className="absolute z-[100] pointer-events-none"
-              style={{ left: `${xPct}%`, top: `${yPct}%` }}
-              initial={{ scale: 0, opacity: 0, y: 0 }}
-              animate={{ scale: [0, 1.4, 1.1], opacity: [0, 1, 1], y: [0, -50, -70] }}
-              exit={{ scale: 1.5, opacity: 0, y: -100 }}
-              transition={{ duration: 2.4, ease: "easeOut" }}
+              style={{
+                left: `${xPct}%`,
+                top: `${yPct}%`,
+                transform: `translate(${isLeftSide ? '20%' : '-120%'}, -120%)`, // 아바타 옆
+              }}
+              initial={{ scale: 0, opacity: 0, y: 10 }}
+              animate={{ scale: [0, 1.15, 1], opacity: [0, 1, 1], y: [10, -2, -2] }}
+              exit={{ scale: 0.8, opacity: 0, y: -10 }}
+              transition={{ duration: 3.2, ease: "easeOut", times: [0, 0.15, 1] }}
             >
-              <div style={{ transform: "translate(-50%, -100%)" }}>
-                <motion.span
+              {/* 말풍선 카드 — 아바타 가리키는 꼬리 */}
+              <div className="relative" style={{ filter: "drop-shadow(0 4px 10px rgba(0,0,0,0.5))" }}>
+                <div className="rounded-2xl px-2.5 py-1.5 flex items-center justify-center"
                   style={{
-                    fontSize: 56,
-                    display: "block",
-                    filter: "drop-shadow(0 6px 14px rgba(0,0,0,0.6)) drop-shadow(0 0 12px rgba(255,255,255,0.1))",
-                  }}
-                  animate={{ rotate: [0, -10, 10, -5, 0] }}
-                  transition={{ duration: 0.6, delay: 0.2 }}>
-                  {f.emoji}
-                </motion.span>
+                    background: "linear-gradient(180deg, rgba(255,255,255,0.97), rgba(240,240,245,0.95))",
+                    border: "1.5px solid rgba(0,0,0,0.08)",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.9)",
+                    minWidth: 44,
+                    minHeight: 44,
+                  }}>
+                  <motion.span
+                    style={{ fontSize: 32, lineHeight: 1, display: "block" }}
+                    animate={{ rotate: [0, -8, 8, -4, 0] }}
+                    transition={{ duration: 0.5, delay: 0.15 }}>
+                    {f.emoji}
+                  </motion.span>
+                </div>
+                {/* 말풍선 꼬리 — 아바타 방향으로 */}
+                <div className="absolute"
+                  style={{
+                    bottom: -7,
+                    [isLeftSide ? 'left' : 'right']: 12,
+                    width: 0,
+                    height: 0,
+                    borderLeft: "7px solid transparent",
+                    borderRight: "7px solid transparent",
+                    borderTop: "8px solid rgba(245,245,250,0.96)",
+                    filter: "drop-shadow(0 2px 2px rgba(0,0,0,0.15))",
+                  } as any}
+                />
               </div>
             </motion.div>
           );
