@@ -3456,6 +3456,47 @@ export default function GameTable() {
                 </div>
               )}
             </div>
+          ) : showMuckPrompt ? (
+            /* 🎯 Show/Muck (2026-04-28): GG포커 표준 — 베팅 액션 영역에 통합 */
+            <div className="py-3">
+              <div className="text-[10px] text-[#A78BFA] text-center mb-2 uppercase tracking-widest font-black">
+                Show your cards?
+              </div>
+              <div className="flex gap-2">
+                <motion.button whileTap={{ scale: 0.93 }}
+                  onClick={() => {
+                    send({ type: 'SHOW_CARDS' } as any);
+                    send({ type: 'SHOW_OR_MUCK_RESPONSE', show: true } as any);
+                    useGameStore.setState({ showMuckPrompt: false });
+                    playSound('click');
+                  }}
+                  className="flex-1 py-3.5 sm:py-4 rounded-xl active:brightness-110 relative overflow-hidden"
+                  style={{
+                    background: "linear-gradient(180deg, #1F8A5A 0%, #34D399 100%)",
+                    boxShadow: "0 4px 14px rgba(52,211,153,0.3), inset 0 1px 0 rgba(255,255,255,0.15)",
+                  }}>
+                  <span className="text-white text-[13px] sm:text-[14px] font-black uppercase tracking-widest">
+                    👁 Show
+                  </span>
+                </motion.button>
+                <motion.button whileTap={{ scale: 0.93 }}
+                  onClick={() => {
+                    send({ type: 'MUCK_CARDS' } as any);
+                    send({ type: 'SHOW_OR_MUCK_RESPONSE', show: false } as any);
+                    useGameStore.setState({ showMuckPrompt: false });
+                    playSound('click');
+                  }}
+                  className="flex-1 py-3.5 sm:py-4 rounded-xl active:brightness-110 relative overflow-hidden"
+                  style={{
+                    background: "linear-gradient(180deg, #4A5A70 0%, #2A3A50 100%)",
+                    boxShadow: "0 4px 14px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)",
+                  }}>
+                  <span className="text-white text-[13px] sm:text-[14px] font-black uppercase tracking-widest">
+                    🚫 Muck
+                  </span>
+                </motion.button>
+              </div>
+            </div>
           ) : isWaitingForBB ? (
             /* WAIT_BB 상태 — Post BB 옵션 표시 */
             <div className="py-3">
@@ -4178,39 +4219,8 @@ export default function GameTable() {
         )}
       </AnimatePresence>
 
-      {/* ===== Show/Muck Prompt (승리 후) ===== */}
-      <AnimatePresence>
-        {showMuckPrompt && (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 20 }}
-            className="fixed bottom-32 left-1/2 -translate-x-1/2 z-50 px-5 py-3 rounded-xl"
-            style={{ background: "rgba(20,24,32,0.95)", border: "1px solid rgba(52,211,153,0.15)", backdropFilter: "blur(12px)" }}>
-            <div className="text-[10px] text-[#6B7A90] text-center mb-2">Show your cards?</div>
-            <div className="flex gap-3">
-              <button onClick={() => {
-                  // 🎯 두 케이스 모두 처리: uncontested win = SHOW_CARDS, 쇼다운 ask = SHOW_OR_MUCK_RESPONSE
-                  send({ type: 'SHOW_CARDS' } as any);
-                  send({ type: 'SHOW_OR_MUCK_RESPONSE', show: true } as any);
-                  useGameStore.setState({ showMuckPrompt: false });
-                  playSound('click');
-                }}
-                className="px-4 py-2 rounded-lg text-xs font-bold text-[#34D399]"
-                style={{ background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.2)" }}>
-                Show
-              </button>
-              <button onClick={() => {
-                  send({ type: 'MUCK_CARDS' } as any);
-                  send({ type: 'SHOW_OR_MUCK_RESPONSE', show: false } as any);
-                  useGameStore.setState({ showMuckPrompt: false });
-                  playSound('click');
-                }}
-                className="px-4 py-2 rounded-lg text-xs font-bold text-[#6B7A90]"
-                style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
-                Muck
-              </button>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {/* 🎯 Show/Muck Prompt (2026-04-28): GG포커 표준 — ACTION PANEL 안에 통합됨 (위 isMyTurn 분기) */}
+      {/* 별도 floating modal 제거 — 베팅 액션 영역에 fold/check/call/raise 자리에 Show/Muck 표시 */}
 
       {/* ===== Cash Out Offer (GGPoker-style) ===== */}
       <AnimatePresence>
