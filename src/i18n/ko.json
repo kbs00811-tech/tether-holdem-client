@@ -145,7 +145,26 @@
   "chat": {
     "title": "채팅",
     "placeholder": "메시지 입력...",
-    "send": "전송"
+    "send": "전송",
+    "mute": "이 사용자 음소거",
+    "unmute": "음소거 해제"
+  },
+  "busted": {
+    "title": "칩이 모두 떨어졌습니다",
+    "subtitle": "계속 플레이하려면 충전하세요. 좌석은 그대로 유지됩니다.",
+    "buyInRange": "Buy-in 범위",
+    "topUp": "Top Up",
+    "leave": "Leave",
+    "responsibleNote": "책임 있는 게임을 위해 무리하지 마세요."
+  },
+  "showMuck": {
+    "prompt": "카드를 공개하시겠습니까?",
+    "show": "Show",
+    "muck": "Muck",
+    "modeAutoShow": "항상 공개",
+    "modeAsk": "매번 묻기",
+    "modeAutoMuck": "항상 머크",
+    "modeHelp": "마지막 베팅 한 사람은 룰상 강제 공개 — caller(콜만 한 사람) 만 선택 가능"
   },
   "alert": {
     "insufficientBalance": "잔액이 부족합니다",

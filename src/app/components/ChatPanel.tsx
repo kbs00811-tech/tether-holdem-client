@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import { Send, MessageCircle, X } from "lucide-react";
+import { Send, MessageCircle, X, VolumeX, Volume2 } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 import { useGameStore } from "../stores/gameStore";
+import { useSettingsStore } from "../stores/settingsStore";
 import { useSocket } from "../hooks/useSocket";
+import { useT } from "../../i18n";
 
 interface ChatPanelProps {
   open?: boolean;
@@ -16,8 +18,12 @@ export function ChatPanel({ open: controlledOpen, onOpenChange }: ChatPanelProps
   const isOpen = controlledOpen !== undefined ? controlledOpen : internalOpen;
   const setIsOpen = onOpenChange || setInternalOpen;
 
+  const t = useT();
   const { send } = useSocket();
   const chatMessages = useGameStore(s => s.chatMessages);
+  const myPlayerId = useGameStore(s => s.myPlayerId);
+  const mutedPlayerIds = useSettingsStore(s => s.mutedPlayerIds);
+  const toggleMutePlayer = useSettingsStore(s => s.toggleMutePlayer);
   const [inputValue, setInputValue] = useState("");
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
@@ -83,9 +89,11 @@ export function ChatPanel({ open: controlledOpen, onOpenChange }: ChatPanelProps
               )}
               {chatMessages.map((msg, i) => {
                 const isEmoji = msg.message.length <= 2 && /[\u{1F600}-\u{1F64F}\u{1F300}-\u{1F5FF}\u{1F680}-\u{1F6FF}\u{1F1E0}-\u{1F1FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}]/u.test(msg.message);
+                const isOwn = msg.playerId === myPlayerId;
+                const isMuted = mutedPlayerIds.includes(msg.playerId);
                 return (
                   <motion.div key={i} initial={{ opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
-                    className="flex gap-2">
+                    className="flex gap-2 group">
                     <div className="w-6 h-6 rounded-full flex items-center justify-center text-[9px] font-bold shrink-0"
                       style={{ background: `hsl(${msg.nickname.charCodeAt(0) * 37 % 360}, 60%, 40%)` }}>
                       {msg.nickname.charAt(0).toUpperCase()}
@@ -94,6 +102,17 @@ export function ChatPanel({ open: controlledOpen, onOpenChange }: ChatPanelProps
                       <div className="flex items-center gap-1.5 mb-0.5">
                         <span className="text-[10px] font-semibold text-[#8899AB] truncate">{msg.nickname}</span>
                         <span className="text-[8px] text-[#3A4A5A]">{new Date(msg.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        {/* 🎯 Mute (2026-04-28): 본인 X / 봇 X / 다른 인간만 — hover 시 표시 */}
+                        {!isOwn && !msg.playerId.startsWith('bot_') && (
+                          <button
+                            onClick={() => toggleMutePlayer(msg.playerId)}
+                            className="ml-auto opacity-0 group-hover:opacity-100 transition-opacity p-0.5 rounded hover:bg-white/10"
+                            title={isMuted ? t('chat.unmute', '음소거 해제') : t('chat.mute', '이 사용자 음소거')}>
+                            {isMuted
+                              ? <Volume2 className="w-3 h-3 text-[#34D399]" />
+                              : <VolumeX className="w-3 h-3 text-[#6B7A90]" />}
+                          </button>
+                        )}
                       </div>
                       <div className={`text-[11px] ${isEmoji ? 'text-2xl' : 'text-[#C0C8D4]'}`}>
                         {msg.message}

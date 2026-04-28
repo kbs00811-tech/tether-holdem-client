@@ -809,7 +809,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
       case 'ALLIN_EQUITY':
         set({ equities: msg.equities });
         break;
-      case 'CHAT_MESSAGE':
+      case 'CHAT_MESSAGE': {
+        // 🎯 Mute (2026-04-28): mutedPlayerIds 에 있는 사용자 메시지/이모지 무시
+        try {
+          const { useSettingsStore } = require('./settingsStore');
+          const muted = useSettingsStore.getState().mutedPlayerIds;
+          if (muted.includes((msg as any).playerId)) break;
+        } catch {}
         set(s => ({
           chatMessages: [...s.chatMessages.slice(-49), {
             playerId: msg.playerId, nickname: msg.nickname,
@@ -819,6 +825,7 @@ export const useGameStore = create<GameStore>((set, get) => ({
         }));
         playSound('click');
         break;
+      }
       case 'EMPTY_SEATS':
         set({ emptySeats: (msg as any).seats || [] });
         break;

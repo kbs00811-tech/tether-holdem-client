@@ -22,6 +22,9 @@ interface SettingsState {
   //   ask: 매번 4초 modal 로 사용자 선택
   //   auto-muck: caller 일 때 자동 muck (last aggressor 는 룰상 강제 show)
   showMuckMode: 'auto-show' | 'ask' | 'auto-muck';
+  // 🎯 Mute (2026-04-28): 차단한 사용자 playerId 목록 (채팅/이모지 모두 숨김)
+  //   localStorage 영속 — 다른 룸 입장해도 유지
+  mutedPlayerIds: string[];
   // V3 P2B2: Run It Twice/Thrice 선호 설정
   runItMode: 'off' | 'twice' | 'thrice';
   // V3 P2C1: 커스텀 닉네임 (한글/영어 2~16자) — 빈 문자열이면 서버 기본값 사용
@@ -38,6 +41,8 @@ interface SettingsState {
   setCardAnimations: (v: boolean) => void;
   setHapticEnabled: (v: boolean) => void;
   setShowMuckMode: (mode: 'auto-show' | 'ask' | 'auto-muck') => void;
+  toggleMutePlayer: (playerId: string) => void;
+  isPlayerMuted: (playerId: string) => boolean;
   setRunItMode: (m: 'off' | 'twice' | 'thrice') => void;
   setNickname: (n: string) => void;
   setCountryCode: (code: string | null) => void;
@@ -59,6 +64,7 @@ function saveSettings(state: Partial<SettingsState>) {
       soundEnabled: state.soundEnabled, musicEnabled: state.musicEnabled, cardAnimations: state.cardAnimations,
       hapticEnabled: state.hapticEnabled,
       showMuckMode: state.showMuckMode,
+      mutedPlayerIds: state.mutedPlayerIds,
       runItMode: state.runItMode,
       nickname: state.nickname,
       countryCode: state.countryCode,
@@ -112,6 +118,7 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   cardAnimations: saved.cardAnimations ?? true,
   hapticEnabled: (saved as any).hapticEnabled ?? true,
   showMuckMode: (saved as any).showMuckMode ?? 'auto-show',
+  mutedPlayerIds: (saved as any).mutedPlayerIds ?? [],
   runItMode: (saved as any).runItMode ?? 'off',
   nickname: (saved as any).nickname ?? '',
   countryCode: (saved as any).countryCode ?? null,
@@ -130,6 +137,17 @@ export const useSettingsStore = create<SettingsState>((set, get) => ({
   setMusicEnabled: (v) => set(s => { const n = { ...s, musicEnabled: v }; saveSettings(n); return n; }),
   setCardAnimations: (v) => set(s => { const n = { ...s, cardAnimations: v }; saveSettings(n); return n; }),
   setHapticEnabled: (v) => set(s => { const n = { ...s, hapticEnabled: v }; saveSettings(n); return n; }),
+  toggleMutePlayer: (playerId) => set(s => {
+    const muted = s.mutedPlayerIds.includes(playerId);
+    const next = muted
+      ? s.mutedPlayerIds.filter(id => id !== playerId)
+      : [...s.mutedPlayerIds, playerId];
+    const n = { ...s, mutedPlayerIds: next };
+    saveSettings(n);
+    return n;
+  }),
+  isPlayerMuted: (playerId) => get().mutedPlayerIds.includes(playerId),
+
   setShowMuckMode: (mode) => set(s => {
     const n = { ...s, showMuckMode: mode };
     saveSettings(n);
