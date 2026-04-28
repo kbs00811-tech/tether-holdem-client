@@ -22,8 +22,8 @@ const cardSkinList = [
 
 export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
   const {
-    avatar, cardSkin, soundEnabled, musicEnabled, cardAnimations, runItMode, nickname, countryCode, tableFelt,
-    setAvatar, setCardSkin, setSoundEnabled, setMusicEnabled, setCardAnimations, setRunItMode, setNickname, setCountryCode, setTableFelt,
+    avatar, cardSkin, soundEnabled, musicEnabled, cardAnimations, runItMode, nickname, countryCode, tableFelt, showMuckMode,
+    setAvatar, setCardSkin, setSoundEnabled, setMusicEnabled, setCardAnimations, setRunItMode, setNickname, setCountryCode, setTableFelt, setShowMuckMode,
   } = useSettingsStore();
 
   // V3 P2C1: 로컬 input state — 타이핑 중엔 store 동기화 하지 않고, blur/Enter 에서 저장
@@ -289,6 +289,37 @@ export function SettingsModal({ open, onOpenChange }: SettingsModalProps) {
                       {m === 'off' ? 'OFF' : m === 'twice' ? 'x2' : 'x3'}
                     </button>
                   ))}
+                </div>
+              </div>
+
+              {/* 🎯 Show/Muck 모드 (2026-04-28) — 쇼다운 카드 공개 정책 */}
+              <div className="px-3 py-2.5 rounded-lg"
+                style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.04)" }}>
+                <div className="flex items-center gap-2 mb-2">
+                  <Check className="h-4 w-4 text-[#A78BFA]" />
+                  <span className="text-xs text-[#8899AB]">쇼다운 카드 공개</span>
+                  <span className="ml-auto text-[9px] text-[#4A5A70] uppercase tracking-wider">caller 만 적용</span>
+                </div>
+                <div className="grid grid-cols-3 gap-1.5">
+                  {(['auto-show', 'ask', 'auto-muck'] as const).map(m => (
+                    <button key={m}
+                      onClick={() => setShowMuckMode(m)}
+                      className="py-1.5 rounded-md text-[10px] font-black tracking-wider transition-all"
+                      style={{
+                        background: showMuckMode === m
+                          ? "linear-gradient(135deg, rgba(167,139,250,0.3), rgba(139,92,246,0.3))"
+                          : "rgba(255,255,255,0.03)",
+                        border: showMuckMode === m
+                          ? "1px solid rgba(167,139,250,0.55)"
+                          : "1px solid rgba(255,255,255,0.06)",
+                        color: showMuckMode === m ? "#A78BFA" : "#6B7A8F",
+                      }}>
+                      {m === 'auto-show' ? '항상 공개' : m === 'ask' ? '매번 묻기' : '항상 머크'}
+                    </button>
+                  ))}
+                </div>
+                <div className="text-[9px] text-[#4A5A70] mt-1.5 leading-tight">
+                  마지막 베팅 한 사람은 룰상 강제 공개 — caller(콜만 한 사람) 만 선택 가능
                 </div>
               </div>
             </div>

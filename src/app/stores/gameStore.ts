@@ -888,6 +888,13 @@ export const useGameStore = create<GameStore>((set, get) => ({
           setTimeout(() => set({ showMuckPrompt: false }), 4000);
         }
         break;
+      case 'SHOW_OR_MUCK_REQUEST' as any:
+        // 🎯 (2026-04-28) 쇼다운 ask 모드 — caller 일 때 reveal 선택 modal
+        //   서버가 sendToPlayer 로 본인에게만 송신하므로 playerId 체크 불필요
+        set({ showMuckPrompt: true });
+        playSound('click');
+        setTimeout(() => set({ showMuckPrompt: false }), 4000);
+        break;
       case 'RUN_IT_TWICE':
         // 서버에서 두 번째 보드 결과 수신
         break;

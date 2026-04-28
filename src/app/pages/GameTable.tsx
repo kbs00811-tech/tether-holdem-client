@@ -4186,12 +4186,23 @@ export default function GameTable() {
             style={{ background: "rgba(20,24,32,0.95)", border: "1px solid rgba(52,211,153,0.15)", backdropFilter: "blur(12px)" }}>
             <div className="text-[10px] text-[#6B7A90] text-center mb-2">Show your cards?</div>
             <div className="flex gap-3">
-              <button onClick={() => { send({ type: 'SHOW_CARDS' }); useGameStore.setState({ showMuckPrompt: false }); playSound('click'); }}
+              <button onClick={() => {
+                  // 🎯 두 케이스 모두 처리: uncontested win = SHOW_CARDS, 쇼다운 ask = SHOW_OR_MUCK_RESPONSE
+                  send({ type: 'SHOW_CARDS' } as any);
+                  send({ type: 'SHOW_OR_MUCK_RESPONSE', show: true } as any);
+                  useGameStore.setState({ showMuckPrompt: false });
+                  playSound('click');
+                }}
                 className="px-4 py-2 rounded-lg text-xs font-bold text-[#34D399]"
                 style={{ background: "rgba(52,211,153,0.1)", border: "1px solid rgba(52,211,153,0.2)" }}>
                 Show
               </button>
-              <button onClick={() => { send({ type: 'MUCK_CARDS' }); useGameStore.setState({ showMuckPrompt: false }); playSound('click'); }}
+              <button onClick={() => {
+                  send({ type: 'MUCK_CARDS' } as any);
+                  send({ type: 'SHOW_OR_MUCK_RESPONSE', show: false } as any);
+                  useGameStore.setState({ showMuckPrompt: false });
+                  playSound('click');
+                }}
                 className="px-4 py-2 rounded-lg text-xs font-bold text-[#6B7A90]"
                 style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)" }}>
                 Muck
