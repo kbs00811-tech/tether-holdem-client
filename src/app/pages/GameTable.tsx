@@ -2202,16 +2202,15 @@ export default function GameTable() {
                 const bx = 50 + (sx - 50) * 0.42;
                 const by = 50 + (sy - 50) * 0.42;
                 // p.bet 은 이미 GameTable 상단에서 /100 된 외부 KRW 값
-                // 칩 개수는 BB 대비 비율로 결정 — 2~5개
+                // 🚨 fix(2026-04-28): 칩 개수 단순화 — 어지러움 방지
+                //   이전: 2~6개 + 5색 혼합 → "정신없음" 사용자 피드백
+                //   현재: 2~3개 + 단일 main 색 (sub 1개만 accent)
                 const bbExternal = (gameState?.bigBlind ?? 0) / 100;
                 const betRatio = bbExternal > 0 ? p.bet / bbExternal : 1;
-                const chipCount = Math.min(6, Math.max(2, Math.ceil(betRatio)));
-                // V19: 리얼한 칩 스택 — 금액별 다른 색상 혼합 (카지노처럼)
+                const chipCount = Math.min(3, Math.max(2, Math.ceil(betRatio / 5))); // 5BB당 1칩, max 3
                 const chipColors = (() => {
                   const main = getChipColorByValue(p.bet);
-                  const sub = getChipColorByValue(p.bet * 0.3);
-                  const accent = getChipColorByValue(p.bet * 0.1);
-                  return [main, main, sub, main, accent, sub];
+                  return [main, main, main]; // 단색 통일 — 카지노 표준
                 })();
                 const chipSize = isDesktop ? 20 : 11;
                 const chipStackW = isDesktop ? 22 : 13;
@@ -2523,13 +2522,14 @@ export default function GameTable() {
               </motion.button>
             )}
 
-            {/* ===== CHIP FLY — V19.1: 직선 비행 + 다색 칩 ===== */}
+            {/* ===== CHIP FLY — V19.1: 직선 비행 + 다색 칩
+                 🚨 fix(2026-04-28): 5색→2색 + 갯수 축소 (정신없음 해소) ===== */}
             <AnimatePresence>
               {flyingChips.map(chip => {
                 const seatPos = seatPositionsData[chip.fromSeat] ?? [50, 100];
-                const chipCount = chip.action === 'allin' ? 5 : chip.action === 'raise' ? 3 : 2;
-                const chipColors = ['gold', 'green', 'red', 'purple', 'blue'];
+                const chipCount = chip.action === 'allin' ? 3 : chip.action === 'raise' ? 2 : 1;
                 const mainColor = getChipColorByValue(chip.amount);
+                const chipColors = [mainColor, mainColor, 'gold']; // 단색 + accent 1
 
                 return Array.from({ length: chipCount }).map((_, ci) => {
                   const color = ci === 0 ? mainColor : chipColors[ci % chipColors.length]!;
@@ -3133,18 +3133,27 @@ export default function GameTable() {
                 initial={{ opacity: 0, y: -4 }}
                 animate={{ opacity: 1, y: 0 }}
                 key={`hand-${hand.rank}-${hand.description}`}
-                className="flex flex-col items-center mt-1"
+                className="flex flex-col items-center mt-1.5 gap-1"
               >
-                <div className="px-2.5 py-0.5 rounded-full text-center"
-                  style={{ background: c.bg, border: `1px solid ${c.border}` }}>
-                  <span className="text-[9px] sm:text-[10px] font-black tracking-wide" style={{ color: c.text }}>
+                {/* 🚨 fix(2026-04-28): 모바일 가독성 — 폰트 큼 + drop-shadow + 박스 더 두께 */}
+                <div className="px-3 py-1 rounded-full text-center"
+                  style={{
+                    background: c.bg,
+                    border: `1.5px solid ${c.border}`,
+                    boxShadow: `0 2px 8px ${c.border}40`,
+                  }}>
+                  <span className="text-[12px] sm:text-[13px] font-black tracking-wide"
+                    style={{ color: c.text, textShadow: `0 0 6px ${c.text}40` }}>
                     {hand.description}
                   </span>
                 </div>
                 {hand.draws && hand.draws.length > 0 && (
-                  <span className="text-[8px] text-[#60A5FA] mt-0.5 font-medium">
-                    + {hand.draws.join(' · ')}
-                  </span>
+                  <div className="px-2 py-0.5 rounded-full"
+                    style={{ background: 'rgba(96,165,250,0.15)', border: '1px solid rgba(96,165,250,0.3)' }}>
+                    <span className="text-[10px] sm:text-[11px] font-bold text-[#60A5FA]">
+                      🎯 {hand.draws.join(' · ')}
+                    </span>
+                  </div>
                 )}
               </motion.div>
             );
