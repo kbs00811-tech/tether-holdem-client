@@ -45,6 +45,8 @@ export default function GameTable() {
   const runItBoards = useGameStore(s => s.runItBoards);
   const lastActions = useGameStore(s => s.lastActions);
   const allInBanner = useGameStore(s => s.allInBanner);
+  // 🎯 (2026-04-28) 채팅 메시지 구독 — 단일 이모지면 좌석 위 floating 발화
+  const chatMessages = useGameStore(s => s.chatMessages);
   const dramaticMoment = useGameStore(s => s.dramaticMoment);
   const timeBankActive = useGameStore(s => s.timeBankActive);
   const headsupInvite = useGameStore(s => s.headsupInvite);
@@ -79,7 +81,15 @@ export default function GameTable() {
 
   const [raiseAmount, setRaiseAmount] = useState(400);
   const [showChat, setShowChat] = useState(false);
-  const [floatingEmoji, setFloatingEmoji] = useState<{ emoji: string; seat: number; key: number } | null>(null);
+  // 🎯 (2026-04-28) 다중 floating emoji — 좌석별 동시 표시 (본인 + 타인)
+  const [floatingEmojis, setFloatingEmojis] = useState<Array<{ id: number; emoji: string; seat: number }>>([]);
+  // legacy 호환 — 일부 코드가 setFloatingEmoji 호출 → push wrapper
+  const setFloatingEmoji = (item: { emoji: string; seat: number; key: number } | null) => {
+    if (!item) { setFloatingEmojis([]); return; }
+    const id = item.key;
+    setFloatingEmojis(prev => [...prev.filter(f => f.seat !== item.seat), { id, emoji: item.emoji, seat: item.seat }]);
+    setTimeout(() => setFloatingEmojis(prev => prev.filter(f => f.id !== id)), 2500);
+  };
   const [showBuyInModal, setShowBuyInModal] = useState(false);
   const [isMuted, setIsMuted] = useState(isSoundMuted());
   const [showVolume, setShowVolume] = useState(false);
@@ -518,6 +528,31 @@ export default function GameTable() {
   const isWaitingForBB = myServerStatus === "WAIT_BB";
 
   const myStack = heroSeat >= 0 ? (serverPlayers.find(p => p.seat === heroSeat)?.stack ?? 0) : 0;
+
+  // 🎯 (2026-04-28) 채팅 메시지가 단일 이모지면 → 송신자 좌석 위에 floating
+  //   regex: emoji 1~3자 (graphic + variation selector + ZWJ 고려)
+  //   같은 사용자 1초 쿨다운 (스팸 방지) — chatMessages 큐 자체 push 시점 기준
+  const lastChatTsRef = useRef<number>(0);
+  useEffect(() => {
+    if (chatMessages.length === 0) return;
+    const last = chatMessages[chatMessages.length - 1]!;
+    if (last.time <= lastChatTsRef.current) return;
+    lastChatTsRef.current = last.time;
+    const msg = (last.message || '').trim();
+    // 단일 이모지 감지 — Unicode property + 길이 ≤ 8 chars
+    const isEmojiOnly = msg.length > 0 && msg.length <= 8 && /^\p{Extended_Pictographic}(‍\p{Extended_Pictographic})*️?$/u.test(msg);
+    if (!isEmojiOnly) return;
+    // 송신자 좌석 lookup
+    const sender = serverPlayers.find(p => p.id === last.playerId);
+    if (!sender) return;
+    setFloatingEmojis(prev => {
+      const id = Date.now() + Math.floor(Math.random() * 1000);
+      const next = [...prev.filter(f => f.seat !== sender.seat), { id, emoji: msg, seat: sender.seat }];
+      // 2.5초 후 자동 remove
+      setTimeout(() => setFloatingEmojis(p => p.filter(f => f.id !== id)), 2500);
+      return next;
+    });
+  }, [chatMessages, serverPlayers]);
 
   // ★ seated 상태 = 서버에 내가 있는지 (heroSeat >= 0). 자동 동기화 — 수동 setSeated 의존성 제거
   useEffect(() => {
@@ -4193,25 +4228,36 @@ export default function GameTable() {
 
       {/* ===== Floating Emoji Animation — 플레이어 위에 큰 이모티콘 팝업 ===== */}
       <AnimatePresence>
-        {floatingEmoji && (
-          <motion.div
-            key={floatingEmoji.key}
-            className="fixed z-[100] pointer-events-none"
-            style={{ left: "50%", top: "40%" }}
-            initial={{ scale: 0, opacity: 0, y: 20 }}
-            animate={{ scale: [0, 1.5, 1.2], opacity: [0, 1, 1], y: [20, -20, -40] }}
-            exit={{ scale: 2, opacity: 0, y: -80 }}
-            transition={{ duration: 2, ease: "easeOut" }}
-          >
-            <div style={{ transform: "translate(-50%, -50%)", textAlign: "center" }}>
-              <motion.span style={{ fontSize: 80, display: "block" }}
-                animate={{ rotate: [0, -10, 10, -5, 0] }}
-                transition={{ duration: 0.5, delay: 0.3 }}>
-                {floatingEmoji.emoji}
-              </motion.span>
-            </div>
-          </motion.div>
-        )}
+        {/* 🎯 (2026-04-28) 좌석별 다중 floating — 본인 + 타인 동시 표시 */}
+        {floatingEmojis.map(f => {
+          const pos = seatPositionsData[f.seat];
+          if (!pos) return null;
+          const [xPct, yPct] = pos;
+          return (
+            <motion.div
+              key={f.id}
+              className="absolute z-[100] pointer-events-none"
+              style={{ left: `${xPct}%`, top: `${yPct}%` }}
+              initial={{ scale: 0, opacity: 0, y: 0 }}
+              animate={{ scale: [0, 1.4, 1.1], opacity: [0, 1, 1], y: [0, -50, -70] }}
+              exit={{ scale: 1.5, opacity: 0, y: -100 }}
+              transition={{ duration: 2.4, ease: "easeOut" }}
+            >
+              <div style={{ transform: "translate(-50%, -100%)" }}>
+                <motion.span
+                  style={{
+                    fontSize: 56,
+                    display: "block",
+                    filter: "drop-shadow(0 6px 14px rgba(0,0,0,0.6)) drop-shadow(0 0 12px rgba(255,255,255,0.1))",
+                  }}
+                  animate={{ rotate: [0, -10, 10, -5, 0] }}
+                  transition={{ duration: 0.6, delay: 0.2 }}>
+                  {f.emoji}
+                </motion.span>
+              </div>
+            </motion.div>
+          );
+        })}
       </AnimatePresence>
 
       {/* 🎯 Show/Muck Prompt (2026-04-28): GG포커 표준 — ACTION PANEL 안에 통합됨 (위 isMyTurn 분기) */}
