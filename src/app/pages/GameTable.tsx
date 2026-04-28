@@ -1005,16 +1005,19 @@ export default function GameTable() {
   // 좌표는 (cx + rx*cos, cy + ry*sin) — 각도는 12시부터 시계방향
   // 실제값: 하단 중앙에서 시작 → 우하 → 우상 → 상 → 좌상 → 좌하 순(시계방향)
   // V20: GG포커 데스크탑 좌표 (실측 기반)
+  // 🚨 fix(2026-04-28): 데스크탑 좌석 테이블 테두리로 확장 (공간 넓게 + 카드 크게)
+  //   이전: x=5~95 / y=12~88 (안쪽으로 밀집)
+  //   현재: x=2~98 / y=8~92 (테두리 가까이)
   const HERO_LAYOUT_9_LANDSCAPE: [number, number][] = [
-    [50,  88],    // 0: hero (6시)
-    [15,  78],    // 1: 7~8시
-    [5,   55],    // 2: 9시 (왼쪽)
-    [8,   30],    // 3: 10~11시
-    [35,  12],    // 4: 11~12시
-    [65,  12],    // 5: 12~1시
-    [92,  30],    // 6: 1~2시
-    [95,  55],    // 7: 3시 (오른쪽)
-    [85,  78],    // 8: 4~5시
+    [50,  92],    // 0: hero (6시) — 더 아래
+    [12,  82],    // 1: 7~8시 — 더 좌하
+    [3,   55],    // 2: 9시 (왼쪽) — 테두리 가까이
+    [5,   28],    // 3: 10~11시 — 더 좌측
+    [33,  9],     // 4: 11~12시 — 더 위
+    [67,  9],     // 5: 12~1시 — 더 위
+    [95,  28],    // 6: 1~2시 — 더 우측
+    [97,  55],    // 7: 3시 (오른쪽) — 테두리 가까이
+    [88,  82],    // 8: 4~5시 — 더 우하
   ];
   const HERO_LAYOUT_9 = isDesktop ? HERO_LAYOUT_9_LANDSCAPE : HERO_LAYOUT_9_PORTRAIT;
 
@@ -4259,7 +4262,8 @@ export default function GameTable() {
           const pos = seatPositionsData[f.seat];
           if (!pos) return null;
           const [xPct, yPct] = pos;
-          // 좌측 좌석(x<50)이면 우측에 말풍선, 우측 좌석이면 좌측에 — 카드 안 가리도록
+          // 좌측 좌석(x<50)이면 우측에 말풍선, 우측 좌석이면 좌측에 — 아바타 바로 옆
+          // 🚨 fix(2026-04-28): 너무 벗어남 → 아바타 바로 옆 (좌측 +50%/우측 -150%)
           const isLeftSide = xPct < 50;
           return (
             <motion.div
@@ -4268,11 +4272,15 @@ export default function GameTable() {
               style={{
                 left: `${xPct}%`,
                 top: `${yPct}%`,
-                transform: `translate(${isLeftSide ? '20%' : '-120%'}, -120%)`, // 아바타 옆
+                // translate(X, Y): 아바타가 (xPct, yPct) 중심이고, 아바타 크기 ~80px (좌석 박스)
+                // 좌측 좌석: 아바타 우측 가장자리에 붙임 (+50%)
+                // 우측 좌석: 아바타 좌측 가장자리에 붙임 (-150%)
+                // Y는 -50% 로 아바타 정 중앙 높이
+                transform: `translate(${isLeftSide ? '60%' : '-160%'}, -50%)`,
               }}
-              initial={{ scale: 0, opacity: 0, y: 10 }}
-              animate={{ scale: [0, 1.15, 1], opacity: [0, 1, 1], y: [10, -2, -2] }}
-              exit={{ scale: 0.8, opacity: 0, y: -10 }}
+              initial={{ scale: 0, opacity: 0, x: isLeftSide ? -10 : 10 }}
+              animate={{ scale: [0, 1.15, 1], opacity: [0, 1, 1], x: 0 }}
+              exit={{ scale: 0.8, opacity: 0 }}
               transition={{ duration: 3.2, ease: "easeOut", times: [0, 0.15, 1] }}
             >
               {/* 말풍선 카드 — 아바타 가리키는 꼬리 */}

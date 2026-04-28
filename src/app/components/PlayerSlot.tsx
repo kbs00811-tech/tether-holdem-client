@@ -71,7 +71,8 @@ export function PlayerSlot({ playerId, player, isCurrentTurn, timeLeft = 100, tu
   const isXLDesktop = typeof window !== 'undefined' && window.innerWidth >= 1600;
   const isMobile = typeof window !== 'undefined' && window.innerWidth < 480;
   // ★ 데스크탑 해상도별 avatar 크기: 68(md) / 84(xl, ≥1280) / 96(2xl, ≥1600)
-  const avatarSize = isXLDesktop ? 96 : isLargeDesktop ? 84 : isDesktop ? 68 : isMobile ? 42 : 52;
+  // 🚨 fix(2026-04-28): 데스크탑 아바타 사이즈 업 (테두리 확장 좌표와 함께 공간 활용)
+  const avatarSize = isXLDesktop ? 112 : isLargeDesktop ? 100 : isDesktop ? 84 : isMobile ? 42 : 60;
   const [showAvatarMenu, setShowAvatarMenu] = useState(false);
 
   // ===== 라이브 카운트다운 (버그1 수정) =====
@@ -240,13 +241,13 @@ export function PlayerSlot({ playerId, player, isCurrentTurn, timeLeft = 100, tu
                       transform: "rotate(-6deg) translateX(1px)",
                       ...(isWinner ? { border: '2px solid rgba(255,215,0,0.5)', borderRadius: 6 } : {}),
                     }}>
-                      <PokerCard suit={shownCards[0]!.suit} rank={shownCards[0]!.rank as any} size={isLargeDesktop ? "lg" : isDesktop ? "md" : "xs"} />
+                      <PokerCard suit={shownCards[0]!.suit} rank={shownCards[0]!.rank as any} size={isLargeDesktop ? "xl" : isDesktop ? "lg" : "xs"} />
                     </div>
                     <div style={{
                       transform: "rotate(6deg) translateX(-1px)", marginLeft: isLargeDesktop ? -10 : isDesktop ? -7 : -4,
                       ...(isWinner ? { border: '2px solid rgba(255,215,0,0.5)', borderRadius: 6 } : {}),
                     }}>
-                      <PokerCard suit={shownCards[1]!.suit} rank={shownCards[1]!.rank as any} size={isLargeDesktop ? "lg" : isDesktop ? "md" : "xs"} />
+                      <PokerCard suit={shownCards[1]!.suit} rank={shownCards[1]!.rank as any} size={isLargeDesktop ? "xl" : isDesktop ? "lg" : "xs"} />
                     </div>
                   </>
                 ) : (
@@ -266,10 +267,10 @@ export function PlayerSlot({ playerId, player, isCurrentTurn, timeLeft = 100, tu
             ) : (
               <div className="flex" style={{ gap: 0 }}>
                 <div style={{ transform: "rotate(-6deg) translateX(1px)" }}>
-                  <PokerCard suit="spades" rank="A" faceDown size={isLargeDesktop ? "lg" : isDesktop ? "md" : "xs"} />
+                  <PokerCard suit="spades" rank="A" faceDown size={isLargeDesktop ? "xl" : isDesktop ? "lg" : "xs"} />
                 </div>
                 <div style={{ transform: "rotate(6deg) translateX(-1px)", marginLeft: isLargeDesktop ? -10 : isDesktop ? -7 : -4 }}>
-                  <PokerCard suit="spades" rank="A" faceDown size={isLargeDesktop ? "lg" : isDesktop ? "md" : "xs"} />
+                  <PokerCard suit="spades" rank="A" faceDown size={isLargeDesktop ? "xl" : isDesktop ? "lg" : "xs"} />
                 </div>
               </div>
             )}
