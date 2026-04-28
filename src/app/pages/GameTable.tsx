@@ -3493,12 +3493,41 @@ export default function GameTable() {
               )}
             </div>
           ) : showMuckPrompt ? (
-            /* 🎯 Show/Muck (2026-04-28): GG포커 표준 — 베팅 액션 영역에 통합 */
+            /* 🎯 Show/Muck (2026-04-28): GG포커 표준 — 베팅 액션 영역에 통합
+                Show 1 카드 옵션 추가 (Show 1 / Show 2 / Show All / Muck 4-way) */
             <div className="py-3">
               <div className="text-[10px] text-[#A78BFA] text-center mb-2 uppercase tracking-widest font-black">
                 Show your cards?
               </div>
-              <div className="flex gap-2">
+              <div className="flex gap-1.5">
+                <motion.button whileTap={{ scale: 0.93 }}
+                  onClick={() => {
+                    send({ type: 'SHOW_CARDS', cardIndex: 0 } as any);
+                    send({ type: 'SHOW_OR_MUCK_RESPONSE', show: true } as any);
+                    useGameStore.setState({ showMuckPrompt: false });
+                    playSound('click');
+                  }}
+                  className="flex-1 py-3 sm:py-3.5 rounded-xl"
+                  style={{
+                    background: "linear-gradient(180deg, #34D399 0%, #1F8A5A 100%)",
+                    boxShadow: "0 4px 14px rgba(52,211,153,0.25)",
+                  }}>
+                  <span className="text-white text-[10px] sm:text-[11px] font-black uppercase tracking-wider">👁 1st</span>
+                </motion.button>
+                <motion.button whileTap={{ scale: 0.93 }}
+                  onClick={() => {
+                    send({ type: 'SHOW_CARDS', cardIndex: 1 } as any);
+                    send({ type: 'SHOW_OR_MUCK_RESPONSE', show: true } as any);
+                    useGameStore.setState({ showMuckPrompt: false });
+                    playSound('click');
+                  }}
+                  className="flex-1 py-3 sm:py-3.5 rounded-xl"
+                  style={{
+                    background: "linear-gradient(180deg, #34D399 0%, #1F8A5A 100%)",
+                    boxShadow: "0 4px 14px rgba(52,211,153,0.25)",
+                  }}>
+                  <span className="text-white text-[10px] sm:text-[11px] font-black uppercase tracking-wider">👁 2nd</span>
+                </motion.button>
                 <motion.button whileTap={{ scale: 0.93 }}
                   onClick={() => {
                     send({ type: 'SHOW_CARDS' } as any);
@@ -3506,14 +3535,12 @@ export default function GameTable() {
                     useGameStore.setState({ showMuckPrompt: false });
                     playSound('click');
                   }}
-                  className="flex-1 py-3.5 sm:py-4 rounded-xl active:brightness-110 relative overflow-hidden"
+                  className="flex-1 py-3 sm:py-3.5 rounded-xl"
                   style={{
-                    background: "linear-gradient(180deg, #1F8A5A 0%, #34D399 100%)",
-                    boxShadow: "0 4px 14px rgba(52,211,153,0.3), inset 0 1px 0 rgba(255,255,255,0.15)",
+                    background: "linear-gradient(180deg, #FBBF24 0%, #F59E0B 100%)",
+                    boxShadow: "0 4px 14px rgba(251,191,36,0.3)",
                   }}>
-                  <span className="text-white text-[13px] sm:text-[14px] font-black uppercase tracking-widest">
-                    👁 Show
-                  </span>
+                  <span className="text-white text-[10px] sm:text-[11px] font-black uppercase tracking-wider">👁 All</span>
                 </motion.button>
                 <motion.button whileTap={{ scale: 0.93 }}
                   onClick={() => {
@@ -3522,14 +3549,12 @@ export default function GameTable() {
                     useGameStore.setState({ showMuckPrompt: false });
                     playSound('click');
                   }}
-                  className="flex-1 py-3.5 sm:py-4 rounded-xl active:brightness-110 relative overflow-hidden"
+                  className="flex-1 py-3 sm:py-3.5 rounded-xl"
                   style={{
                     background: "linear-gradient(180deg, #4A5A70 0%, #2A3A50 100%)",
-                    boxShadow: "0 4px 14px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.05)",
+                    boxShadow: "0 4px 14px rgba(0,0,0,0.3)",
                   }}>
-                  <span className="text-white text-[13px] sm:text-[14px] font-black uppercase tracking-widest">
-                    🚫 Muck
-                  </span>
+                  <span className="text-white text-[10px] sm:text-[11px] font-black uppercase tracking-wider">🚫 Muck</span>
                 </motion.button>
               </div>
             </div>
