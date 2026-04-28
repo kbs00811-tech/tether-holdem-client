@@ -2202,15 +2202,16 @@ export default function GameTable() {
                 const bx = 50 + (sx - 50) * 0.42;
                 const by = 50 + (sy - 50) * 0.42;
                 // p.bet 은 이미 GameTable 상단에서 /100 된 외부 KRW 값
-                // 🚨 fix(2026-04-28): 칩 개수 단순화 — 어지러움 방지
-                //   이전: 2~6개 + 5색 혼합 → "정신없음" 사용자 피드백
-                //   현재: 2~3개 + 단일 main 색 (sub 1개만 accent)
+                // 칩 개수는 BB 대비 비율로 결정 — 2~5개
                 const bbExternal = (gameState?.bigBlind ?? 0) / 100;
                 const betRatio = bbExternal > 0 ? p.bet / bbExternal : 1;
-                const chipCount = Math.min(3, Math.max(2, Math.ceil(betRatio / 5))); // 5BB당 1칩, max 3
+                const chipCount = Math.min(6, Math.max(2, Math.ceil(betRatio)));
+                // V19: 리얼한 칩 스택 — 금액별 다른 색상 혼합 (카지노처럼)
                 const chipColors = (() => {
                   const main = getChipColorByValue(p.bet);
-                  return [main, main, main]; // 단색 통일 — 카지노 표준
+                  const sub = getChipColorByValue(p.bet * 0.3);
+                  const accent = getChipColorByValue(p.bet * 0.1);
+                  return [main, main, sub, main, accent, sub];
                 })();
                 const chipSize = isDesktop ? 20 : 11;
                 const chipStackW = isDesktop ? 22 : 13;
@@ -2522,14 +2523,13 @@ export default function GameTable() {
               </motion.button>
             )}
 
-            {/* ===== CHIP FLY — V19.1: 직선 비행 + 다색 칩
-                 🚨 fix(2026-04-28): 5색→2색 + 갯수 축소 (정신없음 해소) ===== */}
+            {/* ===== CHIP FLY — V19.1: 직선 비행 + 다색 칩 ===== */}
             <AnimatePresence>
               {flyingChips.map(chip => {
                 const seatPos = seatPositionsData[chip.fromSeat] ?? [50, 100];
-                const chipCount = chip.action === 'allin' ? 3 : chip.action === 'raise' ? 2 : 1;
+                const chipCount = chip.action === 'allin' ? 5 : chip.action === 'raise' ? 3 : 2;
+                const chipColors = ['gold', 'green', 'red', 'purple', 'blue'];
                 const mainColor = getChipColorByValue(chip.amount);
-                const chipColors = [mainColor, mainColor, 'gold']; // 단색 + accent 1
 
                 return Array.from({ length: chipCount }).map((_, ci) => {
                   const color = ci === 0 ? mainColor : chipColors[ci % chipColors.length]!;
