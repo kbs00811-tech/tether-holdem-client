@@ -41,24 +41,28 @@ export function ChatPanel({ open: controlledOpen, onOpenChange }: ChatPanelProps
     send({ type: 'CHAT', message: emoji });
   };
 
+  // 🚨 fix(2026-04-28): controlled 모드 (open prop 전달) 시 자체 floating 버튼 숨김 — 중복 방지
+  //   GameTable 에서 <ChatPanel open={...} /> 로 호출하면 GameTable 의 메뉴 채팅 버튼만 사용
+  const isControlled = controlledOpen !== undefined;
+
   return (
     <>
-      {/* 🚨 fix(2026-04-28): floating 버튼 위치 변경 — 우하단(RAISE 가림) → 우중간 (베팅 영역 보호)
-          모바일/데스크탑 공통: top 50% (테이블 우측 가운데) */}
-      <button onClick={() => setIsOpen(!isOpen)}
-        className="fixed top-1/2 right-3 -translate-y-1/2 z-40 w-11 h-11 rounded-full flex items-center justify-center shadow-lg"
-        style={{
-          background: isOpen ? "rgba(239,68,68,0.15)" : "linear-gradient(135deg, #FF6B35, #E85D2C)",
-          border: isOpen ? "1px solid rgba(239,68,68,0.2)" : "none",
-          boxShadow: isOpen ? "none" : "0 4px 15px rgba(255,107,53,0.3)",
-        }}>
-        {isOpen ? <X className="h-5 w-5 text-[#EF4444]" /> : <MessageCircle className="h-5 w-5 text-white" />}
-        {!isOpen && chatMessages.length > 0 && (
-          <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#EF4444] text-white text-[8px] font-bold flex items-center justify-center">
-            {Math.min(chatMessages.length, 9)}
-          </span>
-        )}
-      </button>
+      {!isControlled && (
+        <button onClick={() => setIsOpen(!isOpen)}
+          className="fixed top-1/2 right-3 -translate-y-1/2 z-40 w-11 h-11 rounded-full flex items-center justify-center shadow-lg"
+          style={{
+            background: isOpen ? "rgba(239,68,68,0.15)" : "linear-gradient(135deg, #FF6B35, #E85D2C)",
+            border: isOpen ? "1px solid rgba(239,68,68,0.2)" : "none",
+            boxShadow: isOpen ? "none" : "0 4px 15px rgba(255,107,53,0.3)",
+          }}>
+          {isOpen ? <X className="h-5 w-5 text-[#EF4444]" /> : <MessageCircle className="h-5 w-5 text-white" />}
+          {!isOpen && chatMessages.length > 0 && (
+            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-[#EF4444] text-white text-[8px] font-bold flex items-center justify-center">
+              {Math.min(chatMessages.length, 9)}
+            </span>
+          )}
+        </button>
+      )}
 
       {/* Panel */}
       <AnimatePresence>

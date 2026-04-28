@@ -2466,30 +2466,38 @@ export default function GameTable() {
                   </motion.span>
                 </motion.div>
 
-                {/* V3 P2B1: Side pot 뱃지 — 2개 이상일 때만 표시 */}
+                {/* 🚨 fix(2026-04-28): 사이드팟 시각 정리
+                    - 단일 행 (flex-wrap 제거)
+                    - 모바일 폰트 작게 + padding 축소
+                    - 데스크탑은 기존 사이즈 유지 */}
                 {((gameState as any)?.sidePots?.length ?? 0) >= 2 && (
-                  <div className="flex gap-1.5 flex-wrap justify-center">
-                    {((gameState as any).sidePots as any[]).slice(1).map((sp, idx) => (
+                  <div className="flex gap-1 justify-center max-w-full overflow-x-auto px-2 no-scrollbar">
+                    {((gameState as any).sidePots as any[]).slice(1, 4).map((sp, idx) => (
                       <motion.div
                         key={`side-${idx}`}
                         initial={{ scale: 0.8, opacity: 0, y: -4 }}
                         animate={{ scale: 1, opacity: 1, y: 0 }}
                         transition={{ delay: idx * 0.08 }}
-                        className="px-2.5 py-0.5 rounded-full flex items-center gap-1.5"
+                        className="px-1.5 sm:px-2.5 py-0.5 rounded-full flex items-center gap-1 shrink-0"
                         style={{
                           background: "linear-gradient(135deg, rgba(20,14,30,0.9), rgba(30,20,40,0.9))",
                           backdropFilter: "blur(8px)",
                           border: "1px solid rgba(139,92,246,0.35)",
                         }}
                       >
-                        <span className="text-[8px] text-[#8B5CF6] font-bold uppercase tracking-wider">
-                          SIDE{idx + 1}
+                        <span className="text-[7px] sm:text-[8px] text-[#8B5CF6] font-bold uppercase tracking-wider">
+                          S{idx + 1}
                         </span>
-                        <span className="text-[11px] font-mono font-black" style={{ color: "#C4B5FD" }}>
-                          {getSymbol()}{(sp.amount / 100).toLocaleString()}
+                        <span className="text-[9px] sm:text-[11px] font-mono font-black" style={{ color: "#C4B5FD" }}>
+                          {formatMoney(sp.amount / 100)}
                         </span>
                       </motion.div>
                     ))}
+                    {((gameState as any).sidePots as any[]).length > 4 && (
+                      <span className="text-[8px] text-[#8B5CF6] flex items-center px-1">
+                        +{((gameState as any).sidePots as any[]).length - 4}
+                      </span>
+                    )}
                   </div>
                 )}
               </motion.div>
@@ -4271,8 +4279,10 @@ export default function GameTable() {
           const pos = seatPositionsData[f.seat];
           if (!pos) return null;
           const [xPct, yPct] = pos;
-          // 좌측 좌석(x<50)이면 우측에 말풍선, 우측 좌석이면 좌측에 — 아바타 바로 옆
-          // 🚨 fix(2026-04-28): 너무 벗어남 → 아바타 바로 옆 (좌측 +50%/우측 -150%)
+          // 🚨 fix(2026-04-28 v2): 데스크탑 아바타 사이즈 업(112px) 으로 % 좌표만으론 부족
+          //   → translate 값을 아바타 픽셀 사이즈 기반 px 로 보강
+          //   좌측 좌석(x<50): 우측에 말풍선 — 아바타 우측 가장자리 (+ 작은 gap)
+          //   우측 좌석: 좌측에 말풍선
           const isLeftSide = xPct < 50;
           return (
             <motion.div
@@ -4281,11 +4291,12 @@ export default function GameTable() {
               style={{
                 left: `${xPct}%`,
                 top: `${yPct}%`,
-                // translate(X, Y): 아바타가 (xPct, yPct) 중심이고, 아바타 크기 ~80px (좌석 박스)
-                // 좌측 좌석: 아바타 우측 가장자리에 붙임 (+50%)
-                // 우측 좌석: 아바타 좌측 가장자리에 붙임 (-150%)
-                // Y는 -50% 로 아바타 정 중앙 높이
-                transform: `translate(${isLeftSide ? '60%' : '-160%'}, -50%)`,
+                // 픽셀 단위로 아바타 옆 정확히 배치 (% 만으론 사이즈 변화 시 어긋남)
+                // 데스크탑 아바타 ~110px → 옆으로 65px 이동 = 아바타 가장자리 + 10px gap
+                // 모바일 아바타 ~42px → 옆으로 28px 이동
+                transform: isLeftSide
+                  ? `translate(50px, -50%)`   // 우측으로 50px (아바타 가장자리 부근)
+                  : `translate(calc(-100% - 50px), -50%)`,
               }}
               initial={{ scale: 0, opacity: 0, x: isLeftSide ? -10 : 10 }}
               animate={{ scale: [0, 1.15, 1], opacity: [0, 1, 1], x: 0 }}
