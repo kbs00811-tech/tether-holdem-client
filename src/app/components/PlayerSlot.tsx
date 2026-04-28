@@ -2,10 +2,13 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { motion, AnimatePresence } from "motion/react";
 import { PokerCard } from "./PokerCard";
-import { WifiOff, Plus, DollarSign, Smile, LogOut, Settings } from "lucide-react";
+import { WifiOff, Plus, DollarSign, Smile, LogOut, Settings, StickyNote } from "lucide-react";
+import { useNoteStore, NOTE_COLORS, type NoteColor } from "../stores/noteStore";
 
 interface PlayerSlotProps {
   position: number;
+  // 🎯 Note (2026-04-28) — 메모 lookup 용 playerId
+  playerId?: string;
   player?: {
     name: string;
     stack: number;
@@ -55,7 +58,13 @@ const avatarGlyphs = ["₿", "Ξ", "₮", "◆", "忍", "</>", "♦", "♛", "�
  * 처음: 카드 2장 바로 오픈 (플립 애니메이션)
  */
 
-export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, turnDeadline, turnTotalMs = 30000, isHero, position, onSitDown, hideCards, isDealingNow, shownCards, isWinner, onTopUp, onEmoji, onSitOut, recentAction }: PlayerSlotProps) {
+export function PlayerSlot({ playerId, player, isCurrentTurn, timeLeft = 100, turnDeadline, turnTotalMs = 30000, isHero, position, onSitDown, hideCards, isDealingNow, shownCards, isWinner, onTopUp, onEmoji, onSitOut, recentAction }: PlayerSlotProps) {
+  // 🎯 Note (2026-04-28): 본인이 아닌 다른 사용자에 대한 메모 조회
+  const note = useNoteStore(s => playerId && !isHero && !playerId.startsWith('bot_') ? s.notes[playerId] : null);
+  const noteSetter = useNoteStore(s => s.setNote);
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [noteDraft, setNoteDraft] = useState('');
+  const [noteColorDraft, setNoteColorDraft] = useState<NoteColor>('none');
   const navigate = useNavigate();
   const isDesktop = typeof window !== 'undefined' && window.innerWidth >= 768;
   const isLargeDesktop = typeof window !== 'undefined' && window.innerWidth >= 1280;
@@ -852,6 +861,95 @@ export function PlayerSlot({ player, isCurrentTurn, timeLeft = 100, turnDeadline
                   </div>
                 </div>
               )}
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* 🎯 Note (2026-04-28): 컬러 점 (메모 있을 때) — 클릭 시 모달 */}
+      {!isHero && playerId && !playerId.startsWith('bot_') && (
+        <button
+          onClick={(e) => {
+            e.stopPropagation();
+            setNoteDraft(note?.text ?? '');
+            setNoteColorDraft(note?.color ?? 'none');
+            setShowNoteModal(true);
+          }}
+          className="absolute z-20"
+          style={{
+            top: -2, right: -2,
+            width: 14, height: 14,
+            borderRadius: '50%',
+            background: note ? NOTE_COLORS[note.color].hex : 'rgba(255,255,255,0.1)',
+            border: `1.5px solid ${note ? '#FFFFFF' : 'rgba(255,255,255,0.25)'}`,
+            boxShadow: note ? `0 0 6px ${NOTE_COLORS[note.color].hex}80` : 'none',
+            cursor: 'pointer',
+          }}
+          title={note?.text || '메모 추가'}
+        >
+          {!note && <span style={{ fontSize: 8, color: 'rgba(255,255,255,0.6)', display: 'block' }}>+</span>}
+        </button>
+      )}
+
+      {/* Note 편집 모달 */}
+      <AnimatePresence>
+        {showNoteModal && playerId && (
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-black/70 p-4"
+            onClick={() => setShowNoteModal(false)}>
+            <motion.div initial={{ scale: 0.9 }} animate={{ scale: 1 }} exit={{ scale: 0.9 }}
+              onClick={(e) => e.stopPropagation()}
+              className="rounded-2xl p-5 w-full max-w-[340px]"
+              style={{
+                background: "linear-gradient(180deg, #141820, #0B1018)",
+                border: "1px solid rgba(255,255,255,0.08)",
+                boxShadow: "0 20px 60px rgba(0,0,0,0.7)",
+              }}>
+              <div className="flex items-center gap-2 mb-3">
+                <StickyNote className="w-4 h-4 text-[#FBBF24]" />
+                <div className="text-sm font-bold text-white">{player?.name} 메모</div>
+              </div>
+              {/* 컬러 라벨 */}
+              <div className="grid grid-cols-6 gap-1.5 mb-3">
+                {(['none', 'red', 'orange', 'yellow', 'green', 'blue'] as NoteColor[]).map(c => (
+                  <button key={c}
+                    onClick={() => setNoteColorDraft(c)}
+                    className="h-9 rounded-lg flex items-center justify-center transition-all"
+                    style={{
+                      background: c === 'none' ? 'rgba(255,255,255,0.05)' : NOTE_COLORS[c].hex,
+                      border: noteColorDraft === c ? '2px solid #FFFFFF' : '1px solid rgba(255,255,255,0.1)',
+                      opacity: noteColorDraft === c ? 1 : 0.6,
+                    }}>
+                    {c === 'none' && <span className="text-[10px] text-[#6B7A90]">없음</span>}
+                  </button>
+                ))}
+              </div>
+              <div className="text-[10px] text-[#6B7A90] mb-2">{NOTE_COLORS[noteColorDraft].label}</div>
+              {/* 메모 텍스트 */}
+              <textarea
+                value={noteDraft}
+                onChange={(e) => setNoteDraft(e.target.value.slice(0, 200))}
+                placeholder="메모 입력 (최대 200자)..."
+                className="w-full h-20 p-2 rounded-lg text-xs text-white outline-none mb-3"
+                style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)" }}
+              />
+              <div className="text-[9px] text-[#4A5A70] text-right mb-2">{noteDraft.length}/200</div>
+              <div className="flex gap-2">
+                <button onClick={() => setShowNoteModal(false)}
+                  className="flex-1 py-2 rounded-lg text-[12px] font-bold text-[#6B7A90]"
+                  style={{ background: "rgba(255,255,255,0.04)" }}>
+                  취소
+                </button>
+                <button
+                  onClick={() => {
+                    noteSetter(playerId, noteDraft, noteColorDraft);
+                    setShowNoteModal(false);
+                  }}
+                  className="flex-1 py-2 rounded-lg text-[12px] font-black text-white"
+                  style={{ background: "linear-gradient(180deg, #FBBF24, #F59E0B)" }}>
+                  저장
+                </button>
+              </div>
             </motion.div>
           </motion.div>
         )}

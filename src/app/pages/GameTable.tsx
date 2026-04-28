@@ -2152,6 +2152,7 @@ export default function GameTable() {
                   zIndex: i === heroSeat ? 45 : 30,
                 }}>
                   <PlayerSlot position={i} player={player} isHero={i === heroSeat}
+                    playerId={serverPlayers.find(p => p.seat === i)?.id}
                     isDealingNow={forceDealAnim > 0}
                     hideCards={phase === 'WAITING' || phase === 'RESULT'}
                     {...(() => {
